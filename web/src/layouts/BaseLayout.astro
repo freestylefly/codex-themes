@@ -1,0 +1,128 @@
+---
+import appIcon from "../../../assets/presets/blue-window-messenger/mascot.png";
+import bluePreview from "../../../assets/presets/blue-window-messenger/preview.png";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import InstallFallback from "../components/InstallFallback.astro";
+import type { Locale } from "../lib/i18n";
+import { SITE_NAME, SITE_URL } from "../config";
+import "../styles/global.css";
+
+interface Props {
+  locale: Locale;
+  title?: string;
+  description: string;
+  image?: ImageMetadata;
+}
+
+const { locale, title, description, image = bluePreview } = Astro.props;
+const pageTitle = title ? `${title} · ${SITE_NAME}` : `${SITE_NAME} · 给 Codex 换一种工作心情`;
+const canonical = new URL(Astro.url.pathname, SITE_URL);
+const alternatePath =
+  locale === "zh"
+    ? Astro.url.pathname === "/"
+      ? "/en/"
+      : `/en${Astro.url.pathname}`
+    : Astro.url.pathname.replace(/^\/en(?=\/|$)/, "") || "/";
+const alternate = new URL(alternatePath, SITE_URL);
+const socialImage = new URL(image.src, SITE_URL);
+---
+
+<!doctype html>
+<html lang={locale === "zh" ? "zh-CN" : "en"}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8f7f3" />
+    <meta name="description" content={description} />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={locale === "zh" ? "en" : "zh-CN"} href={alternate} />
+    <link rel="alternate" hreflang="x-default" href={new URL("/", SITE_URL)} />
+    <link rel="icon" type="image/png" href={appIcon.src} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">{locale === "zh" ? "跳到正文" : "Skip to content"}</a>
+    <Header locale={locale} pathname={Astro.url.pathname} />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer locale={locale} />
+    <InstallFallback locale={locale} />
+    <script>
+      const menuButton = document.querySelector("[data-menu-button]");
+      const menu = document.querySelector("[data-mobile-menu]");
+      menuButton?.addEventListener("click", () => {
+        const expanded = menuButton.getAttribute("aria-expanded") === "true";
+        menuButton.setAttribute("aria-expanded", String(!expanded));
+        menu?.toggleAttribute("data-open", !expanded);
+      });
+
+      const modal = document.querySelector("[data-install-modal]");
+      const closeButtons = document.querySelectorAll("[data-install-close]");
+      const retryButton = document.querySelector("[data-install-retry]");
+      let activeDeepLink = "";
+      let fallbackTimer = 0;
+      let previousFocus: Element | null = null;
+
+      const closeModal = () => {
+        modal?.setAttribute("hidden", "");
+        document.body.classList.remove("modal-open");
+        if (previousFocus instanceof HTMLElement) previousFocus.focus();
+      };
+
+      const showModal = () => {
+        if (!modal) return;
+        previousFocus = document.activeElement;
+        modal.removeAttribute("hidden");
+        document.body.classList.add("modal-open");
+        modal.querySelector("button")?.focus();
+      };
+
+      const launch = (url: string) => {
+        activeDeepLink = url;
+        window.clearTimeout(fallbackTimer);
+        let leftPage = false;
+        const onVisibility = () => {
+          if (document.hidden) {
+            leftPage = true;
+            window.clearTimeout(fallbackTimer);
+          }
+        };
+        document.addEventListener("visibilitychange", onVisibility, { once: true });
+        window.location.href = url;
+        fallbackTimer = window.setTimeout(() => {
+          document.removeEventListener("visibilitychange", onVisibility);
+          if (!leftPage && !document.hidden) showModal();
+        }, 1500);
+      };
+
+      document.querySelectorAll("[data-deep-link]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const url = button.getAttribute("data-deep-link");
+          if (url) launch(url);
+        });
+      });
+
+      closeButtons.forEach((button) => button.addEventListener("click", closeModal));
+      retryButton?.addEventListener("click", () => activeDeepLink && launch(activeDeepLink));
+      modal?.addEventListener("click", (event) => {
+        if (event.target === modal) closeModal();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal && !modal.hasAttribute("hidden")) closeModal();
+      });
+    </script>
+  </body>
+</html>

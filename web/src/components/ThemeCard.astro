@@ -1,0 +1,31 @@
+---
+import { Image } from "astro:assets";
+import type { Locale } from "../lib/i18n";
+import { copy, href, localizeTheme } from "../lib/i18n";
+import type { WebTheme } from "../lib/themes";
+
+const { theme, locale } = Astro.props as { theme: WebTheme; locale: Locale };
+const item = localizeTheme(theme, locale);
+const t = copy[locale];
+---
+
+<article class="theme-card">
+  <a class="theme-card-image" href={href(locale, `/themes/${item.id}`)} aria-label={`${t.viewTheme}: ${item.name}`}>
+    <Image
+      src={item.preview}
+      alt={`${item.name} Codex theme preview`}
+      widths={[480, 720, 960]}
+      sizes="(max-width: 720px) 100vw, (max-width: 1040px) 50vw, 33vw"
+      format="webp"
+      loading="lazy"
+    />
+  </a>
+  <div class="theme-card-copy">
+    <div class="theme-card-meta">
+      <span>{item.layout.replaceAll("-", " ")}</span>
+      <span>v{item.version}</span>
+    </div>
+    <h3><a href={href(locale, `/themes/${item.id}`)}>{item.name}</a></h3>
+    <p>{item.description}</p>
+  </div>
+</article>

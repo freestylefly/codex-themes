@@ -1,0 +1,6 @@
+interface:
+  display_name: "AI Theme Studio"
+  short_description: "Generate hero images and structured recipes for Codex Themes"
+  default_prompt: "Use $generate-codex-theme. Follow the skill instructions exactly, read the references, and output a valid Theme Recipe JSON matching the schema."
+policy:
+  allow_implicit_invocation: false

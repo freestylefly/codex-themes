@@ -1,0 +1,31 @@
+---
+import { GITHUB_REPO_URL } from "../config";
+import { href, type Locale } from "../lib/i18n";
+const { locale } = Astro.props as { locale: Locale };
+---
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">Codex Themes</div>
+      <p>
+        {locale === "zh"
+          ? "一个本地运行的 Codex 桌面端主题工具。"
+          : "A local-first theme tool for the Codex desktop app."}
+      </p>
+    </div>
+    <div class="footer-links">
+      <a href={href(locale, "/themes")}>{locale === "zh" ? "浏览主题" : "Browse themes"}</a>
+      <a href={href(locale, "/download")}>{locale === "zh" ? "下载应用" : "Download app"}</a>
+      <a href={GITHUB_REPO_URL}>GitHub</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Codex Themes · MIT License</span>
+    <span>
+      {locale === "zh"
+        ? "独立项目，与 OpenAI 无隶属或背书关系。"
+        : "Independent project. Not affiliated with or endorsed by OpenAI."}
+    </span>
+  </div>
+</footer>

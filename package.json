@@ -1,0 +1,49 @@
+{
+  "name": "codex-themes",
+  "version": "0.1.0",
+  "description": "Desktop theme manager for the OpenAI Codex desktop app (CDP injection, no patching)",
+  "type": "module",
+  "main": "dist/main/index.js",
+  "license": "MIT",
+  "author": "canghe",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "dev:web": "astro dev --root web",
+    "build": "electron-vite build",
+    "build:web": "astro check --root web && astro build --root web",
+    "preview": "electron-vite preview",
+    "preview:web": "astro preview --root web",
+    "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit && astro check --root web",
+    "test": "esbuild electron/deep-links.test.ts electron/engine/theme.test.ts electron/ai/ai.test.ts electron/engine/package-safety.test.ts --bundle --platform=node --format=esm --external:adm-zip --alias:electron=./electron/test-stubs/electron-stub.ts --outdir=tmp/tests --out-extension:.js=.mjs && node --test \"tmp/tests/**/*.test.mjs\"",
+    "gen:presets": "node scripts/gen-presets.mjs",
+    "verify:machine": "esbuild scripts/verify-real-machine.mts --bundle --platform=node --format=esm --external:adm-zip --outfile=tmp/verify-real-machine.mjs && node tmp/verify-real-machine.mjs",
+    "dist": "electron-vite build && node scripts/build-dist.mjs",
+    "dist:dir": "electron-vite build && node scripts/build-dist.mjs --dir"
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.0",
+    "electron-updater": "^6.8.9",
+    "lucide-react": "^1.24.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/sitemap": "^3.6.0",
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "astro": "^5.16.6",
+    "electron": "^43.1.1",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

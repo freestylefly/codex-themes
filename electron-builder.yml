@@ -1,0 +1,45 @@
+appId: com.codexthemes.app
+productName: Codex Themes
+directories:
+  output: release
+  buildResources: assets/build
+files:
+  - dist/**
+  - package.json
+extraResources:
+  - from: assets/inject
+    to: assets/inject
+  - from: assets/presets
+    to: assets/presets
+  - from: assets/skills
+    to: assets/skills
+  - from: assets/tray
+    to: assets/tray
+asarUnpack: []
+fileAssociations:
+  - ext: codextheme
+    name: Codex Theme Package
+    description: Codex Themes package
+    role: Editor
+    isPackage: true
+protocols:
+  - name: Codex Themes
+    schemes:
+      - codexthemes
+mac:
+  category: public.app-category.utilities
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: false
+  identity: null
+dmg:
+  artifactName: Codex-Themes-${version}-mac-${arch}.${ext}
+artifactName: Codex-Themes-${version}-${os}-${arch}.${ext}
+npmRebuild: false
+# Auto-update feed (M4). Publish GitHub Releases for this repo; unsigned
+# builds skip updating gracefully at runtime.
+publish:
+  provider: github
+  owner: freestylefly
+  repo: codex-themes

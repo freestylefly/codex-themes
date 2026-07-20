@@ -1,0 +1,26 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ThemeCard from "./ThemeCard.astro";
+import { copy, type Locale } from "../lib/i18n";
+import { themes } from "../lib/themes";
+
+const { locale } = Astro.props as { locale: Locale };
+const t = copy[locale];
+const description =
+  locale === "zh"
+    ? "浏览 Codex Themes 内置的 11 款官方主题，并从网页一键打开桌面应用。"
+    : "Browse all 11 official Codex Themes presets and open any one directly in the desktop app.";
+---
+
+<BaseLayout locale={locale} title={t.navThemes} description={description}>
+  <section class="page-intro section-shell">
+    <div class="section-kicker">{locale === "zh" ? "11 款官方内置主题" : "11 OFFICIAL BUILT-IN THEMES"}</div>
+    <h1>{locale === "zh" ? "每一种专注，都可以有自己的空间。" : "A workspace for every kind of focus."}</h1>
+    <p>{description}</p>
+  </section>
+  <section class="section-shell gallery-section">
+    <div class="theme-grid">
+      {themes.map((theme) => <ThemeCard theme={theme} locale={locale} />)}
+    </div>
+  </section>
+</BaseLayout>

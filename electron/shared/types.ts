@@ -1,0 +1,636 @@
+/**
+ * Shared contracts between main process, preload and renderer.
+ * Keep this file dependency-free and types-only (plus tiny const enums),
+ * it is imported from both Node (electron/) and browser (src/) code.
+ */
+
+/** ---------------------------------------------------------------------- */
+/** Colors                                                                */
+/** ---------------------------------------------------------------------- */
+
+export interface ThemeColors {
+  background: string;
+  panel: string;
+  panelAlt: string;
+  accent: string;
+  accentAlt: string;
+  secondary: string;
+  highlight: string;
+  text: string;
+  muted: string;
+  line: string;
+}
+
+/** v2 canonical palette. */
+export interface ThemePalette {
+  background: string;
+  panel: string;
+  panelAlt: string;
+  surface: string;
+  text: string;
+  muted: string;
+  border: string;
+  accent: string;
+  accentAlt: string;
+  secondary: string;
+  highlight: string;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Layout                                                                */
+/** ---------------------------------------------------------------------- */
+
+export const LAYOUT_KINDS = [
+  "dream-banner",
+  "split-studio",
+  "full-canvas",
+  "terminal-grid",
+  "paper-board",
+  "minimal-focus",
+  "retro-messenger",
+] as const;
+
+export type LayoutKind = (typeof LAYOUT_KINDS)[number];
+
+/** ---------------------------------------------------------------------- */
+/** Schema v1 (legacy, fully compatible with Codex-Dream-Skin)            */
+/** ---------------------------------------------------------------------- */
+
+export interface ThemeConfigV1 {
+  schemaVersion: 1;
+  id: string;
+  name: string;
+  brandSubtitle: string;
+  tagline: string;
+  projectPrefix: string;
+  projectLabel: string;
+  statusText: string;
+  quote: string;
+  image: string;
+  colors: ThemeColors;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Schema v2                                                             */
+/** ---------------------------------------------------------------------- */
+
+export type ImageFit = "cover" | "contain";
+export type TextAlign = "left" | "center" | "right";
+export type RadiusPreset = "none" | "sm" | "md" | "lg" | "xl";
+export type DensityPreset = "compact" | "normal" | "spacious";
+export type FontPreset = "system" | "rounded" | "mono";
+export type ShadowPreset = "none" | "sm" | "md" | "lg";
+
+export interface ThemeEffectLevels {
+  particles?: number;
+  aurora?: number;
+  glow?: number;
+  noise?: number;
+  grid?: number;
+  float?: number;
+}
+
+export interface ThemeConfigV2 {
+  schemaVersion: 2;
+  /** Stable UUID for the theme. */
+  uuid: string;
+  /** Display / filesystem id (kept for backwards compatibility). */
+  id: string;
+  /** Semantic version. */
+  version: string;
+  /** Minimum Codex Themes engine version required. */
+  minEngineVersion: string;
+  name: string;
+  description: string;
+  tagline: string;
+  tags: string[];
+
+  /** Resource filenames (all bare filenames inside the theme dir). */
+  hero: string;
+  wallpaper?: string;
+  stamp?: string;
+  preview?: string;
+
+  /** Palettes. */
+  light: ThemePalette;
+  dark?: ThemePalette;
+
+  /** Layout skeleton. */
+  layout: LayoutKind;
+
+  /** Hero image parameters. */
+  heroFit: ImageFit;
+  heroFocusX: number;
+  heroFocusY: number;
+  heroZoom: number;
+  heroHeight: number;
+  heroTextAlign: TextAlign;
+  heroScrim: number;
+
+  /** Wallpaper parameters. */
+  wallpaperEnabled: boolean;
+  wallpaperFocusX: number;
+  wallpaperFocusY: number;
+  wallpaperOpacity: number;
+  wallpaperBlur: number;
+
+  /** Appearance parameters. */
+  radius: RadiusPreset;
+  density: DensityPreset;
+  fontPreset: FontPreset;
+  glass: boolean;
+  shadow: ShadowPreset;
+  decoration: number;
+
+  /** Built-in effects and their intensity (0 = off, 1 = full). */
+  effects: ThemeEffectLevels;
+
+  /** Optional Ed25519 signature (base64) of the canonical theme.json. */
+  signature?: string;
+
+  /** Copy / labels. */
+  brandSubtitle: string;
+  projectPrefix: string;
+  projectLabel: string;
+  statusText: string;
+  quote: string;
+}
+
+/** Raw theme config loaded from disk: v1 legacy or v2 structured. */
+export type ThemeConfig = ThemeConfigV1 | ThemeConfigV2;
+
+/** ---------------------------------------------------------------------- */
+/** Normalized runtime theme                                                */
+/** ---------------------------------------------------------------------- */
+
+export interface NormalizedResources {
+  hero: string;
+  wallpaper?: string;
+  stamp?: string;
+  preview?: string;
+}
+
+export interface NormalizedHero {
+  fit: ImageFit;
+  focusX: number;
+  focusY: number;
+  zoom: number;
+  height: number;
+  textAlign: TextAlign;
+  scrim: number;
+}
+
+export interface NormalizedWallpaper {
+  enabled: boolean;
+  focusX: number;
+  focusY: number;
+  opacity: number;
+  blur: number;
+}
+
+export interface NormalizedAppearance {
+  radius: RadiusPreset;
+  density: DensityPreset;
+  fontPreset: FontPreset;
+  glass: boolean;
+  shadow: ShadowPreset;
+  decoration: number;
+}
+
+export interface NormalizedEffects {
+  particles: number;
+  aurora: number;
+  glow: number;
+  noise: number;
+  grid: number;
+  float: number;
+}
+
+export interface NormalizedCopy {
+  brandSubtitle: string;
+  projectPrefix: string;
+  projectLabel: string;
+  statusText: string;
+  quote: string;
+}
+
+export interface NormalizedTheme {
+  schemaVersion: 2;
+  uuid: string;
+  id: string;
+  version: string;
+  minEngineVersion: string;
+  name: string;
+  description: string;
+  tagline: string;
+  tags: string[];
+  resources: NormalizedResources;
+  light: ThemePalette;
+  dark: ThemePalette;
+  layout: LayoutKind;
+  hero: NormalizedHero;
+  wallpaper: NormalizedWallpaper;
+  appearance: NormalizedAppearance;
+  effects: NormalizedEffects;
+  copy: NormalizedCopy;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Library / UI summaries                                                */
+/** ---------------------------------------------------------------------- */
+
+export type ThemeSource = "preset" | "custom" | "imported";
+
+export interface ThemeSummary {
+  id: string;
+  uuid: string;
+  name: string;
+  tagline: string;
+  description: string;
+  version: string;
+  layout: LayoutKind;
+  source: ThemeSource;
+  /** Whether the theme is read-only (built-in / imported). */
+  readOnly: boolean;
+  /** Whether the package passed local validation. */
+  valid: boolean;
+  /** Whether the package carries a market signature. Kept for compatibility; always false now. */
+  signed: boolean;
+  /** Minimum engine version required. */
+  minEngineVersion: string;
+  /** Absolute directory holding theme.json + assets. */
+  dir: string;
+  /** theme-image:// URL usable as <img src> in the renderer. */
+  previewUrl: string;
+  colors: ThemePalette;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Runtime / app state                                                   */
+/** ---------------------------------------------------------------------- */
+
+export interface CodexDesktopStatus {
+  installed: boolean;
+  bundlePath: string | null;
+  version: string | null;
+  running: boolean;
+  cdpPort: number | null;
+  cdpHealthy: boolean;
+}
+
+export interface CodexCliStatus {
+  installed: boolean;
+  executablePath: string | null;
+  version: string | null;
+  supported: boolean;
+  appServerRunning: boolean;
+  authenticated: boolean;
+  authMode: string | null;
+  imageGeneration: boolean | null;
+  error: string | null;
+}
+
+export interface AppState {
+  codexDesktop: CodexDesktopStatus;
+  codexCli: CodexCliStatus;
+  activeThemeId: string | null;
+  activeThemeName: string | null;
+  activeLayout: LayoutKind | null;
+  watcherActive: boolean;
+  applying: boolean;
+  lastError: string | null;
+  engineVersion: string;
+}
+
+export type ApplyStatus = "applied" | "partial" | "failed";
+
+export interface ApplyResult {
+  ok: boolean;
+  status: ApplyStatus;
+  /** True when Codex had to (and did) restart with the debug port. */
+  restarted: boolean;
+  /** True when Codex is running without CDP and user consent is required. */
+  needsRestart: boolean;
+  notes: string[];
+  error?: string;
+}
+
+/** Safe action passed from the public web deep link to the renderer. */
+export interface OpenThemeAction {
+  type: "open-theme";
+  themeId: string;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Image / palette extraction                                            */
+/** ---------------------------------------------------------------------- */
+
+export interface ExtractedPalette {
+  accent: string;
+  accentAlt: string;
+  secondary: string;
+  highlight: string;
+}
+
+export interface PickedImage {
+  path: string;
+  /** theme-image:// or data: URL for preview. */
+  previewUrl: string;
+  palette: ExtractedPalette;
+  bytes: number;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Editor inputs                                                         */
+/** ---------------------------------------------------------------------- */
+
+export interface CustomThemeInput {
+  name: string;
+  tagline: string;
+  quote: string;
+  statusText?: string;
+  colors: Pick<ThemeColors, "accent" | "accentAlt" | "secondary" | "highlight">;
+  /** Absolute path of the chosen background image on disk. */
+  imagePath: string;
+}
+
+/** Draft for the v2 theme studio. */
+export interface ThemeDraftInput {
+  uuid?: string;
+  name: string;
+  description: string;
+  tagline: string;
+  tags: string[];
+  layout: LayoutKind;
+  colors: ExtractedPalette;
+  heroFit: ImageFit;
+  heroFocusX: number;
+  heroFocusY: number;
+  heroZoom: number;
+  heroHeight: number;
+  heroTextAlign: TextAlign;
+  heroScrim: number;
+  wallpaperEnabled: boolean;
+  wallpaperFocusX: number;
+  wallpaperFocusY: number;
+  wallpaperOpacity: number;
+  wallpaperBlur: number;
+  radius: RadiusPreset;
+  density: DensityPreset;
+  fontPreset: FontPreset;
+  glass: boolean;
+  shadow: ShadowPreset;
+  decoration: number;
+  effects: NormalizedEffects;
+  copy: NormalizedCopy;
+  /** Optional explicit light/dark palettes. When provided, they override the
+   * derivation from `colors` during save. This lets advanced users edit every
+   * shell color directly. */
+  palettes?: { light: ThemePalette; dark: ThemePalette };
+  /** Absolute path of the hero image on disk. */
+  heroImagePath: string;
+  /** Optional absolute path of a wallpaper image on disk. */
+  wallpaperImagePath?: string;
+  /** Optional absolute path of a stamp image on disk. */
+  stampImagePath?: string;
+}
+
+/** A saved theme loaded back into the editor for in-place editing. */
+export interface LoadedThemeDraft {
+  /** The theme id updateTheme() must target; the ID/UUID stay stable. */
+  editingId: string;
+  source: ThemeSource;
+  draft: ThemeDraftInput;
+  heroPreviewUrl: string;
+  wallpaperPreviewUrl: string | null;
+  stampPreviewUrl: string | null;
+}
+
+/** ---------------------------------------------------------------------- */
+/** AI theme generation                                                   */
+/** ---------------------------------------------------------------------- */
+
+export type AiThemeJobStage =
+  | "created"
+  | "preparing"
+  | "generating-images"
+  | "awaiting-selection"
+  | "generating-recipe"
+  | "synthesizing"
+  | "preview-ready"
+  | "saving"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export interface ThemeGenerationRequest {
+  prompt: string;
+  mode: "generate-image" | "use-reference-image" | "recipe-only";
+  appearance: "auto" | "light" | "dark";
+  layoutPreference?: LayoutKind;
+  candidateCount: 1 | 2 | 3;
+  referenceImagePath?: string;
+}
+
+export interface ThemeGenerationRecipe {
+  schemaVersion: 1;
+  name: string;
+  description: string;
+  tagline: string;
+  tags: string[];
+  layout: LayoutKind;
+  hero: {
+    fit: ImageFit;
+    focusX: number;
+    focusY: number;
+    zoom: number;
+    height: number;
+    textAlign: TextAlign;
+    scrim: number;
+  };
+  wallpaper: {
+    enabled: boolean;
+    focusX: number;
+    focusY: number;
+    opacity: number;
+    blur: number;
+  };
+  appearance: {
+    radius: RadiusPreset;
+    density: DensityPreset;
+    fontPreset: FontPreset;
+    glass: boolean;
+    shadow: ShadowPreset;
+    decoration: number;
+  };
+  effects: NormalizedEffects;
+  copy: NormalizedCopy;
+  paletteIntent: {
+    appearance: "light" | "dark";
+    contrast: "soft" | "normal" | "high";
+    temperature: "cool" | "neutral" | "warm";
+  };
+}
+
+export interface AiThemeCandidate {
+  candidateId: string;
+  /** Absolute path to the generated image in the job directory. */
+  imagePath: string;
+  /** picked-image:// URL for renderer preview. */
+  previewUrl: string;
+  /** Codex item id that produced this image, for tracing. */
+  itemId?: string;
+}
+
+export interface AiThemeJob {
+  jobId: string;
+  stage: AiThemeJobStage;
+  createdAt: string;
+  updatedAt: string;
+  request: ThemeGenerationRequest;
+  threadId: string | null;
+  error: string | null;
+  candidates: AiThemeCandidate[];
+  selectedCandidateId: string | null;
+  recipe: ThemeGenerationRecipe | null;
+  /** Absolute path to the saved theme directory, once completed. */
+  savedThemeDir: string | null;
+  /** Human-readable streaming progress line from the model. */
+  progressMessage?: string;
+  /** Type of the App Server item currently being processed. */
+  progressItemType?: string;
+}
+
+export interface AiThemeJobSummary {
+  jobId: string;
+  stage: AiThemeJobStage;
+  createdAt: string;
+  updatedAt: string;
+  prompt: string;
+  selectedCandidateId: string | null;
+  savedThemeDir: string | null;
+  error: string | null;
+}
+
+export interface CodexApprovalRequest {
+  requestId: string;
+  jobId: string;
+  kind: "command" | "file" | "permissions" | "patch" | "unknown";
+  title: string;
+  detail: string;
+}
+
+export type CodexApprovalDecision = "accept" | "decline" | "cancel";
+
+/** ---------------------------------------------------------------------- */
+/** Logging / settings                                                    */
+/** ---------------------------------------------------------------------- */
+
+export interface LogLine {
+  at: string;
+  level: "info" | "warn" | "error";
+  message: string;
+}
+
+/** Settings exposed to the renderer (mirrors electron/settings.ts). */
+export interface RendererSettings {
+  onboardingDone: boolean;
+  launchAtLogin: boolean;
+  /**
+   * Re-apply the active theme automatically whenever Codex is found running
+   * without its debug port (e.g. after the user relaunches Codex normally).
+   * Enabling this is standing consent for the required Codex restart.
+   */
+  autoApply: boolean;
+  /** Absolute path to a user-selected Codex CLI executable, if any. */
+  codexCliPath: string | null;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Theme package inspection                                              */
+/** ---------------------------------------------------------------------- */
+
+export interface InspectedThemePackage {
+  /** Temporary directory where the package has been extracted for preview. */
+  tempDir: string;
+  summary: ThemeSummary;
+  /** SHA-256 of the original .codextheme file. */
+  sha256: string;
+  /** Signature status: verified / missing / invalid. Kept for compatibility; always missing now. */
+  signatureStatus: "verified" | "missing" | "invalid";
+  /** Validation warnings (low contrast, oversized assets, etc.). */
+  warnings: string[];
+  /** True if the package can be imported. */
+  canImport: boolean;
+}
+
+/** ---------------------------------------------------------------------- */
+/** Renderer-callable API surface (implemented in preload).               */
+/** ---------------------------------------------------------------------- */
+
+export interface CodexThemesApi {
+  /** Consume the next validated website deep-link action, if one is queued. */
+  consumeOpenThemeAction(): Promise<OpenThemeAction | null>;
+  getState(): Promise<AppState>;
+  getSettings(): Promise<RendererSettings>;
+  updateSettings(patch: Partial<RendererSettings>): Promise<RendererSettings>;
+  listThemes(): Promise<ThemeSummary[]>;
+  applyTheme(id: string, opts?: { confirmRestart?: boolean }): Promise<ApplyResult>;
+  restoreOfficial(): Promise<{ ok: boolean; error?: string }>;
+  openCodex(): Promise<{ ok: boolean; error?: string }>;
+
+  /** Legacy v1 simple editor save path. */
+  saveCustomTheme(input: CustomThemeInput): Promise<ThemeSummary>;
+  /** v2 studio: save a draft. */
+  saveThemeDraft(input: ThemeDraftInput): Promise<ThemeSummary>;
+  /** v2 studio: update an existing custom draft. */
+  updateTheme(id: string, input: ThemeDraftInput): Promise<ThemeSummary>;
+  /** v2 studio: load a saved theme back into the editor. */
+  loadThemeDraft(id: string): Promise<LoadedThemeDraft>;
+  /** v2 studio: duplicate any theme (generates new UUID). */
+  duplicateTheme(id: string): Promise<ThemeSummary>;
+  deleteTheme(id: string): Promise<{ ok: boolean; error?: string }>;
+
+  pickImage(): Promise<PickedImage | null>;
+  /** Inspect + register an image dropped into the editor (returns palette). */
+  inspectImage(path: string): Promise<PickedImage>;
+  /** Generate a square stamp crop from the current hero image. */
+  autoCropStamp(heroPath: string): Promise<PickedImage>;
+  extractPalette(imagePath: string): Promise<ExtractedPalette>;
+
+  /** Inspect a .codextheme package without installing it. */
+  inspectThemePackage(): Promise<InspectedThemePackage | null>;
+  /** Install a package that has already been inspected. */
+  importInspectedTheme(inspection: InspectedThemePackage, opts?: { newId?: string }): Promise<ThemeSummary>;
+  /** Legacy direct import. */
+  importThemePackage(): Promise<ThemeSummary | null>;
+  /** Drop the temp dir of a cancelled inspection. */
+  discardInspection(tempDir: string): Promise<void>;
+  exportThemePackage(id: string): Promise<string | null>;
+
+  getCodexCliStatus(): Promise<CodexCliStatus>;
+  selectCodexCli(): Promise<CodexCliStatus | null>;
+  refreshCodexCliStatus(): Promise<CodexCliStatus>;
+
+  createAiThemeJob(input: ThemeGenerationRequest): Promise<AiThemeJob>;
+  startAiThemeJob(jobId: string): Promise<void>;
+  selectAiThemeCandidate(jobId: string, candidateId: string): Promise<void>;
+  refineAiThemeJob(jobId: string, instruction: string, regenerateImage: boolean): Promise<void>;
+  cancelAiThemeJob(jobId: string): Promise<void>;
+  retryAiThemeJob(jobId: string): Promise<void>;
+  getAiThemeJob(jobId: string): Promise<AiThemeJob>;
+  listAiThemeJobs(): Promise<AiThemeJobSummary[]>;
+  deleteAiThemeJob(jobId: string): Promise<void>;
+  respondToCodexApproval(requestId: string, decision: CodexApprovalDecision): Promise<void>;
+
+  onStateChanged(cb: (state: AppState) => void): () => void;
+  /** Fired when a website deep-link action is ready to consume. */
+  onOpenThemeActionAvailable(cb: () => void): () => void;
+  onLog(cb: (line: LogLine) => void): () => void;
+  /** Fired when the app opened a .codextheme file from Finder/Dock. */
+  onPackageImported(cb: (summary: ThemeSummary) => void): () => void;
+  /** Fired when an AI theme job changes. */
+  onAiThemeJobChanged(cb: (job: AiThemeJob) => void): () => void;
+  /** Fired when Codex asks for an approval during an AI job. */
+  onCodexApprovalRequested(cb: (request: CodexApprovalRequest) => void): () => void;
+}

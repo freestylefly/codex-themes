@@ -1,0 +1,11 @@
+node_modules/
+dist/
+release/
+web/dist/
+.astro/
+.vercel/
+.claude/
+.cowork-temp/
+.DS_Store
+*.log
+tmp/

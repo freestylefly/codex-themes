@@ -1,0 +1,48 @@
+---
+import appIcon from "../../../assets/presets/blue-window-messenger/mascot.png";
+import { DOWNLOAD_URL } from "../config";
+import { alternateHref, copy, href, type Locale } from "../lib/i18n";
+
+interface Props {
+  locale: Locale;
+  pathname: string;
+}
+
+const { locale, pathname } = Astro.props;
+const t = copy[locale];
+---
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href={href(locale, "/")} aria-label="Codex Themes home">
+      <img src={appIcon.src} width="36" height="36" alt="" />
+      <span>Codex Themes</span>
+    </a>
+    <nav class="desktop-nav" aria-label={locale === "zh" ? "主导航" : "Primary navigation"}>
+      <a href={href(locale, "/themes")}>{t.navThemes}</a>
+      <a href={`${href(locale, "/")}#how-it-works`}>{t.navHow}</a>
+      <a href={`${href(locale, "/")}#faq`}>{t.navFaq}</a>
+    </nav>
+    <div class="header-actions">
+      <a class="language-link" href={alternateHref(locale, pathname)} aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}>
+        {locale === "zh" ? "EN" : "中文"}
+      </a>
+      <a class="button button-dark header-download" href={DOWNLOAD_URL}>{t.download}</a>
+      <button
+        class="menu-button"
+        type="button"
+        aria-label={locale === "zh" ? "打开导航" : "Open navigation"}
+        aria-expanded="false"
+        data-menu-button
+      >
+        {locale === "zh" ? "菜单" : "Menu"}
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" data-mobile-menu>
+    <a href={href(locale, "/themes")}>{t.navThemes}</a>
+    <a href={`${href(locale, "/")}#how-it-works`}>{t.navHow}</a>
+    <a href={`${href(locale, "/")}#faq`}>{t.navFaq}</a>
+    <a href={DOWNLOAD_URL}>{t.download}</a>
+  </nav>
+</header>

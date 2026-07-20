@@ -1,0 +1,158 @@
+---
+import { Image } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ThemeCard from "./ThemeCard.astro";
+import { DOWNLOAD_URL } from "../config";
+import { copy, href, localizeTheme, type Locale } from "../lib/i18n";
+import { themes } from "../lib/themes";
+
+const { locale } = Astro.props as { locale: Locale };
+const t = copy[locale];
+const heroTheme = themes[0];
+const hero = localizeTheme(heroTheme, locale);
+const featured = themes.slice(0, 6);
+const description =
+  locale === "zh"
+    ? "为 Codex 桌面端准备的本地主题工具。浏览官方主题、一键应用，也可以用本地 Codex CLI 生成自己的主题。"
+    : "A local-first theme tool for Codex desktop. Browse official themes, apply them in one click, or create your own with the local Codex CLI.";
+---
+
+<BaseLayout locale={locale} description={description}>
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-copy">
+      <div class="eyebrow">{locale === "zh" ? "CODEX 桌面端主题工具" : "THEME TOOL FOR CODEX DESKTOP"}</div>
+      <h1>
+        {locale === "zh" ? (
+          <>给每天使用的 Codex，<em>换一种工作心情。</em></>
+        ) : (
+          <>Give your everyday Codex <em>a workspace of its own.</em></>
+        )}
+      </h1>
+      <p>{description}</p>
+      <div class="hero-actions">
+        <a class="button button-dark" href={DOWNLOAD_URL}>{t.download}</a>
+        <a class="button button-text" href={href(locale, "/themes")}>{t.navThemes}</a>
+      </div>
+      <div class="hero-note">
+        {locale === "zh" ? "macOS Apple 芯片 · v0.1.0 Beta" : "macOS Apple silicon · v0.1.0 Beta"}
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-theme-label">
+        <span>{locale === "zh" ? "本期主打主题" : "Featured theme"}</span>
+        <strong>{hero.name}</strong>
+      </div>
+      <Image
+        src={hero.preview}
+        alt={`${hero.name} Codex theme preview`}
+        widths={[720, 1080, 1440]}
+        sizes="(max-width: 840px) 92vw, 58vw"
+        format="webp"
+        loading="eager"
+      />
+    </div>
+  </section>
+
+  <section class="manifesto section-shell">
+    <div class="section-kicker">01 / {locale === "zh" ? "为什么是 Codex Themes" : "Why Codex Themes"}</div>
+    <div class="manifesto-grid">
+      <h2>
+        {locale === "zh"
+          ? "主题不只是换张背景图，而是重新组织你的工作空间。"
+          : "A theme is more than a wallpaper. It reshapes the workspace around your work."}
+      </h2>
+      <p>
+        {locale === "zh"
+          ? "Codex Themes 不修改应用安装包。它在本机运行，把主题布局、颜色和装饰安全地应用到 Codex，并保留一键恢复官方外观的能力。"
+          : "Codex Themes runs locally and never patches the installed app. It applies layout, color, and decoration safely, with a one-click return to the official look."}
+      </p>
+    </div>
+    <div class="feature-grid">
+      <article>
+        <span>01</span>
+        <h3>{locale === "zh" ? "一键应用" : "One-click apply"}</h3>
+        <p>{locale === "zh" ? "选择主题、确认应用，刷新后的 Codex 自动保持主题。" : "Choose, confirm, and keep the look across Codex refreshes."}</p>
+      </article>
+      <article>
+        <span>02</span>
+        <h3>{locale === "zh" ? "本地且可恢复" : "Local and reversible"}</h3>
+        <p>{locale === "zh" ? "不修改 app.asar，不接触 API Key，随时恢复官方外观。" : "No app.asar patches, no API keys, and a clean reset whenever you want."}</p>
+      </article>
+      <article>
+        <span>03</span>
+        <h3>{locale === "zh" ? "Codex CLI 生成" : "Made with Codex CLI"}</h3>
+        <p>{locale === "zh" ? "从一句描述或参考图片出发，在本地生成主题图和主题配方。" : "Start with a brief or reference image and generate artwork plus a theme recipe locally."}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="theme-showcase section-shell">
+    <div class="section-heading-row">
+      <div>
+        <div class="section-kicker">02 / {locale === "zh" ? "官方主题" : "Official themes"}</div>
+        <h2>{locale === "zh" ? "找到今天想进入的工作空间" : "Find the workspace you want today"}</h2>
+      </div>
+      <a class="button button-text" href={href(locale, "/themes")}>{t.allThemes}</a>
+    </div>
+    <div class="theme-grid">
+      {featured.map((theme) => <ThemeCard theme={theme} locale={locale} />)}
+    </div>
+  </section>
+
+  <section class="steps-section section-shell" id="how-it-works">
+    <div class="section-kicker">03 / {t.navHow}</div>
+    <h2>{locale === "zh" ? "从网页到 Codex，只需要三步" : "From the web to Codex in three steps"}</h2>
+    <div class="steps-grid">
+      <article>
+        <div class="step-number">1</div>
+        <h3>{locale === "zh" ? "安装应用" : "Install the app"}</h3>
+        <p>{locale === "zh" ? "下载适用于 Apple 芯片的 macOS 版本。" : "Download the macOS build for Apple silicon."}</p>
+      </article>
+      <article>
+        <div class="step-number">2</div>
+        <h3>{locale === "zh" ? "在网页选主题" : "Choose on the web"}</h3>
+        <p>{locale === "zh" ? "打开主题详情，点击“使用该主题”。" : "Open any theme detail page and choose “Use this theme.”"}</p>
+      </article>
+      <article>
+        <div class="step-number">3</div>
+        <h3>{locale === "zh" ? "在应用中确认" : "Confirm in the app"}</h3>
+        <p>{locale === "zh" ? "应用会定位主题，在真正换肤前再向你确认。" : "The app finds the theme and asks once more before applying it."}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="download-banner section-shell">
+    <div>
+      <div class="eyebrow">{locale === "zh" ? "你的 CODEX，你的工作台" : "YOUR CODEX, YOUR WORKSPACE"}</div>
+      <h2>{locale === "zh" ? "先从蓝窗信使开始。" : "Start with Blue Window."}</h2>
+      <p>{locale === "zh" ? "下载后即可使用全部 11 款内置主题，也可以创建自己的主题。" : "Get all 11 built-in themes, then create a workspace that is entirely yours."}</p>
+    </div>
+    <a class="button button-blue" href={DOWNLOAD_URL}>{t.download}</a>
+  </section>
+
+  <section class="faq-section section-shell" id="faq">
+    <div class="section-kicker">04 / {t.navFaq}</div>
+    <div class="faq-layout">
+      <h2>{locale === "zh" ? "下载前，你可能想知道" : "A few things before you download"}</h2>
+      <div class="faq-list">
+        <details open>
+          <summary>{locale === "zh" ? "它会修改 Codex 安装包吗？" : "Does it modify the Codex app?"}</summary>
+          <p>{locale === "zh" ? "不会。应用通过本机调试连接注入纯视觉层，不修改 app.asar 或代码签名。" : "No. It uses a local debugging connection for a visual layer and never patches app.asar or its signature."}</p>
+        </details>
+        <details>
+          <summary>{locale === "zh" ? "为什么第一次打开需要手动允许？" : "Why do I need to allow the first launch manually?"}</summary>
+          <p>{locale === "zh" ? "当前 Beta 安装包尚未完成 Apple 公证。首次打开时可在“系统设置 → 隐私与安全性”中允许。" : "The current Beta is not yet notarized by Apple. Allow it once in System Settings → Privacy & Security."}</p>
+        </details>
+        <details>
+          <summary>{locale === "zh" ? "网页能直接判断我有没有安装吗？" : "Can the website detect whether the app is installed?"}</summary>
+          <p>{locale === "zh" ? "浏览器不会公开准确安装状态。网站会尝试唤起应用，失败时再显示下载引导。" : "Browsers do not expose a reliable install status. The site tries the app link first, then shows download help if needed."}</p>
+        </details>
+        <details>
+          <summary>{locale === "zh" ? "可以恢复官方外观吗？" : "Can I restore the official appearance?"}</summary>
+          <p>{locale === "zh" ? "可以。应用内提供一键还原，退出守护后 Codex 下次刷新也会恢复官方外观。" : "Yes. Use the one-click restore action; Codex also returns to its official look after the local guard stops and Codex refreshes."}</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

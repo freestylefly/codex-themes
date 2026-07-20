@@ -1,0 +1,38 @@
+---
+import { DOWNLOAD_URL } from "../config";
+import type { Locale } from "../lib/i18n";
+const { locale } = Astro.props as { locale: Locale };
+---
+
+<div class="install-modal-backdrop" data-install-modal hidden>
+  <section class="install-modal" role="dialog" aria-modal="true" aria-labelledby="install-title">
+    <button class="modal-close" type="button" aria-label={locale === "zh" ? "关闭" : "Close"} data-install-close>
+      {locale === "zh" ? "关闭" : "Close"}
+    </button>
+    <div class="eyebrow">{locale === "zh" ? "没有打开应用？" : "Didn’t open the app?"}</div>
+    <h2 id="install-title">
+      {locale === "zh" ? "先安装 Codex Themes" : "Install Codex Themes first"}
+    </h2>
+    <p>
+      {locale === "zh"
+        ? "目前支持 Apple 芯片 Mac。安装完成后回到这里，再点击一次即可直接定位主题。"
+        : "Apple silicon Macs are supported today. Install the app, return here, and try the theme again."}
+    </p>
+    <div class="modal-download-note">
+      <strong>{locale === "zh" ? "macOS 测试版" : "macOS Beta"}</strong>
+      <span>
+        {locale === "zh"
+          ? "当前构建尚未签名，首次打开需在「隐私与安全性」中允许。"
+          : "The current build is unsigned. Allow it once in Privacy & Security."}
+      </span>
+    </div>
+    <div class="modal-button-row">
+      <a class="button button-blue" href={DOWNLOAD_URL}>
+        {locale === "zh" ? "下载 Apple 芯片版" : "Download for Apple silicon"}
+      </a>
+      <button class="button button-light" type="button" data-install-retry>
+        {locale === "zh" ? "安装后重试" : "Try again"}
+      </button>
+    </div>
+  </section>
+</div>

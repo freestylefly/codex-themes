@@ -1,0 +1,58 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { CURRENT_VERSION, DOWNLOAD_URL, GITHUB_REPO_URL, ZIP_DOWNLOAD_URL } from "../config";
+import type { Locale } from "../lib/i18n";
+
+const { locale } = Astro.props as { locale: Locale };
+const description =
+  locale === "zh"
+    ? "下载适用于 Apple 芯片 Mac 的 Codex Themes，并查看首次安装与安全说明。"
+    : "Download Codex Themes for Apple silicon Macs and follow the first-run safety guide.";
+---
+
+<BaseLayout locale={locale} title={locale === "zh" ? "下载" : "Download"} description={description}>
+  <section class="download-page-hero section-shell">
+    <div class="eyebrow">CODEX THEMES v{CURRENT_VERSION} BETA</div>
+    <h1>{locale === "zh" ? "下载，然后打开一个更有趣的 Codex。" : "Download a more personal Codex workspace."}</h1>
+    <p>{description}</p>
+    <div class="download-card">
+      <div class="download-card-main">
+        <div class="platform-mark">macOS</div>
+        <div>
+          <h2>{locale === "zh" ? "Apple 芯片版" : "Apple silicon"}</h2>
+          <p>M1 / M2 / M3 / M4 · macOS 13+</p>
+        </div>
+      </div>
+      <div class="download-card-actions">
+        <a class="button button-blue" href={DOWNLOAD_URL}>{locale === "zh" ? "下载 DMG" : "Download DMG"}</a>
+        <a class="text-link" href={ZIP_DOWNLOAD_URL}>{locale === "zh" ? "下载 ZIP" : "Download ZIP"}</a>
+      </div>
+    </div>
+    <p class="availability-note">
+      {locale === "zh"
+        ? "Intel Mac 与 Windows 暂不支持，我们不会提供无法使用的安装包。"
+        : "Intel Mac and Windows are not supported yet, so we do not offer non-working downloads."}
+    </p>
+  </section>
+
+  <section class="install-guide section-shell">
+    <div class="section-kicker">{locale === "zh" ? "首次安装" : "FIRST INSTALL"}</div>
+    <div class="install-guide-grid">
+      <h2>{locale === "zh" ? "当前 Beta 尚未完成 Apple 公证" : "The current Beta is not yet notarized by Apple"}</h2>
+      <div>
+        <ol>
+          <li>{locale === "zh" ? "打开下载的 DMG，把 Codex Themes 拖入“应用程序”。" : "Open the DMG and drag Codex Themes into Applications."}</li>
+          <li>{locale === "zh" ? "第一次打开若被阻止，进入“系统设置 → 隐私与安全性”。" : "If the first launch is blocked, open System Settings → Privacy & Security."}</li>
+          <li>{locale === "zh" ? "找到 Codex Themes 的提示并选择“仍要打开”。" : "Find the Codex Themes notice and choose Open Anyway."}</li>
+          <li>{locale === "zh" ? "完成引导后，从主题画廊选择并应用主题。" : "Finish onboarding, then choose a theme from the gallery."}</li>
+        </ol>
+        <p>
+          {locale === "zh"
+            ? "应用不修改 Codex 安装包，也不会读取 API Key。源码与发布文件均可在 GitHub 检查。"
+            : "The app does not patch Codex or read API keys. Source and release files are available for inspection on GitHub."}
+        </p>
+        <a class="text-link" href={GITHUB_REPO_URL}>{locale === "zh" ? "在 GitHub 查看源码" : "View the source on GitHub"}</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

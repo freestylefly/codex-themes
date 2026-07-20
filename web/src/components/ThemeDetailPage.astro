@@ -1,0 +1,76 @@
+---
+import { Image } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ThemeCard from "./ThemeCard.astro";
+import { DOWNLOAD_URL } from "../config";
+import { copy, href, localizeTheme, type Locale } from "../lib/i18n";
+import { themes, type WebTheme } from "../lib/themes";
+
+const { locale, theme } = Astro.props as { locale: Locale; theme: WebTheme };
+const item = localizeTheme(theme, locale);
+const t = copy[locale];
+const related = themes.filter((candidate) => candidate.id !== item.id).slice(0, 3);
+---
+
+<BaseLayout locale={locale} title={item.name} description={item.description} image={item.preview}>
+  <section class="theme-detail section-shell">
+    <nav class="breadcrumbs" aria-label={locale === "zh" ? "面包屑" : "Breadcrumb"}>
+      <a href={href(locale, "/")}>{locale === "zh" ? "首页" : "Home"}</a>
+      <span>/</span>
+      <a href={href(locale, "/themes")}>{t.navThemes}</a>
+      <span>/</span>
+      <span>{item.name}</span>
+    </nav>
+    <div class="theme-detail-heading">
+      <div>
+        <div class="eyebrow">{t.builtIn}</div>
+        <h1>{item.name}</h1>
+        <p>{item.description}</p>
+      </div>
+      <div class="theme-version">
+        <span>{t.version}</span>
+        <strong>v{item.version}</strong>
+      </div>
+    </div>
+    <div class="theme-detail-grid">
+      <figure class="theme-detail-preview">
+        <Image
+          src={item.preview}
+          alt={`${item.name} Codex theme preview`}
+          widths={[800, 1200, 1600]}
+          sizes="(max-width: 900px) 100vw, 70vw"
+          format="webp"
+          loading="eager"
+        />
+      </figure>
+      <aside class="install-panel">
+        <div class="panel-label">{locale === "zh" ? "在桌面应用中打开" : "OPEN IN THE DESKTOP APP"}</div>
+        <h2>{locale === "zh" ? "喜欢这个主题？" : "Like this workspace?"}</h2>
+        <p>
+          {locale === "zh"
+            ? "点击后会尝试打开 Codex Themes，并定位到这个主题。真正应用前仍会向你确认。"
+            : "We’ll open Codex Themes and take you straight here. The app still asks before applying anything."}
+        </p>
+        <button class="button button-blue button-full" type="button" data-deep-link={item.deepLink}>
+          {t.useTheme}
+        </button>
+        <a class="button button-light button-full" href={DOWNLOAD_URL}>{t.download}</a>
+        <dl class="theme-facts">
+          <div><dt>{locale === "zh" ? "布局" : "Layout"}</dt><dd>{item.layout}</dd></div>
+          <div><dt>{locale === "zh" ? "来源" : "Source"}</dt><dd>{t.builtIn}</dd></div>
+          <div><dt>{locale === "zh" ? "兼容" : "Support"}</dt><dd>macOS Apple silicon</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="related-themes section-shell">
+    <div class="section-heading-row">
+      <h2>{locale === "zh" ? "也许你还会喜欢" : "More workspaces to explore"}</h2>
+      <a class="button button-text" href={href(locale, "/themes")}>{t.allThemes}</a>
+    </div>
+    <div class="theme-grid">
+      {related.map((candidate) => <ThemeCard theme={candidate} locale={locale} />)}
+    </div>
+  </section>
+</BaseLayout>

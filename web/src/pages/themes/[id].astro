@@ -1,0 +1,11 @@
+---
+import ThemeDetailPage from "../../components/ThemeDetailPage.astro";
+import { themes } from "../../lib/themes";
+
+export function getStaticPaths() {
+  return themes.map((theme) => ({ params: { id: theme.id }, props: { theme } }));
+}
+
+const { theme } = Astro.props;
+---
+<ThemeDetailPage locale="zh" theme={theme} />
