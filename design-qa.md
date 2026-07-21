@@ -52,6 +52,55 @@ final result: passed
 
 ---
 
+# 官网 Banner「主题背景＋右侧轮播」Design QA
+
+## Source visual truth
+
+- 用户选定参考图：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/web-banner-redesign/reference-option-1.png`。
+- 目标结构：暖黑金首页首屏、左侧三行主标题与金色主题入口、标题下方融入三张真实主题图，右侧以一张主卡和两张后置卡组成主题轮播。
+- 目标交互：轮播支持前后切换、缩略图直达、键盘方向键、拖动和自动播放；减少动态效果偏好下停止自动播放。
+
+## Implementation evidence
+
+- 最终桌面首屏：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/web-banner-redesign/implementation-final-desktop.png`。
+- 最终手机首屏：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/web-banner-redesign/implementation-final-mobile.png`。
+- 最终并排对照：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/web-banner-redesign/comparison-final.png`。
+- 桌面验收视口：945 × 900 CSS px；手机验收视口：390 × 1000 CSS px。
+
+## Findings
+
+- No actionable P0/P1/P2 visual findings remain.
+- 信息层级：标题、说明、浏览主题 CTA、本地安全说明、主主题卡、缩略图、主题名和进度形成稳定的阅读顺序。
+- 视觉系统：沿用现有暖黑、蜂蜜金、暖白文字和 Lucide 图标；顶部下载与首屏 CTA 使用一致的金色主操作样式。
+- 图片资产：左下背景与右侧轮播都复用内置主题的真实 `preview.png`，没有使用占位图或伪造 CSS 示意图。
+- 轮播层次：主卡采用更接近参考稿的纵向比例；两张后置卡分别露出主题主体，避免旧版只看到一张图的平面感。
+- 响应式：945px 保持左右双栏；390px 改为标题、操作和轮播纵向排列，页面 `scrollWidth` 与视口一致，无横向溢出。
+- 可访问性：缩略图使用 radio 语义和 `aria-checked`，卡片、前后按钮均有可读名称，键盘方向键可切换主题。
+
+## Interaction and verification
+
+- 前后按钮和缩略图会同步更新主卡、主题名、`01 / 03` 计数、选中态和进度条。
+- 自动播放每 5.2 秒前进一张；指针停留、焦点进入、页面隐藏或系统减少动态效果时停止。
+- 手机端保持主卡、前后按钮和三张缩略图可操作，真实截图未出现裁切功能控件或破图。
+- Astro 类型检查、网站生产构建和 `git diff --check` 均通过。
+
+## Comparison history
+
+1. 第一轮实现完成了左下背景图与右侧轮播，但参考对照暴露了 P2 层次差异：下载按钮过暗、后置卡被互相遮住、主题名与进度横向排布偏工具化。
+2. 将下载与浏览主题操作统一为金色主操作；上移并提亮左下三张主题图；把主题名、计数和进度改为居中层级。
+3. 调整主卡比例和两张后置卡的偏移、宽度与景深，使三张主题都能在真实桌面视口中辨认。
+4. 最终并排对照确认核心构图、真实主题素材、按钮层级与轮播节奏均贴合参考图；移动端另行验证无溢出。
+
+## Follow-up polish
+
+- [P3] 若后续加入更多官网精选主题，可把三张轮播数据改为站点配置，而不需要改动组件结构。
+
+## Final result
+
+final result: passed
+
+---
+
 # 官网首页「沉浸式主题舞台」改版 Design QA
 
 ## Source visual truth

@@ -1,5 +1,6 @@
 ---
 import appIcon from "../../../assets/presets/blue-window-messenger/mascot.png";
+import { Download } from "lucide-astro";
 import { DOWNLOAD_URL } from "../config";
 import { alternateHref, copy, href, type Locale } from "../lib/i18n";
 
@@ -27,7 +28,10 @@ const t = copy[locale];
       <a class="language-link" href={alternateHref(locale, pathname)} aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}>
         {locale === "zh" ? "EN" : "中文"}
       </a>
-      <a class="button button-dark header-download" href={DOWNLOAD_URL}>{t.download}</a>
+      <a class="button button-dark header-download" href={DOWNLOAD_URL}>
+        <Download size={16} stroke-width={1.8} aria-hidden="true" />
+        {t.download}
+      </a>
       <button
         class="menu-button"
         type="button"

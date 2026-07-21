@@ -1,6 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import { ArrowLeft, ArrowRight, Download, ShieldCheck } from "lucide-astro";
+import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ThemeCard from "./ThemeCard.astro";
 import { DOWNLOAD_URL } from "../config";
@@ -24,6 +24,21 @@ const description =
 
 <BaseLayout locale={locale} description={description} bodyClass="home-dark" themeColor="#080907">
   <section class="home-hero" data-home-carousel>
+    <div class="home-theme-backdrop" aria-hidden="true">
+      {heroThemes.map((theme, index) => (
+        <Image
+          class="home-theme-backdrop-image"
+          data-backdrop-index={index}
+          src={theme.preview}
+          alt=""
+          widths={[420, 680]}
+          sizes="(max-width: 820px) 58vw, 24vw"
+          format="webp"
+          loading={index === 0 ? "eager" : "lazy"}
+        />
+      ))}
+    </div>
+
     <div class="home-hero-main">
       <div class="home-hero-copy">
         <h1>
@@ -35,79 +50,77 @@ const description =
         </h1>
         <p>{description}</p>
         <div class="home-hero-actions">
-          <a class="button home-primary-action" href={DOWNLOAD_URL}>
-            <Download size={18} stroke-width={1.8} aria-hidden="true" />
-            {t.download}
-          </a>
-          <a class="button home-secondary-action" href={href(locale, "/themes")}>
+          <a class="button home-primary-action" href={href(locale, "/themes")}>
             {locale === "zh" ? "浏览主题" : "Browse themes"}
             <ArrowRight size={17} stroke-width={1.8} aria-hidden="true" />
           </a>
-        </div>
-        <div class="home-safety-note">
-          <ShieldCheck size={18} stroke-width={1.7} aria-hidden="true" />
-          {locale === "zh" ? "本地运行 · 不修改 Codex 安装包" : "Runs locally · Never modifies the Codex app"}
+          <div class="home-safety-note">
+            <ShieldCheck size={18} stroke-width={1.7} aria-hidden="true" />
+            {locale === "zh" ? "本地运行 · 不修改 Codex 安装包" : "Runs locally · Never modifies the Codex app"}
+          </div>
         </div>
       </div>
 
-      <div class="home-theme-stage" aria-label={locale === "zh" ? "主题预览卡组" : "Theme preview deck"}>
-        {heroThemes.map((theme, index) => (
-          <button
-            class="home-deck-card"
-            type="button"
-            data-carousel-card
-            data-theme-index={index}
-            data-depth={index}
-            aria-label={`${locale === "zh" ? "预览" : "Preview"} ${theme.name}`}
-          >
-            <Image
-              src={theme.preview}
-              alt={`${theme.name} Codex theme preview`}
-              widths={[520, 760, 1040]}
-              sizes="(max-width: 820px) 82vw, 34vw"
-              format="webp"
-              loading={index === 0 ? "eager" : "lazy"}
-            />
+      <div class="home-theme-showcase">
+        <div class="home-theme-stage" aria-label={locale === "zh" ? "主题预览卡组" : "Theme preview deck"}>
+          {heroThemes.map((theme, index) => (
+            <button
+              class="home-deck-card"
+              type="button"
+              data-carousel-card
+              data-theme-index={index}
+              data-depth={index}
+              aria-label={`${locale === "zh" ? "预览" : "Preview"} ${theme.name}`}
+            >
+              <Image
+                src={theme.preview}
+                alt={`${theme.name} Codex theme preview`}
+                widths={[620, 880, 1180]}
+                sizes="(max-width: 820px) 74vw, 40vw"
+                format="webp"
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            </button>
+          ))}
+          <button class="home-rail-arrow home-rail-arrow-prev" type="button" data-carousel-prev aria-label={locale === "zh" ? "上一个主题" : "Previous theme"}>
+            <ArrowLeft size={22} stroke-width={1.7} aria-hidden="true" />
           </button>
-        ))}
-      </div>
-    </div>
+          <button class="home-rail-arrow home-rail-arrow-next" type="button" data-carousel-next aria-label={locale === "zh" ? "下一个主题" : "Next theme"}>
+            <ArrowRight size={22} stroke-width={1.7} aria-hidden="true" />
+          </button>
+        </div>
 
-    <div class="home-theme-rail">
-      <button class="home-rail-arrow" type="button" data-carousel-prev aria-label={locale === "zh" ? "上一个主题" : "Previous theme"}>
-        <ArrowLeft size={22} stroke-width={1.7} aria-hidden="true" />
-      </button>
-      <div class="home-rail-thumbnails" role="radiogroup" aria-label={locale === "zh" ? "选择主图主题" : "Choose featured theme"}>
-        {heroThemes.map((theme, index) => (
-          <button
-            class="home-rail-thumbnail"
-            type="button"
-            data-carousel-thumb
-            data-theme-index={index}
-            data-theme-name={theme.name.replace(/\s+[A-Z][\s\S]*$/, "")}
-            role="radio"
-            aria-checked={index === 0 ? "true" : "false"}
-            aria-label={theme.name}
-          >
-            <Image
-              src={theme.preview}
-              alt=""
-              widths={[260, 420]}
-              sizes="(max-width: 820px) 44vw, 18vw"
-              format="webp"
-              loading={index === 0 ? "eager" : "lazy"}
-            />
-          </button>
-        ))}
+        <div class="home-theme-rail">
+          <div class="home-rail-thumbnails" role="radiogroup" aria-label={locale === "zh" ? "选择主图主题" : "Choose featured theme"}>
+            {heroThemes.map((theme, index) => (
+              <button
+                class="home-rail-thumbnail"
+                type="button"
+                data-carousel-thumb
+                data-theme-index={index}
+                data-theme-name={theme.name.replace(/\s+[A-Z][\s\S]*$/, "")}
+                role="radio"
+                aria-checked={index === 0 ? "true" : "false"}
+                aria-label={theme.name}
+              >
+                <Image
+                  src={theme.preview}
+                  alt=""
+                  widths={[220, 360]}
+                  sizes="(max-width: 820px) 24vw, 8vw"
+                  format="webp"
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
+              </button>
+            ))}
+          </div>
+          <div class="home-rail-meta" aria-live="polite">
+            <strong data-carousel-name>{heroThemes[0].name.replace(/\s+[A-Z][\s\S]*$/, "")}</strong>
+            <span data-carousel-count>01 / 03</span>
+            <div class="home-rail-progress" aria-hidden="true"><i data-carousel-progress></i></div>
+          </div>
+        </div>
       </div>
-      <div class="home-rail-meta" aria-live="polite">
-        <strong data-carousel-name>{heroThemes[0].name.replace(/\s+[A-Z][\s\S]*$/, "")}</strong>
-        <span data-carousel-count>01 / 03</span>
-        <div class="home-rail-progress" aria-hidden="true"><i data-carousel-progress></i></div>
-      </div>
-      <button class="home-rail-arrow" type="button" data-carousel-next aria-label={locale === "zh" ? "下一个主题" : "Next theme"}>
-        <ArrowRight size={22} stroke-width={1.7} aria-hidden="true" />
-      </button>
     </div>
   </section>
 
@@ -223,6 +236,7 @@ const description =
       const progress = carousel.querySelector<HTMLElement>("[data-carousel-progress]");
       let selected = 0;
       let dragStart: number | null = null;
+      let autoplay: number | null = null;
 
       const select = (next: number) => {
         selected = (next + cards.length) % cards.length;
@@ -236,6 +250,17 @@ const description =
         if (name) name.textContent = thumbs[selected]?.dataset.themeName ?? "";
         if (count) count.textContent = `${String(selected + 1).padStart(2, "0")} / ${String(cards.length).padStart(2, "0")}`;
         if (progress) progress.style.transform = `scaleX(${(selected + 1) / cards.length})`;
+      };
+
+      const stopAutoplay = () => {
+        if (autoplay !== null) window.clearInterval(autoplay);
+        autoplay = null;
+      };
+
+      const startAutoplay = () => {
+        stopAutoplay();
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        autoplay = window.setInterval(() => select(selected + 1), 5200);
       };
 
       carousel.querySelector("[data-carousel-prev]")?.addEventListener("click", () => select(selected - 1));
@@ -268,7 +293,19 @@ const description =
         dragStart = null;
       });
 
+      carousel.addEventListener("pointerenter", stopAutoplay);
+      carousel.addEventListener("pointerleave", startAutoplay);
+      carousel.addEventListener("focusin", stopAutoplay);
+      carousel.addEventListener("focusout", (event) => {
+        if (!carousel.contains(event.relatedTarget as Node | null)) startAutoplay();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) stopAutoplay();
+        else startAutoplay();
+      });
+
       select(0);
+      startAutoplay();
     });
   </script>
 </BaseLayout>
