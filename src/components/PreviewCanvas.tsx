@@ -3,6 +3,8 @@ import { useState } from "react";
 import type { NormalizedTheme } from "../../electron/shared/types";
 import { compileTheme } from "../../electron/engine/compiler";
 import { RetroMessengerPreview } from "./RetroMessengerPreview";
+import { SilkScrollPreview } from "./SilkScrollPreview";
+import { MoonlitImmortalPreview } from "./MoonlitImmortalPreview";
 
 export interface PreviewCanvasProps {
   theme: NormalizedTheme;
@@ -24,6 +26,14 @@ export function PreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Previe
 
   if (theme.layout === "retro-messenger") {
     return <RetroMessengerPreview theme={theme} heroUrl={heroUrl} wallpaperUrl={wallpaperUrl} stampUrl={stampUrl} page="home" />;
+  }
+
+  if (theme.layout === "silk-scroll") {
+    return <SilkScrollPreview theme={theme} heroUrl={heroUrl} wallpaperUrl={wallpaperUrl} stampUrl={stampUrl} page="home" />;
+  }
+
+  if (theme.id === "moonlit-immortal") {
+    return <MoonlitImmortalPreview theme={theme} heroUrl={heroUrl} wallpaperUrl={wallpaperUrl} stampUrl={stampUrl} page="home" />;
   }
 
   const compiled = compileTheme(theme, { mode, compact });
@@ -63,6 +73,7 @@ export function PreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Previe
       </div>
       <div
         className={`mock codex-dream-skin codex-dream-skin--${theme.layout} codex-dream-skin--${mode} ${compact ? "codex-dream-skin--compact" : "codex-dream-skin--wide"}`}
+        data-dream-theme={theme.id}
         style={wrapperStyle}
       >
         {artUrl && (
@@ -86,7 +97,7 @@ export function PreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Previe
               <Plus size={13} />
             </div>
           </div>
-          <div className="mock-main">
+          <div className={`mock-main mock-main--${theme.layout}`}>
             <div className="mock-hero-header">
               <span
                 className="mock-hero-icon"

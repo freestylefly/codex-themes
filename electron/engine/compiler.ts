@@ -168,6 +168,7 @@ export function compileTheme(theme: NormalizedTheme, opts: CompileOptions = {}):
   const attrs: Record<string, string> = {
     "data-dream-shell": mode,
     "data-dream-layout": layout,
+    "data-dream-theme": theme.id,
     "data-dream-density": compact ? "compact" : theme.appearance.density,
   };
 

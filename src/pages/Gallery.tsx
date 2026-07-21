@@ -2,9 +2,49 @@ import { FolderOpen, RotateCcw, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeCard } from "../components/ThemeCard";
 import { ImportPreviewModal } from "../components/ImportPreviewModal";
+import { ThemePreviewModal } from "../components/ThemePreviewModal";
 import { useApp } from "../store";
 import { api } from "../api";
-import type { InspectedThemePackage } from "../../electron/shared/types";
+import type { InspectedThemePackage, ThemeSummary } from "../../electron/shared/types";
+
+/**
+ * Curated gallery order: presets with original character or scene artwork and
+ * richer, high-resolution previews should define the first screen. The older
+ * palette-led presets remain available after the visual showcase.
+ */
+const FEATURED_PRESET_IDS = [
+  "moonlit-immortal",
+  "mirror-lake-ribbon",
+  "shanhai-nexus",
+  "starcap-teemo",
+  "neon-star-hunter",
+  "mecha-cat-studio",
+  "potion-workshop",
+  "focus-capybara",
+  "hacker-zero",
+  "blue-window-messenger",
+] as const;
+
+const FEATURED_PRESET_RANK = new Map<string, number>(
+  FEATURED_PRESET_IDS.map((id, index) => [id, index]),
+);
+
+function galleryOrder(themes: ThemeSummary[]): ThemeSummary[] {
+  return themes
+    .map((theme, index) => ({ theme, index }))
+    .sort((left, right) => {
+      const leftHasPreview = Boolean(left.theme.previewUrl);
+      const rightHasPreview = Boolean(right.theme.previewUrl);
+      if (leftHasPreview !== rightHasPreview) return rightHasPreview ? 1 : -1;
+
+      const leftRank = FEATURED_PRESET_RANK.get(left.theme.id) ?? Number.MAX_SAFE_INTEGER;
+      const rightRank = FEATURED_PRESET_RANK.get(right.theme.id) ?? Number.MAX_SAFE_INTEGER;
+      if (leftRank !== rightRank) return leftRank - rightRank;
+
+      return left.index - right.index;
+    })
+    .map(({ theme }) => theme);
+}
 
 export function Gallery() {
   const themes = useApp((s) => s.themes);
@@ -16,6 +56,7 @@ export function Gallery() {
   const pendingWebThemeId = useApp((s) => s.pendingWebThemeId);
 
   const [inspection, setInspection] = useState<InspectedThemePackage | null>(null);
+  const [previewTheme, setPreviewTheme] = useState<ThemeSummary | null>(null);
 
   useEffect(() => {
     if (!pendingWebThemeId) return;
@@ -31,9 +72,9 @@ export function Gallery() {
     setInspection(null);
   };
 
-  const presets = themes.filter((t) => t.source === "preset");
-  const mine = themes.filter((t) => t.source === "custom");
-  const imported = themes.filter((t) => t.source === "imported");
+  const presets = galleryOrder(themes.filter((t) => t.source === "preset"));
+  const mine = galleryOrder(themes.filter((t) => t.source === "custom"));
+  const imported = galleryOrder(themes.filter((t) => t.source === "imported"));
 
   const onImport = async () => {
     try {
@@ -103,7 +144,7 @@ export function Gallery() {
       <div className="section-label">内置预设</div>
       <div className="theme-grid">
         {presets.map((theme) => (
-          <ThemeCard theme={theme} key={theme.id} />
+          <ThemeCard theme={theme} key={theme.id} onPreview={setPreviewTheme} />
         ))}
       </div>
 
@@ -112,7 +153,7 @@ export function Gallery() {
           <div className="section-label">我的主题</div>
           <div className="theme-grid">
             {mine.map((theme) => (
-              <ThemeCard theme={theme} key={theme.id} />
+              <ThemeCard theme={theme} key={theme.id} onPreview={setPreviewTheme} />
             ))}
           </div>
         </>
@@ -123,7 +164,7 @@ export function Gallery() {
           <div className="section-label">已导入</div>
           <div className="theme-grid">
             {imported.map((theme) => (
-              <ThemeCard theme={theme} key={theme.id} />
+              <ThemeCard theme={theme} key={theme.id} onPreview={setPreviewTheme} />
             ))}
           </div>
         </>
@@ -136,6 +177,10 @@ export function Gallery() {
           onImport={handleImport}
           onInstallAsCopy={handleInstallAsCopy}
         />
+      )}
+
+      {previewTheme && (
+        <ThemePreviewModal theme={previewTheme} onClose={() => setPreviewTheme(null)} />
       )}
     </div>
   );

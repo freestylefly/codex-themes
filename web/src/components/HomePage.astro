@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import { ArrowLeft, ArrowRight, Download, ShieldCheck } from "lucide-astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ThemeCard from "./ThemeCard.astro";
 import { DOWNLOAD_URL } from "../config";
@@ -8,49 +9,105 @@ import { themes } from "../lib/themes";
 
 const { locale } = Astro.props as { locale: Locale };
 const t = copy[locale];
-const heroTheme = themes[0];
-const hero = localizeTheme(heroTheme, locale);
+const heroThemeIds = ["mirror-lake-ribbon", "moonlit-immortal", "neon-star-hunter"];
+const heroThemes = heroThemeIds.map((id) => {
+  const theme = themes.find((item) => item.id === id);
+  if (!theme) throw new Error(`Missing home hero theme: ${id}`);
+  return localizeTheme(theme, locale);
+});
 const featured = themes.slice(0, 6);
 const description =
   locale === "zh"
-    ? "为 Codex 桌面端准备的本地主题工具。浏览官方主题、一键应用，也可以用本地 Codex CLI 生成自己的主题。"
-    : "A local-first theme tool for Codex desktop. Browse official themes, apply them in one click, or create your own with the local Codex CLI.";
+    ? "从官方主题到本地 AI 生成，一键应用，也能随时恢复。"
+    : "From official themes to local AI generation, apply a new workspace in one click and restore it whenever you like.";
 ---
 
-<BaseLayout locale={locale} description={description}>
-  <section class="hero">
-    <div class="hero-glow"></div>
-    <div class="hero-copy">
-      <div class="eyebrow">{locale === "zh" ? "CODEX 桌面端主题工具" : "THEME TOOL FOR CODEX DESKTOP"}</div>
-      <h1>
-        {locale === "zh" ? (
-          <>给每天使用的 Codex，<em>换一种工作心情。</em></>
-        ) : (
-          <>Give your everyday Codex <em>a workspace of its own.</em></>
-        )}
-      </h1>
-      <p>{description}</p>
-      <div class="hero-actions">
-        <a class="button button-dark" href={DOWNLOAD_URL}>{t.download}</a>
-        <a class="button button-text" href={href(locale, "/themes")}>{t.navThemes}</a>
+<BaseLayout locale={locale} description={description} bodyClass="home-dark" themeColor="#080907">
+  <section class="home-hero" data-home-carousel>
+    <div class="home-hero-main">
+      <div class="home-hero-copy">
+        <h1>
+          {locale === "zh" ? (
+            <>把 <em>Codex</em>，<br />换成你想进入的<br />工作空间。</>
+          ) : (
+            <>Turn <em>Codex</em> into<br />the workspace<br />you want to enter.</>
+          )}
+        </h1>
+        <p>{description}</p>
+        <div class="home-hero-actions">
+          <a class="button home-primary-action" href={DOWNLOAD_URL}>
+            <Download size={18} stroke-width={1.8} aria-hidden="true" />
+            {t.download}
+          </a>
+          <a class="button home-secondary-action" href={href(locale, "/themes")}>
+            {locale === "zh" ? "浏览主题" : "Browse themes"}
+            <ArrowRight size={17} stroke-width={1.8} aria-hidden="true" />
+          </a>
+        </div>
+        <div class="home-safety-note">
+          <ShieldCheck size={18} stroke-width={1.7} aria-hidden="true" />
+          {locale === "zh" ? "本地运行 · 不修改 Codex 安装包" : "Runs locally · Never modifies the Codex app"}
+        </div>
       </div>
-      <div class="hero-note">
-        {locale === "zh" ? "macOS Apple 芯片 · v0.1.0 Beta" : "macOS Apple silicon · v0.1.0 Beta"}
+
+      <div class="home-theme-stage" aria-label={locale === "zh" ? "主题预览卡组" : "Theme preview deck"}>
+        {heroThemes.map((theme, index) => (
+          <button
+            class="home-deck-card"
+            type="button"
+            data-carousel-card
+            data-theme-index={index}
+            data-depth={index}
+            aria-label={`${locale === "zh" ? "预览" : "Preview"} ${theme.name}`}
+          >
+            <Image
+              src={theme.preview}
+              alt={`${theme.name} Codex theme preview`}
+              widths={[520, 760, 1040]}
+              sizes="(max-width: 820px) 82vw, 34vw"
+              format="webp"
+              loading={index === 0 ? "eager" : "lazy"}
+            />
+          </button>
+        ))}
       </div>
     </div>
-    <div class="hero-visual">
-      <div class="hero-theme-label">
-        <span>{locale === "zh" ? "本期主打主题" : "Featured theme"}</span>
-        <strong>{hero.name}</strong>
+
+    <div class="home-theme-rail">
+      <button class="home-rail-arrow" type="button" data-carousel-prev aria-label={locale === "zh" ? "上一个主题" : "Previous theme"}>
+        <ArrowLeft size={22} stroke-width={1.7} aria-hidden="true" />
+      </button>
+      <div class="home-rail-thumbnails" role="radiogroup" aria-label={locale === "zh" ? "选择主图主题" : "Choose featured theme"}>
+        {heroThemes.map((theme, index) => (
+          <button
+            class="home-rail-thumbnail"
+            type="button"
+            data-carousel-thumb
+            data-theme-index={index}
+            data-theme-name={theme.name.replace(/\s+[A-Z][\s\S]*$/, "")}
+            role="radio"
+            aria-checked={index === 0 ? "true" : "false"}
+            aria-label={theme.name}
+          >
+            <Image
+              src={theme.preview}
+              alt=""
+              widths={[260, 420]}
+              sizes="(max-width: 820px) 44vw, 18vw"
+              format="webp"
+              loading={index === 0 ? "eager" : "lazy"}
+            />
+          </button>
+        ))}
       </div>
-      <Image
-        src={hero.preview}
-        alt={`${hero.name} Codex theme preview`}
-        widths={[720, 1080, 1440]}
-        sizes="(max-width: 840px) 92vw, 58vw"
-        format="webp"
-        loading="eager"
-      />
+      <div class="home-rail-meta" aria-live="polite">
+        <strong data-carousel-name>{heroThemes[0].name.replace(/\s+[A-Z][\s\S]*$/, "")}</strong>
+        <span data-carousel-count>01 / 03</span>
+        <div class="home-rail-progress" aria-hidden="true"><i data-carousel-progress></i></div>
+      </div>
+      <button class="home-rail-arrow" type="button" data-carousel-next aria-label={locale === "zh" ? "下一个主题" : "Next theme"}>
+        <ArrowRight size={22} stroke-width={1.7} aria-hidden="true" />
+      </button>
     </div>
   </section>
 
@@ -126,7 +183,7 @@ const description =
     <div>
       <div class="eyebrow">{locale === "zh" ? "你的 CODEX，你的工作台" : "YOUR CODEX, YOUR WORKSPACE"}</div>
       <h2>{locale === "zh" ? "先从蓝窗信使开始。" : "Start with Blue Window."}</h2>
-      <p>{locale === "zh" ? "下载后即可使用全部 11 款内置主题，也可以创建自己的主题。" : "Get all 11 built-in themes, then create a workspace that is entirely yours."}</p>
+      <p>{locale === "zh" ? "下载后即可使用全部 20 款内置主题，也可以创建自己的主题。" : "Get all 20 built-in themes, then create a workspace that is entirely yours."}</p>
     </div>
     <a class="button button-blue" href={DOWNLOAD_URL}>{t.download}</a>
   </section>
@@ -155,4 +212,63 @@ const description =
       </div>
     </div>
   </section>
+
+  <script>
+    document.querySelectorAll<HTMLElement>("[data-home-carousel]").forEach((carousel) => {
+      const cards = Array.from(carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-card]"));
+      const thumbs = Array.from(carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-thumb]"));
+      const stage = carousel.querySelector<HTMLElement>(".home-theme-stage");
+      const name = carousel.querySelector<HTMLElement>("[data-carousel-name]");
+      const count = carousel.querySelector<HTMLElement>("[data-carousel-count]");
+      const progress = carousel.querySelector<HTMLElement>("[data-carousel-progress]");
+      let selected = 0;
+      let dragStart: number | null = null;
+
+      const select = (next: number) => {
+        selected = (next + cards.length) % cards.length;
+        cards.forEach((card, index) => {
+          card.dataset.depth = String((index - selected + cards.length) % cards.length);
+          card.setAttribute("aria-pressed", String(index === selected));
+        });
+        thumbs.forEach((thumb, index) => {
+          thumb.setAttribute("aria-checked", String(index === selected));
+        });
+        if (name) name.textContent = thumbs[selected]?.dataset.themeName ?? "";
+        if (count) count.textContent = `${String(selected + 1).padStart(2, "0")} / ${String(cards.length).padStart(2, "0")}`;
+        if (progress) progress.style.transform = `scaleX(${(selected + 1) / cards.length})`;
+      };
+
+      carousel.querySelector("[data-carousel-prev]")?.addEventListener("click", () => select(selected - 1));
+      carousel.querySelector("[data-carousel-next]")?.addEventListener("click", () => select(selected + 1));
+      thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => select(index)));
+      cards.forEach((card, index) => card.addEventListener("click", () => select(index)));
+
+      carousel.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          select(selected - 1);
+        }
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          select(selected + 1);
+        }
+      });
+
+      stage?.addEventListener("pointerdown", (event) => {
+        dragStart = event.clientX;
+        stage.setPointerCapture(event.pointerId);
+      });
+      stage?.addEventListener("pointerup", (event) => {
+        if (dragStart === null) return;
+        const distance = event.clientX - dragStart;
+        if (Math.abs(distance) > 54) select(selected + (distance < 0 ? 1 : -1));
+        dragStart = null;
+      });
+      stage?.addEventListener("pointercancel", () => {
+        dragStart = null;
+      });
+
+      select(0);
+    });
+  </script>
 </BaseLayout>

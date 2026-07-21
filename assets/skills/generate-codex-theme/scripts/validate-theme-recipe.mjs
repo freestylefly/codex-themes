@@ -19,6 +19,7 @@ const LAYOUTS = [
   "paper-board",
   "minimal-focus",
   "retro-messenger",
+  "silk-scroll",
 ];
 
 const IMAGE_FITS = ["cover", "contain"];

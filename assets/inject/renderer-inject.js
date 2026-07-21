@@ -3,6 +3,7 @@
   const DISABLED_KEY = "__CODEX_DREAM_SKIN_DISABLED__";
   const STYLE_ID = "codex-dream-skin-style";
   const CHROME_ID = "codex-dream-skin-chrome";
+  const MOONLIT_WELCOME_ID = "codex-dream-skin-moonlit-welcome";
   const SHELL_ATTR = "data-dream-shell";
   const VERSION = version || "1.0.0";
   const THEME = themeConfig && typeof themeConfig === "object" ? themeConfig : {};
@@ -15,6 +16,7 @@
     "paper-board",
     "minimal-focus",
     "retro-messenger",
+    "silk-scroll",
   ].map((layout) => `codex-dream-skin--${layout}`);
   window[DISABLED_KEY] = false;
 
@@ -275,6 +277,67 @@
     }
   };
 
+  /**
+   * Replace Codex's generic oversized home headline with the theme's compact
+   * welcome conversation. The real suggestion cards and composer stay in the
+   * Codex tree, so this decoration never impersonates an app control.
+   */
+  const ensureMoonlitWelcome = (home) => {
+    const existingPanels = [...document.querySelectorAll(`#${MOONLIT_WELCOME_ID}`)];
+    if (THEME.id !== "moonlit-immortal" || !home) {
+      existingPanels.forEach((panel) => panel.remove());
+      return;
+    }
+
+    const hero = home.firstElementChild?.firstElementChild?.firstElementChild;
+    const content = hero?.firstElementChild?.firstElementChild;
+    if (!(content instanceof HTMLElement)) return;
+
+    existingPanels.forEach((panel) => {
+      if (panel.parentElement !== content) panel.remove();
+    });
+    let panel = content.querySelector(`#${MOONLIT_WELCOME_ID}`);
+    if (!panel) {
+      panel = document.createElement("section");
+      panel.id = MOONLIT_WELCOME_ID;
+      panel.className = "dream-skin-moonlit-welcome";
+      panel.setAttribute("aria-label", "曜月谪仙主题欢迎面板");
+      panel.innerHTML = `
+        <header class="dream-skin-moonlit-welcome__header">
+          <img class="dream-skin-moonlit-welcome__sigil" alt="">
+          <b>曜月谪仙</b>
+          <span class="dream-skin-moonlit-welcome__rule" aria-hidden="true"></span>
+        </header>
+        <div class="dream-skin-moonlit-welcome__intro">
+          <img alt="曜月谪仙角色头像">
+          <p>在月华与云海之间，我将与你共编灵动之代码。</p>
+          <time>10:36</time>
+        </div>
+        <pre class="dream-skin-moonlit-welcome__code" aria-label="ImmortalConfig 示例代码"><code>
+<span class="dream-skin-moonlit-welcome__line"><b>01</b><span><i class="is-keyword">interface</i> ImmortalConfig {</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>02</b><span>  realm: <i class="is-string">\"xian\"</i>;</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>03</b><span>  virtue: number;</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>04</b><span>  spirit: number;</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>05</b><span>  swordIntent: string;</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>06</b><span>  skills: string[];</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>07</b><span>}</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>08</b><span>&nbsp;</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>09</b><span><i class="is-keyword">const</i> cultivate = (cfg: ImmortalConfig) =&gt; {</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>10</b><span>  <i class="is-keyword">return</i> ascend(cfg)</span></span>
+<span class="dream-skin-moonlit-welcome__line"><b>11</b><span>}</span></span>
+        </code></pre>
+        <footer class="dream-skin-moonlit-welcome__footer">
+          <img class="dream-skin-moonlit-welcome__state" alt="">
+          <span>已完成修炼核心逻辑，助你踏月而行，登临绝巅。</span>
+          <time>10:37</time>
+        </footer>`;
+      content.appendChild(panel);
+    }
+    panel.querySelectorAll("img").forEach((image) => {
+      if (image.getAttribute("src") !== stampUrl) image.setAttribute("src", stampUrl);
+    });
+  };
+
   const existingStyle = document.getElementById(STYLE_ID);
   if (existingStyle) {
     existingStyle.textContent = cssText;
@@ -294,6 +357,7 @@
     root.classList.toggle("codex-dream-skin--light", shell === "light");
     root.setAttribute(SHELL_ATTR, shell);
     root.setAttribute("data-dream-layout", layout);
+    root.setAttribute("data-dream-theme", THEME.id || "theme");
     root.setAttribute("data-dream-wallpaper", THEME.wallpaper?.enabled ? "true" : "false");
     root.style.setProperty("--dream-skin-art", `url("${artUrl}")`);
     if (wallpaperUrl) {
@@ -324,6 +388,7 @@
       if (candidate !== home) candidate.classList.remove("dream-skin-home");
     }
     if (home) home.classList.add("dream-skin-home");
+    ensureMoonlitWelcome(home);
 
     if (!shellMain || !document.body) return;
     shellMain.classList.toggle("dream-skin-home-shell", Boolean(home));
@@ -332,7 +397,8 @@
       chrome?.querySelector(".dream-skin-composer-stamp img") &&
       chrome?.querySelector(".dream-skin-retro-mascot") &&
       chrome?.querySelector(".dream-skin-retro-friend-avatar") &&
-      chrome?.querySelector(".dream-skin-retro-friend-search"),
+      chrome?.querySelector(".dream-skin-retro-friend-search") &&
+      chrome?.querySelector(".dream-skin-silk-shell"),
     );
     if (!chrome || !chromeIsCurrent || chrome.parentElement !== document.body) {
       chrome?.remove();
@@ -355,6 +421,18 @@
         <span class="dream-skin-corner dream-skin-corner-br">♡</span>
         <div class="dream-skin-washi"></div>
         <div class="dream-skin-composer-stamp"><img alt=""><span></span></div>
+        <div class="dream-skin-silk-shell">
+          <div class="dream-skin-silk-heading">
+            <small></small>
+            <b>今天想展开哪一卷灵感？</b>
+            <span></span>
+          </div>
+          <div class="dream-skin-silk-tabs">
+            <span>theme.json</span><span>preview.tsx</span><span>skin.css</span>
+            <span>verify.test.ts</span><span>release.md</span>
+          </div>
+          <div class="dream-skin-silk-status"><span></span><i>镜湖卷 · 本地主题</i><b></b></div>
+        </div>
         <div class="dream-skin-retro-shell">
           <div class="dream-skin-retro-titlebar">
             <b class="dream-skin-retro-title"></b>
@@ -402,6 +480,10 @@
     const stampImg = chrome.querySelector(".dream-skin-composer-stamp img");
     if (stampImg.getAttribute("src") !== stampUrl) stampImg.setAttribute("src", stampUrl);
     chrome.querySelector(".dream-skin-composer-stamp span").textContent = copy.quote || "MAKE SOMETHING WONDERFUL";
+    chrome.querySelector(".dream-skin-silk-heading small").textContent = copy.brandSubtitle || "MIRROR LAKE RIBBON";
+    chrome.querySelector(".dream-skin-silk-heading span").textContent = THEME.tagline || "一卷湖光，写尽风华。";
+    chrome.querySelector(".dream-skin-silk-status span").textContent = copy.statusText || "湖光正明";
+    chrome.querySelector(".dream-skin-silk-status b").textContent = copy.quote || "一卷湖光，写尽风华";
     chrome.querySelector(".dream-skin-retro-title").textContent = `Codex 2007 - ${THEME.name || "蓝窗信使"}`;
     const retroMascot = chrome.querySelector(".dream-skin-retro-mascot");
     if (retroMascot.getAttribute("src") !== artUrl) retroMascot.setAttribute("src", artUrl);
@@ -424,6 +506,7 @@
     });
     document.documentElement?.removeAttribute(SHELL_ATTR);
     document.documentElement?.removeAttribute("data-dream-layout");
+    document.documentElement?.removeAttribute("data-dream-theme");
     document.documentElement?.removeAttribute("data-dream-wallpaper");
     document.documentElement?.style.removeProperty("--dream-skin-art");
     document.documentElement?.style.removeProperty("--dream-skin-wallpaper");
@@ -431,6 +514,7 @@
     for (const name of Object.keys(vars)) document.documentElement?.style.removeProperty(name);
     document.querySelectorAll(".dream-skin-home").forEach((node) => node.classList.remove("dream-skin-home"));
     document.querySelectorAll(".dream-skin-home-shell").forEach((node) => node.classList.remove("dream-skin-home-shell"));
+    document.getElementById(MOONLIT_WELCOME_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     document.getElementById(CHROME_ID)?.remove();
     const state = window[STATE_KEY];

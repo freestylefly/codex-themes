@@ -908,6 +908,613 @@ html.codex-dream-skin--full-canvas .dream-skin-home > div:first-child > div:firs
   padding-top: 48px !important;
 }
 
+/* moonlit-immortal: one continuous xianxia canvas behind the complete app.
+   UI surfaces become layered ice-blue/navy glass while dense content stays
+   readable. The theme id attribute keeps these rules isolated from every
+   other full-canvas preset. */
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] {
+  --moonlit-navy: #071f4b;
+  --moonlit-deep: #041631;
+  --moonlit-ice: #edf6ff;
+  --moonlit-gold: #dfb866;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] body {
+  background-color: var(--moonlit-deep) !important;
+  background-image: var(--dream-skin-art) !important;
+  background-position: var(--ds-hero-position) !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  color: #f5f9ff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] body::before {
+  background: linear-gradient(90deg,
+    rgba(3, 17, 42, .34) 0%,
+    rgba(4, 25, 60, .16) 27%,
+    rgba(8, 38, 82, .04) 58%,
+    transparent 82%) !important;
+  opacity: 1 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"][data-dream-shell="dark"] body::before {
+  background: linear-gradient(90deg,
+    rgba(1, 9, 24, .9) 0%,
+    rgba(3, 20, 48, .52) 42%,
+    rgba(5, 29, 64, .24) 100%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] body::after {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel {
+  border-color: color-mix(in srgb, var(--moonlit-gold) 50%, transparent) !important;
+  border-radius: 0 18px 18px 0 !important;
+  background: rgba(4, 24, 59, .8) !important;
+  box-shadow: 12px 0 38px rgba(1, 13, 32, .3), inset -1px 0 rgba(226, 191, 114, .18) !important;
+  backdrop-filter: blur(24px) saturate(118%) !important;
+  color: #f5f9ff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel button,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel a,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel span,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel div {
+  color: #c7d8f0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel svg {
+  color: #9edcff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel [aria-current="page"],
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel [class~="bg-token-list-hover-background"] {
+  border-color: rgba(226, 191, 114, .52) !important;
+  background: rgba(54, 121, 214, .34) !important;
+  box-shadow: inset 3px 0 var(--moonlit-gold), 0 8px 22px rgba(0, 14, 42, .2) !important;
+  color: #fff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface:not(.dream-skin-home-shell) {
+  border-color: rgba(226, 191, 114, .34) !important;
+  border-radius: 18px 0 0 0 !important;
+  background: rgba(8, 36, 79, .14) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .16), -10px 0 34px rgba(2, 17, 44, .18) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface > header.app-header-tint {
+  border-bottom-color: rgba(226, 191, 114, .36) !important;
+  background: rgba(5, 27, 65, .6) !important;
+  box-shadow: 0 9px 28px rgba(2, 15, 38, .18) !important;
+  backdrop-filter: blur(20px) saturate(120%) !important;
+  color: #f5f9ff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface > header.app-header-tint button,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface > header.app-header-tint span,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface > header.app-header-tint svg {
+  color: #d7e5f7 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] #codex-dream-skin-chrome {
+  border-radius: 18px 0 0 0;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-composer-stamp,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-washi,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-corner,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-hero-art-name,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-orbit {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-brand {
+  color: #f7edcf;
+  text-shadow: 0 2px 14px rgba(2, 16, 42, .55);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-brand b,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-brand small {
+  color: #f7edcf;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-status {
+  border-color: rgba(226, 191, 114, .5);
+  background: rgba(8, 40, 90, .64);
+  color: #dbeaff;
+  backdrop-filter: blur(14px);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home {
+  --thread-content-max-width: min(1120px, calc(100cqw - 32px)) !important;
+  background: transparent !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child {
+  padding-top: 18px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child {
+  flex: 0 0 calc(100% - 42px) !important;
+  min-height: 520px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  height: 420px !important;
+  min-height: 420px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+  width: 62% !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg,
+    rgba(5, 27, 66, .76) 0%,
+    rgba(16, 58, 117, .45) 66%,
+    transparent 100%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child::after {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  align-items: flex-start !important;
+  padding: 20px 30px 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  width: min(52%, 660px) !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home [data-feature="game-source"] {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome {
+  width: 100%;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 190, 111, .55);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(45, 96, 166, .54), rgba(24, 67, 132, .38));
+  box-shadow: 0 18px 48px rgba(1, 18, 48, .24), inset 0 0 0 1px rgba(255, 255, 255, .12);
+  color: #eef6ff;
+  text-align: left;
+  text-shadow: none;
+  backdrop-filter: blur(14px) saturate(112%);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__header,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__intro,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__footer {
+  display: flex;
+  align-items: center;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__header {
+  min-height: 34px;
+  gap: 8px;
+  color: #faeecb;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__header b {
+  flex: 0 0 auto;
+  font: 650 17px/1.2 ui-serif, "Songti SC", "STSong", serif;
+  letter-spacing: .08em;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__sigil,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__state {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(229, 193, 114, .65);
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 31%;
+  color: #f6d98d;
+  background: rgba(39, 111, 214, .58);
+  box-shadow: 0 0 16px rgba(103, 187, 255, .28);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__rule {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, rgba(226, 190, 111, .48), transparent);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__intro {
+  gap: 10px;
+  min-height: 52px;
+  margin: 6px 0 9px;
+  color: #eef6ff;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__intro img {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(229, 193, 114, .72);
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 31%;
+  box-shadow: 0 3px 12px rgba(2, 18, 48, .28);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__intro p {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__intro time,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__footer time {
+  color: #bed2ee;
+  font: 10px/1 ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__code,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__code code {
+  position: relative;
+  display: block;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #d6e6fb !important;
+  font: 13px/1.45 ui-monospace, "SFMono-Regular", Menlo, Monaco, monospace !important;
+  white-space: pre-wrap;
+  text-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__code code {
+  font-size: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__code {
+  min-height: 196px;
+  flex: 1;
+  padding: 12px 14px !important;
+  overflow: hidden;
+  border: 1px solid rgba(180, 216, 255, .26) !important;
+  border-radius: 12px !important;
+  background: rgba(140, 182, 235, .3) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .05) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__line {
+  display: grid !important;
+  grid-template-columns: 32px minmax(0, 1fr);
+  color: #071f4b !important;
+  font: 13px/1.45 ui-monospace, "SFMono-Regular", Menlo, Monaco, monospace !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__line > b {
+  color: #466184;
+  font-weight: 500;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__line > span {
+  color: #071f4b !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__line .is-keyword {
+  color: #633499;
+  font-style: normal;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__line .is-string {
+  color: #704600;
+  font-style: normal;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__footer {
+  gap: 8px;
+  min-height: 52px;
+  margin-top: 9px;
+  padding: 8px 10px;
+  border: 1px solid rgba(194, 220, 255, .22);
+  border-radius: 10px;
+  background: rgba(126, 169, 223, .25);
+  color: #d6e6f8;
+  font-size: 12px;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__footer > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__state {
+  width: 25px;
+  height: 25px;
+  color: #f6d98d;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home .group\/home-suggestions button {
+  min-height: 112px !important;
+  border-color: rgba(214, 174, 88, .58) !important;
+  border-radius: 16px !important;
+  background: rgba(225, 238, 255, .6) !important;
+  box-shadow: 0 14px 34px rgba(2, 22, 56, .18), inset 0 0 0 1px rgba(255, 255, 255, .5) !important;
+  color: #153868 !important;
+  backdrop-filter: blur(20px) saturate(112%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home .group\/home-suggestions button:hover {
+  border-color: rgba(229, 193, 114, .86) !important;
+  background: rgba(244, 249, 255, .9) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home .group\/home-suggestions button > span:first-child > span:first-child {
+  background: rgba(39, 111, 214, .94) !important;
+  box-shadow: 0 0 0 6px rgba(91, 166, 255, .12), 0 7px 18px rgba(21, 72, 145, .22) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home .group\/home-suggestions button > span:last-child,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home .group\/home-suggestions button > span:last-child::after {
+  color: #526f97 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home div:has(> .horizontal-scroll-fade-mask .group\/project-selector) {
+  border-color: rgba(214, 174, 88, .52);
+  background: rgba(220, 235, 255, .66) !important;
+  box-shadow: 0 -8px 24px rgba(2, 20, 52, .12);
+  backdrop-filter: blur(22px) saturate(114%);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home .group\/project-selector > button {
+  border-color: rgba(214, 174, 88, .48) !important;
+  background: rgba(236, 245, 255, .72) !important;
+  color: #173760 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .composer-surface-chrome {
+  border-color: rgba(218, 181, 99, .62) !important;
+  border-radius: 20px !important;
+  background: rgba(226, 239, 255, .66) !important;
+  box-shadow: 0 18px 46px rgba(2, 20, 52, .24), inset 0 0 0 1px rgba(255, 255, 255, .52) !important;
+  color: #173760 !important;
+  backdrop-filter: blur(24px) saturate(115%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .composer-surface-chrome::before {
+  border-color: rgba(229, 193, 114, .72);
+  background: #276fd6;
+  box-shadow: 0 0 16px rgba(80, 165, 255, .38);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .composer-surface-chrome:focus-within {
+  border-color: #83cfff !important;
+  background: rgba(241, 248, 255, .94) !important;
+  box-shadow: 0 18px 46px rgba(2, 20, 52, .24), 0 0 0 3px rgba(92, 165, 255, .2) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .composer-surface-chrome *,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .composer-surface-chrome .ProseMirror {
+  color: #173760 !important;
+  caret-color: #276fd6 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface:not(.dream-skin-home-shell) [role="main"] {
+  color: #f5f9ff !important;
+  text-shadow: 0 1px 12px rgba(1, 13, 36, .34);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container {
+  --color-token-conversation-body: rgba(224, 239, 255, .88);
+  --color-token-text-secondary: rgba(215, 233, 252, .78);
+  --color-token-conversation-summary-leading: rgba(224, 239, 255, .88);
+  --color-token-conversation-summary-trailing: rgba(215, 233, 252, .72);
+  --shimmer-text-secondary: rgba(224, 239, 255, .78);
+  --shimmer-contrast: rgba(255, 255, 255, .94);
+}
+
+/* Codex Markdown modules set their own near-black foreground, which bypasses
+   the task shell color above. Give long-form conversation content a calm
+   moon-blue reading layer, then restore a brighter treatment for user
+   bubbles so both sides remain legible over every part of the hero artwork. */
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="_markdownContent_"] {
+  padding: 14px 16px;
+  border: 1px solid rgba(214, 174, 88, .42);
+  border-radius: 14px;
+  background: rgba(4, 25, 62, .7);
+  box-shadow: 0 14px 34px rgba(1, 15, 40, .22), inset 0 1px rgba(255, 255, 255, .08);
+  color: #f5f9ff !important;
+  text-shadow: 0 1px 10px rgba(1, 10, 28, .48);
+  backdrop-filter: blur(18px) saturate(112%);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="_markdownContent_"] :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, blockquote, span) {
+  color: #f5f9ff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="_markdownContent_"] a {
+  color: #9fe5ff !important;
+  text-decoration-color: rgba(159, 229, 255, .58) !important;
+  text-underline-offset: .18em;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container :where(.text-token-conversation-body, .text-token-text-secondary),
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container .group\/activity-header,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container .group\/activity-header :where(span, svg) {
+  color: rgba(224, 239, 255, .88) !important;
+  text-shadow: 0 1px 10px rgba(1, 10, 28, .52);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container .group\/activity-header:hover :where(span, svg) {
+  color: #fff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container .loading-shimmer-pure-text,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container .loading-shimmer-pure-text [class*="_cadencedShimmer"] {
+  --shimmer-text-secondary: rgba(224, 239, 255, .78) !important;
+  --shimmer-contrast: rgba(255, 255, 255, .94) !important;
+  color: rgba(224, 239, 255, .78) !important;
+  text-shadow: 0 1px 10px rgba(1, 10, 28, .52);
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="bg-token-foreground"] {
+  border: 1px solid rgba(226, 191, 114, .5) !important;
+  background: rgba(35, 98, 190, .86) !important;
+  box-shadow: 0 12px 28px rgba(1, 16, 44, .2) !important;
+  color: #fff !important;
+  backdrop-filter: blur(14px) saturate(112%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="bg-token-foreground"] [class*="_markdownContent_"] {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff !important;
+  text-shadow: 0 1px 9px rgba(1, 12, 34, .32);
+  backdrop-filter: none;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface:not(.dream-skin-home-shell) article,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface:not(.dream-skin-home-shell) .message,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface:not(.dream-skin-home-shell) [class*="surface"]:not(.composer-surface-chrome) {
+  border-color: rgba(214, 174, 88, .42) !important;
+  background: rgba(226, 239, 255, .74) !important;
+  box-shadow: 0 14px 34px rgba(2, 22, 56, .18) !important;
+  color: #17375f !important;
+  text-shadow: none !important;
+  backdrop-filter: blur(20px) saturate(112%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface:not(.dream-skin-home-shell) [data-message-author-role="user"] {
+  background: rgba(42, 111, 208, .86) !important;
+  color: #fff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] pre,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] code,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] table,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] [data-testid*="code"] {
+  border-color: rgba(143, 191, 248, .28) !important;
+  background: rgba(4, 25, 62, .82) !important;
+  color: #d6e6fb !important;
+  text-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"]
+  main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="_markdownContent_"] :where(pre, code, table, pre *, code *, table *) {
+  color: #d6e6fb !important;
+  text-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] [role="dialog"],
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] [role="menu"],
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] [role="listbox"],
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] [role="tooltip"],
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] [data-radix-popper-content-wrapper] > * {
+  border-color: rgba(214, 174, 88, .46) !important;
+  background: rgba(237, 246, 255, .96) !important;
+  color: #17375f !important;
+  box-shadow: 0 20px 52px rgba(2, 17, 44, .28) !important;
+  backdrop-filter: blur(24px) saturate(112%) !important;
+}
+
+@media (max-width: 900px) {
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] body {
+    background-position: 70% 18% !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+    padding: 18px 24px 0 !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+    width: min(66%, 560px) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] body {
+    background-position: 74% 18% !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+    width: 100% !important;
+    background: rgba(4, 23, 55, .52) !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+    padding-inline: 18px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+    width: 88% !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome {
+    min-height: 310px;
+    padding: 13px 14px 11px;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__intro p {
+    font-size: 11px;
+  }
+
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__code,
+  html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-moonlit-welcome__code code {
+    font-size: 10px !important;
+  }
+
+}
+
 /* terminal-grid: compact, monospace feel, sharp cards. */
 html.codex-dream-skin--terminal-grid .dream-skin-home > div:first-child > div:first-child > div:first-child {
   border-radius: var(--ds-radius) !important;
@@ -944,6 +1551,372 @@ html.codex-dream-skin--minimal-focus .dream-skin-home > div:first-child > div:fi
 
 html.codex-dream-skin--minimal-focus .dream-skin-home [data-feature="game-source"] {
   font-size: clamp(28px, 3vw, 42px) !important;
+}
+
+/* silk-scroll: a full-bleed Mirror Lake scene with an interactive horizontal
+   silk work surface. The existing Codex controls remain real and clickable;
+   this section only changes their composition and materials. */
+.dream-skin-silk-shell { display: none; }
+
+html.codex-dream-skin--silk-scroll {
+  --ds-radius: 18px;
+  --ds-radius-inset: 12px;
+}
+
+html.codex-dream-skin--silk-scroll body {
+  background-color: var(--ds-bg) !important;
+  background-image: var(--dream-skin-art) !important;
+  background-position: var(--ds-hero-position) !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  font-family: ui-serif, "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif !important;
+}
+
+html.codex-dream-skin--silk-scroll body::before {
+  background: color-mix(in srgb, var(--ds-panel) 10%, transparent) !important;
+  opacity: 1 !important;
+}
+
+html.codex-dream-skin--silk-scroll[data-dream-shell="dark"] body::before {
+  background: rgba(24, 14, 20, .56) !important;
+}
+
+html.codex-dream-skin--silk-scroll body::after {
+  display: none !important;
+}
+
+html.codex-dream-skin--silk-scroll aside.app-shell-left-panel {
+  border-color: color-mix(in srgb, var(--ds-purple) 24%, transparent) !important;
+  border-radius: 0 18px 18px 0 !important;
+  background: color-mix(in srgb, var(--ds-panel) 70%, transparent) !important;
+  box-shadow: 8px 0 30px color-mix(in srgb, var(--ds-text) 12%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(108%) !important;
+}
+
+html.codex-dream-skin--silk-scroll aside.app-shell-left-panel [aria-current="page"],
+html.codex-dream-skin--silk-scroll aside.app-shell-left-panel [class~="bg-token-list-hover-background"] {
+  border-color: color-mix(in srgb, var(--ds-green) 28%, transparent) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--ds-green) 12%, var(--ds-panel)) !important;
+  box-shadow: inset 2px 0 var(--ds-green) !important;
+}
+
+html.codex-dream-skin--silk-scroll main.main-surface,
+html.codex-dream-skin--silk-scroll main.main-surface:not(.dream-skin-home-shell) {
+  border-color: color-mix(in srgb, var(--ds-purple) 23%, transparent) !important;
+  border-radius: 18px 0 0 0 !important;
+  background: color-mix(in srgb, var(--ds-panel) 30%, transparent) !important;
+  box-shadow: inset 0 1px color-mix(in srgb, white 52%, transparent) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+html.codex-dream-skin--silk-scroll main.main-surface:not(.dream-skin-home-shell) {
+  background-color: color-mix(in srgb, var(--ds-panel) 91%, transparent) !important;
+  background-image: var(--dream-skin-wallpaper) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-blend-mode: soft-light !important;
+  backdrop-filter: blur(13px) saturate(106%) !important;
+}
+
+html.codex-dream-skin--silk-scroll main.main-surface > header.app-header-tint {
+  border-bottom-color: color-mix(in srgb, var(--ds-purple) 22%, transparent) !important;
+  background: color-mix(in srgb, var(--ds-panel) 66%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(110%) !important;
+}
+
+html.codex-dream-skin--silk-scroll #codex-dream-skin-chrome {
+  border-radius: 18px 0 0 0;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-brand,
+html.codex-dream-skin--silk-scroll .dream-skin-status,
+html.codex-dream-skin--silk-scroll .dream-skin-quote,
+html.codex-dream-skin--silk-scroll .dream-skin-orbit,
+html.codex-dream-skin--silk-scroll .dream-skin-hero-art-name,
+html.codex-dream-skin--silk-scroll .dream-skin-corner,
+html.codex-dream-skin--silk-scroll .dream-skin-washi,
+html.codex-dream-skin--silk-scroll .dream-skin-composer-stamp {
+  display: none !important;
+}
+
+html.codex-dream-skin--silk-scroll #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-silk-shell {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: var(--ds-text);
+}
+
+.dream-skin-silk-heading {
+  position: absolute;
+  top: 59px;
+  right: 7%;
+  left: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--ds-text);
+  text-align: center;
+  text-shadow: 0 1px 16px color-mix(in srgb, var(--ds-panel) 86%, transparent);
+}
+
+.dream-skin-silk-heading small {
+  color: var(--ds-green);
+  font: 700 9px/1.2 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .22em;
+}
+
+.dream-skin-silk-heading b {
+  font-size: clamp(21px, 2.3vw, 31px);
+  font-weight: 500;
+  letter-spacing: .08em;
+}
+
+.dream-skin-silk-heading span {
+  color: var(--ds-muted);
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+
+.dream-skin-silk-tabs {
+  position: absolute;
+  top: 140px;
+  right: 10%;
+  left: 23%;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dream-skin-silk-tabs span {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ds-green) 28%, var(--ds-purple));
+  border-radius: 5px 5px 2px 2px;
+  background: color-mix(in srgb, var(--ds-panel) 91%, transparent);
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--ds-text) 9%, transparent);
+  color: var(--ds-muted);
+  font: 600 8px/1 ui-monospace, "SFMono-Regular", Menlo, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dream-skin-silk-tabs span::before,
+.dream-skin-silk-tabs span::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  width: 1px;
+  height: 9px;
+  background: color-mix(in srgb, var(--ds-purple) 52%, transparent);
+}
+
+.dream-skin-silk-tabs span::before { left: 24%; }
+.dream-skin-silk-tabs span::after { right: 24%; }
+
+.dream-skin-silk-status {
+  position: absolute;
+  right: 20px;
+  bottom: 8px;
+  left: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 14px;
+  align-items: center;
+  color: var(--ds-muted);
+  font: 600 8px/1.2 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .05em;
+}
+
+.dream-skin-silk-status span::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  display: inline-block;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--ds-cyan);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ds-cyan) 60%, transparent);
+}
+
+.dream-skin-silk-status i {
+  color: var(--ds-green);
+  font-family: ui-serif, "Songti SC", serif;
+  font-style: normal;
+}
+
+.dream-skin-silk-status b {
+  justify-self: end;
+  color: var(--ds-green);
+  font-weight: 500;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home {
+  --thread-content-max-width: min(1120px, calc(100cqw - 28px)) !important;
+  background: transparent !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child {
+  padding-top: 168px !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child {
+  position: relative !important;
+  flex: 0 0 430px !important;
+  min-height: 430px !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  width: 86% !important;
+  height: 342px !important;
+  min-height: 342px !important;
+  margin-left: 11% !important;
+  overflow: visible !important;
+  border: 1px solid color-mix(in srgb, var(--ds-purple) 58%, var(--ds-green)) !important;
+  border-radius: 8px !important;
+  background-color: color-mix(in srgb, var(--ds-panel) 91%, transparent) !important;
+  background-image: var(--dream-skin-wallpaper) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  box-shadow:
+    0 22px 52px color-mix(in srgb, var(--ds-text) 18%, transparent),
+    inset 0 0 40px color-mix(in srgb, var(--ds-purple) 12%, transparent) !important;
+  backdrop-filter: blur(13px) saturate(106%) !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child::before,
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: -12px;
+  bottom: -12px;
+  width: 16px;
+  border: 1px solid color-mix(in srgb, var(--ds-purple) 82%, var(--ds-text));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ds-purple) 68%, var(--ds-panel));
+  box-shadow: inset 3px 0 color-mix(in srgb, white 50%, transparent), 0 4px 10px var(--ds-ink-shadow);
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child::before { left: -9px; }
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child::after { right: -9px; }
+
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  padding: 34px 42px !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  width: 100% !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home [data-feature="game-source"] {
+  color: var(--ds-text) !important;
+  font-size: clamp(18px, 2vw, 26px) !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  text-shadow: none !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home [data-feature="game-source"]::before {
+  border: 1px solid color-mix(in srgb, var(--ds-green) 38%, transparent);
+  background: color-mix(in srgb, var(--ds-green) 10%, var(--ds-panel));
+  color: var(--ds-green);
+  box-shadow: none;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home [data-feature="game-source"]::after {
+  color: var(--ds-muted);
+  text-shadow: none;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home [data-feature="game-source"] button {
+  border-color: color-mix(in srgb, var(--ds-green) 38%, transparent);
+  background: color-mix(in srgb, var(--ds-panel) 78%, transparent);
+  color: var(--ds-green) !important;
+  text-shadow: none;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home .group\/home-suggestions button {
+  min-height: 86px !important;
+  border-color: color-mix(in srgb, var(--ds-green) 22%, transparent) !important;
+  border-radius: 4px 14px 4px 14px !important;
+  background: color-mix(in srgb, var(--ds-panel-2) 74%, transparent) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--ds-text) 7%, transparent) !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home .group\/home-suggestions button:hover {
+  border-color: var(--ds-green) !important;
+  transform: translateY(-2px) !important;
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home .group\/home-suggestions button > span:first-child > span:first-child {
+  width: 32px;
+  height: 32px;
+  background: color-mix(in srgb, var(--ds-green) 80%, var(--ds-lime));
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--ds-green) 8%, transparent);
+}
+
+html.codex-dream-skin--silk-scroll .dream-skin-home .group\/home-suggestions button > span:last-child::after {
+  display: none;
+}
+
+html.codex-dream-skin--silk-scroll .composer-surface-chrome {
+  border-color: color-mix(in srgb, var(--ds-green) 34%, var(--ds-purple)) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--ds-panel) 86%, transparent) !important;
+  box-shadow: 0 13px 31px color-mix(in srgb, var(--ds-text) 15%, transparent) !important;
+  backdrop-filter: blur(18px) saturate(110%) !important;
+}
+
+html.codex-dream-skin--silk-scroll .composer-surface-chrome::before {
+  content: "❀";
+  background: var(--ds-green);
+}
+
+html.codex-dream-skin--silk-scroll main.main-surface:not(.dream-skin-home-shell) article,
+html.codex-dream-skin--silk-scroll main.main-surface:not(.dream-skin-home-shell) .message,
+html.codex-dream-skin--silk-scroll main.main-surface:not(.dream-skin-home-shell) [class*="surface"]:not(.composer-surface-chrome) {
+  border-color: color-mix(in srgb, var(--ds-green) 18%, transparent) !important;
+  border-radius: 6px 18px 6px 18px !important;
+  background: color-mix(in srgb, var(--ds-panel) 88%, transparent) !important;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--ds-text) 9%, transparent);
+  backdrop-filter: blur(12px) !important;
+}
+
+@media (max-width: 1050px) {
+  .dream-skin-silk-heading { left: 10%; }
+  .dream-skin-silk-tabs { right: 7%; left: 15%; }
+
+  html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child {
+    width: 92% !important;
+    margin-left: 4% !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .dream-skin-silk-heading { right: 4%; left: 4%; }
+  .dream-skin-silk-heading small,
+  .dream-skin-silk-heading span { display: none; }
+  .dream-skin-silk-tabs { right: 5%; left: 5%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dream-skin-silk-tabs span:nth-child(n + 4) { display: none; }
+
+  html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child { padding-top: 156px !important; }
+  html.codex-dream-skin--silk-scroll .dream-skin-home > div:first-child > div:first-child > div:first-child {
+    width: 94% !important;
+    margin-left: 3% !important;
+  }
+  .dream-skin-silk-status i { display: none; }
+  .dream-skin-silk-status { grid-template-columns: 1fr 1fr; }
 }
 
 /* retro-messenger: a dense three-column 2007-era desktop messenger shell. */
@@ -1435,4 +2408,1077 @@ html.codex-dream-skin--retro-messenger [data-message-author-role] {
 /* Wallpaper toggle attribute. */
 html.codex-dream-skin[data-dream-wallpaper="true"] {
   --ds-wallpaper-enabled: 1;
+}
+
+/* ==========================================================================
+   Built-in concept themes. These selectors are intentionally scoped by the
+   stable preset id: each layout keeps the real Codex controls while matching
+   the approved concept art's materials, contrast and composition.
+   ========================================================================== */
+
+/* ----------------------------------------------------- neon star hunter */
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] {
+  color-scheme: dark !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] body {
+  background:
+    radial-gradient(circle at 78% 8%, rgba(107, 65, 255, .2), transparent 34%),
+    radial-gradient(circle at 16% 70%, rgba(25, 211, 255, .1), transparent 30%),
+    #040719 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] body::before {
+  opacity: .42;
+  background-image:
+    linear-gradient(rgba(41, 215, 255, .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 76, 255, .04) 1px, transparent 1px),
+    radial-gradient(circle, rgba(243, 94, 255, .72) 0 1px, transparent 1.8px);
+  background-size: 52px 52px, 52px 52px, 89px 89px;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] aside.app-shell-left-panel {
+  border-color: rgba(116, 88, 255, .42) !important;
+  border-radius: 0 !important;
+  background: rgba(5, 9, 30, .94) !important;
+  box-shadow: 10px 0 34px rgba(1, 3, 16, .52), inset -1px 0 rgba(41, 218, 255, .2) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] main.main-surface,
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] main.main-surface:not(.dream-skin-home-shell) {
+  border-color: rgba(108, 81, 246, .34) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(145deg, rgba(7, 12, 39, .96), rgba(4, 8, 28, .98)) !important;
+  color: #f4f6ff !important;
+  box-shadow: inset 0 1px rgba(48, 219, 255, .12), -12px 0 34px rgba(0, 0, 0, .34) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] main.main-surface > header.app-header-tint {
+  border-bottom-color: rgba(74, 204, 255, .2) !important;
+  background: rgba(6, 11, 34, .86) !important;
+  color: #e9eeff !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  border-color: rgba(116, 88, 255, .76) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(42, 21, 133, .44), 0 0 36px rgba(37, 216, 255, .16), inset 0 0 0 1px rgba(255, 255, 255, .12) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+  width: 66%;
+  background: linear-gradient(90deg, rgba(4, 8, 30, .9), rgba(11, 18, 56, .7) 58%, transparent) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] .dream-skin-home [data-feature="game-source"] {
+  color: #fff !important;
+  font-size: clamp(27px, 3vw, 45px) !important;
+  letter-spacing: .02em;
+  text-shadow: 0 0 22px rgba(123, 82, 255, .75), 0 2px 3px rgba(0, 0, 0, .8);
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] .dream-skin-home [data-feature="game-source"]::before {
+  border: 1px solid rgba(225, 190, 105, .72);
+  background: linear-gradient(90deg, rgba(69, 34, 155, .92), rgba(20, 108, 188, .88));
+  box-shadow: 0 0 22px rgba(36, 211, 255, .2);
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] .dream-skin-home .group\/home-suggestions button {
+  border-color: rgba(111, 88, 244, .48) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg, rgba(14, 26, 68, .9), rgba(25, 15, 63, .9)) !important;
+  color: #f3f5ff !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .32), inset 0 0 0 1px rgba(37, 216, 255, .07) !important;
+  backdrop-filter: blur(14px) saturate(130%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] .composer-surface-chrome {
+  border-color: rgba(72, 203, 255, .42) !important;
+  border-radius: 15px !important;
+  background: rgba(9, 17, 48, .94) !important;
+  color: #e9eeff !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .36), 0 0 24px rgba(113, 75, 255, .12) !important;
+  backdrop-filter: blur(20px) saturate(126%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] main.main-surface:not(.dream-skin-home-shell) :where(article, .message, [class*="surface"]:not(.composer-surface-chrome)) {
+  border-color: rgba(109, 82, 240, .32) !important;
+  background: rgba(11, 20, 54, .9) !important;
+  color: #eef1ff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="neon-star-hunter"] :where(pre, code, table, [data-testid*="code"]) {
+  border-color: rgba(52, 207, 255, .22) !important;
+  background: rgba(3, 7, 24, .96) !important;
+  color: #cbefff !important;
+}
+
+/* -------------------------------------------------------- mecha cat studio */
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] body {
+  background: linear-gradient(145deg, #eef8ff 0%, #fdfcf7 58%, #ebf8f5 100%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] body::before {
+  opacity: .16;
+  background-image: radial-gradient(circle, rgba(255, 137, 35, .54) 0 1.2px, transparent 1.8px);
+  background-size: 72px 72px;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] aside.app-shell-left-panel {
+  border-color: rgba(72, 165, 195, .22) !important;
+  border-radius: 0 28px 28px 0 !important;
+  background: rgba(255, 253, 247, .96) !important;
+  box-shadow: 8px 0 28px rgba(51, 118, 154, .12) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] main.main-surface,
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] main.main-surface:not(.dream-skin-home-shell) {
+  border-color: rgba(73, 166, 197, .2) !important;
+  border-radius: 28px 0 0 0 !important;
+  background: rgba(250, 253, 255, .94) !important;
+  box-shadow: -10px 0 30px rgba(49, 114, 148, .1) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child {
+  gap: 14px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  width: 45% !important;
+  border: 1px solid rgba(255, 139, 38, .36) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 18px 34px rgba(72, 133, 161, .14) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:nth-child(2) {
+  width: 55% !important;
+  padding: 12px !important;
+  border: 1px solid rgba(78, 167, 195, .18);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .82);
+  box-shadow: 0 18px 34px rgba(72, 133, 161, .1);
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+  width: 100%;
+  background: linear-gradient(180deg, transparent 42%, rgba(34, 67, 83, .74) 100%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  align-items: flex-end !important;
+  padding: 0 22px 24px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  width: 100% !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home [data-feature="game-source"] {
+  font-size: clamp(22px, 2.2vw, 34px) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home .group\/home-suggestions button {
+  min-height: 126px !important;
+  border-color: rgba(71, 172, 194, .22) !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 24px rgba(57, 116, 148, .09) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home .group\/home-suggestions button > span:first-child > span:first-child {
+  background: linear-gradient(145deg, #ffad4e, #ff8424) !important;
+  box-shadow: 0 0 0 6px rgba(255, 139, 36, .1) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .composer-surface-chrome {
+  border-color: rgba(70, 171, 194, .24) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, .98) !important;
+  box-shadow: 0 12px 28px rgba(58, 117, 148, .1) !important;
+}
+
+/* ------------------------------------------------------------- hacker zero */
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] {
+  color-scheme: dark !important;
+  --ds-radius: 2px;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] body {
+  background-color: #010302 !important;
+  background-image:
+    linear-gradient(rgba(23, 255, 111, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 255, 111, .035) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  font-family: "SF Mono", "Cascadia Code", Consolas, monospace !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] body::before {
+  opacity: .48;
+  background: linear-gradient(135deg, transparent 0 68%, rgba(25, 255, 112, .055) 100%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] aside.app-shell-left-panel,
+html.codex-dream-skin[data-dream-theme="hacker-zero"] main.main-surface,
+html.codex-dream-skin[data-dream-theme="hacker-zero"] main.main-surface:not(.dream-skin-home-shell) {
+  border-color: rgba(27, 246, 104, .34) !important;
+  border-radius: 0 !important;
+  background: rgba(1, 5, 3, .97) !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] aside.app-shell-left-panel [aria-current="page"],
+html.codex-dream-skin[data-dream-theme="hacker-zero"] aside.app-shell-left-panel [class~="bg-token-list-hover-background"] {
+  border-color: #20f976 !important;
+  border-radius: 0 !important;
+  background: rgba(24, 255, 113, .09) !important;
+  box-shadow: inset 3px 0 #20f976 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] main.main-surface > header.app-header-tint {
+  border-bottom-color: rgba(25, 249, 112, .3) !important;
+  background: rgba(1, 5, 3, .96) !important;
+  color: #dfffea !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  border: 1px solid rgba(29, 249, 111, .48) !important;
+  border-radius: 0 !important;
+  background-color: #010503 !important;
+  box-shadow: inset 0 0 34px rgba(21, 255, 109, .035) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+  width: 70%;
+  border-radius: 0;
+  background: linear-gradient(90deg, rgba(0, 5, 2, .96), rgba(1, 9, 5, .8) 72%, transparent) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home [data-feature="game-source"] {
+  color: #2aff80 !important;
+  font: 700 clamp(22px, 2.4vw, 36px)/1.2 "SF Mono", Consolas, monospace !important;
+  text-transform: uppercase;
+  text-shadow: 0 0 16px rgba(32, 255, 120, .34);
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home [data-feature="game-source"]::before {
+  border: 1px solid #20f976;
+  border-radius: 0;
+  background: rgba(15, 255, 102, .08);
+  color: #dfffea;
+  box-shadow: none;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home .group\/home-suggestions button {
+  position: relative;
+  min-height: 110px !important;
+  padding-top: 26px !important;
+  border: 1px solid rgba(25, 246, 105, .34) !important;
+  border-radius: 0 !important;
+  background: rgba(2, 8, 5, .96) !important;
+  color: #dfffea !important;
+  box-shadow: inset 0 0 24px rgba(24, 255, 113, .025) !important;
+  font-family: "SF Mono", Consolas, monospace !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home .group\/home-suggestions button::before {
+  content: "[ MODULE ]";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: block !important;
+  height: 20px;
+  padding: 4px 7px;
+  border-bottom: 1px solid rgba(25, 246, 105, .22);
+  color: #20f976;
+  font: 8px/1 "SF Mono", Consolas, monospace;
+  text-align: left;
+  letter-spacing: .12em;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .composer-surface-chrome {
+  border: 1px solid #20f976 !important;
+  border-radius: 0 !important;
+  background: #020805 !important;
+  color: #dfffea !important;
+  box-shadow: 0 0 22px rgba(25, 255, 112, .06) !important;
+  font-family: "SF Mono", Consolas, monospace !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] :where(article, .message, [class*="surface"]:not(.composer-surface-chrome), pre, code, table, [data-testid*="code"]) {
+  border-color: rgba(29, 249, 111, .28) !important;
+  border-radius: 0 !important;
+  background: rgba(1, 7, 4, .96) !important;
+  color: #dfffea !important;
+  box-shadow: none !important;
+  font-family: "SF Mono", Consolas, monospace !important;
+}
+
+/* --------------------------------------------------------- potion workshop */
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] body {
+  background:
+    radial-gradient(circle at 90% 10%, rgba(255, 222, 151, .72), transparent 32%),
+    repeating-linear-gradient(0deg, rgba(102, 62, 26, .025) 0 1px, transparent 1px 4px),
+    #ead6aa !important;
+  font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", system-ui, sans-serif !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] body::before {
+  opacity: .24;
+  background-image: radial-gradient(circle, rgba(104, 69, 34, .22) 0 .7px, transparent 1.2px);
+  background-size: 6px 6px;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] aside.app-shell-left-panel {
+  border: 1px solid rgba(111, 70, 32, .3) !important;
+  border-left: 0 !important;
+  border-radius: 0 10px 10px 0 !important;
+  background: linear-gradient(100deg, rgba(248, 226, 181, .98), rgba(255, 240, 205, .96)) !important;
+  box-shadow: 5px 7px 0 rgba(104, 66, 31, .12) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] main.main-surface,
+html.codex-dream-skin[data-dream-theme="potion-workshop"] main.main-surface:not(.dream-skin-home-shell) {
+  border: 1px solid rgba(106, 65, 29, .28) !important;
+  border-radius: 10px 0 0 0 !important;
+  background: rgba(245, 224, 181, .94) !important;
+  box-shadow: -7px 8px 0 rgba(99, 60, 26, .12), inset 0 0 40px rgba(255, 244, 214, .36) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] main.main-surface > header.app-header-tint {
+  border-bottom-color: rgba(105, 66, 30, .22) !important;
+  background: rgba(251, 232, 194, .96) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  border: 2px solid rgba(116, 73, 34, .34) !important;
+  border-radius: 18px 4px 18px 4px !important;
+  box-shadow: 6px 8px 0 rgba(101, 61, 25, .14) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+  right: 0;
+  left: auto;
+  width: 63%;
+  border-radius: 0 4px 18px 0;
+  background: linear-gradient(270deg, rgba(244, 213, 156, .94), rgba(244, 213, 156, .72) 70%, transparent) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  justify-content: flex-end !important;
+  padding: 0 34px 0 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  width: 54% !important;
+  align-items: flex-end !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home [data-feature="game-source"] {
+  color: #5a351d !important;
+  font-family: ui-serif, "Songti SC", Georgia, serif !important;
+  font-size: clamp(25px, 2.7vw, 40px) !important;
+  text-shadow: 0 1px rgba(255, 246, 220, .8);
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home [data-feature="game-source"]::before {
+  border-color: rgba(88, 111, 63, .56);
+  border-radius: 4px 14px 4px 14px;
+  background: #3f8177;
+  color: #fff8df;
+  box-shadow: 3px 4px 0 rgba(75, 52, 27, .14);
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home .group\/home-suggestions button {
+  border: 1px solid rgba(117, 74, 33, .3) !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 22px, rgba(114, 80, 46, .07) 22px 23px),
+    linear-gradient(135deg, #fff1cc, #f1dcae) !important;
+  color: #5a351d !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .composer-surface-chrome {
+  border: 1px solid rgba(116, 73, 34, .32) !important;
+  border-radius: 4px 16px 4px 16px !important;
+  background: #fff0ce !important;
+  color: #5a351d !important;
+  box-shadow: 4px 5px 0 rgba(103, 64, 28, .12) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] main.main-surface:not(.dream-skin-home-shell) :where(article, .message, [class*="surface"]:not(.composer-surface-chrome)) {
+  border-color: rgba(117, 74, 33, .26) !important;
+  background: rgba(255, 239, 204, .94) !important;
+  color: #5a351d !important;
+  box-shadow: 3px 4px 0 rgba(101, 61, 25, .1) !important;
+}
+
+/* ----------------------------------------------------------- focus capybara */
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] body {
+  background: #f7f4ee !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] body::before,
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-particles,
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-status,
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-quote,
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-hero-art-name {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] aside.app-shell-left-panel {
+  border: 0 !important;
+  border-right: 1px solid rgba(45, 67, 91, .1) !important;
+  border-radius: 0 !important;
+  background: rgba(255, 253, 249, .96) !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] main.main-surface,
+html.codex-dream-skin[data-dream-theme="focus-capybara"] main.main-surface:not(.dream-skin-home-shell) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #fbfaf7 !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] main.main-surface > header.app-header-tint {
+  border-bottom-color: rgba(45, 67, 91, .08) !important;
+  background: rgba(251, 250, 247, .98) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:first-child {
+  min-height: 420px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: #fbfaf7 !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+  width: 60%;
+  border-radius: 0;
+  background: linear-gradient(90deg, rgba(251, 250, 247, .98), rgba(251, 250, 247, .82) 72%, transparent) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:first-child > div:first-child::after {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home [data-feature="game-source"] {
+  color: #303235 !important;
+  font-size: clamp(38px, 4.2vw, 64px) !important;
+  letter-spacing: -.035em;
+  text-shadow: none;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home [data-feature="game-source"]::before {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: #2477ef;
+  box-shadow: none;
+  font-size: 12px;
+  letter-spacing: .14em;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home .group\/home-suggestions [class~="grid"] > :nth-child(n + 3) {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home .group\/home-suggestions [class~="grid"] {
+  grid-template-columns: repeat(2, minmax(0, 240px)) !important;
+  justify-content: start !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home .group\/home-suggestions button {
+  min-height: 96px !important;
+  border-color: rgba(59, 93, 133, .12) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  color: #303235 !important;
+  box-shadow: 0 7px 20px rgba(47, 69, 91, .06) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .composer-surface-chrome {
+  width: min(72%, 820px) !important;
+  margin-inline: 0 auto !important;
+  border-color: rgba(51, 91, 137, .15) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  color: #4b5056 !important;
+  box-shadow: 0 10px 28px rgba(48, 69, 92, .07) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] main.main-surface:not(.dream-skin-home-shell) :where(article, .message, [class*="surface"]:not(.composer-surface-chrome)) {
+  border-color: rgba(50, 85, 125, .1) !important;
+  background: #fff !important;
+  color: #303235 !important;
+  box-shadow: 0 8px 24px rgba(45, 66, 87, .055) !important;
+}
+
+@media (max-width: 760px) {
+  html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child {
+    flex-direction: column !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child,
+  html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:nth-child(2) {
+    width: 100% !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="focus-capybara"] .composer-surface-chrome {
+    width: 100% !important;
+  }
+}
+
+/* Dark concept themes must also override Codex's light-shell text tokens.
+   These tokens are attached to conversation internals rather than inherited
+   from main.main-surface, so setting only the shell color is insufficient. */
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) main.main-surface:not(.dream-skin-home-shell) .thread-scroll-container {
+  --color-token-conversation-body: color-mix(in srgb, var(--ds-text) 94%, transparent);
+  --color-token-text-secondary: color-mix(in srgb, var(--ds-text) 76%, transparent);
+  --color-token-text-tertiary: color-mix(in srgb, var(--ds-text) 58%, transparent);
+  --color-token-conversation-summary-leading: color-mix(in srgb, var(--ds-text) 82%, transparent);
+  --color-token-conversation-summary-trailing: color-mix(in srgb, var(--ds-text) 64%, transparent);
+  --color-token-conversation-header: color-mix(in srgb, var(--ds-text) 68%, transparent);
+  --color-token-description-foreground: color-mix(in srgb, var(--ds-text) 70%, transparent);
+  --shimmer-text-secondary: color-mix(in srgb, var(--ds-text) 70%, transparent);
+  --shimmer-contrast: var(--ds-text);
+  color: var(--ds-text) !important;
+  text-shadow: none;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) main.main-surface:not(.dream-skin-home-shell) > header.app-header-tint :where(span, button, svg) {
+  color: var(--ds-text) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="_markdownContent_"] {
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, var(--ds-green) 34%, transparent);
+  border-radius: max(var(--ds-radius), 2px);
+  background: color-mix(in srgb, var(--ds-panel) 90%, transparent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .22);
+  color: var(--ds-text) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="_markdownContent_"]
+  :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, blockquote, span) {
+  color: var(--ds-text) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container [class*="_markdownContent_"] a {
+  color: var(--ds-lime) !important;
+  text-decoration-color: color-mix(in srgb, var(--ds-lime) 58%, transparent) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) main.main-surface:not(.dream-skin-home-shell)
+  .thread-scroll-container :where(
+    .text-token-conversation-body,
+    .text-token-conversation-summary-leading,
+    .text-token-conversation-summary-trailing,
+    .text-token-description-foreground,
+    .text-token-text-secondary,
+    .text-token-text-tertiary,
+    .group\/activity-header,
+    .group\/activity-header span,
+    .group\/activity-header svg
+  ) {
+  color: color-mix(in srgb, var(--ds-text) 78%, transparent) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) .composer-surface-chrome :where(*, .ProseMirror) {
+  color: var(--ds-text) !important;
+  caret-color: var(--ds-lime) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) .composer-surface-chrome :where([data-placeholder], [data-placeholder] *) {
+  color: color-mix(in srgb, var(--ds-text) 58%, transparent) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) .dream-skin-home [class*="_homeUtilityBar_"] {
+  border-color: color-mix(in srgb, var(--ds-green) 28%, transparent) !important;
+  background: color-mix(in srgb, var(--ds-panel) 96%, transparent) !important;
+  color: var(--ds-text) !important;
+}
+
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) .dream-skin-home [class*="_homeUtilityBar_"] :where(button, span, svg) {
+  color: var(--ds-text) !important;
+}
+
+/* Codex places a translucent light token layer inside the sidebar. On dark
+   concept themes it washed the navy/black shell into gray, so let the themed
+   sidebar itself provide the surface. */
+html.codex-dream-skin:is(
+  [data-dream-theme="neon-star-hunter"],
+  [data-dream-theme="hacker-zero"]
+) aside.app-shell-left-panel [class*="bg-token-bg-secondary"] {
+  background: transparent !important;
+}
+
+/* -------------------------------------------------------------------------
+   Real split-studio composition
+
+   The upstream Codex home page is a vertical stack (welcome area, then
+   banners/composer). Merely narrowing the welcome card did not create a split
+   layout. This grid reserves a dedicated artwork studio on the left and moves
+   the real Codex welcome/composer stack to the right. No fake controls are
+   introduced; the actual composer remains interactive.
+   ------------------------------------------------------------------------- */
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(250px, 44%) minmax(0, 56%) !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  gap: 14px 18px !important;
+  min-height: 100% !important;
+  padding: 20px 22px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child::before {
+  content: "";
+  grid-column: 1;
+  grid-row: 1 / 3;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid rgba(255, 139, 38, .32);
+  border-radius: 26px;
+  background-color: #eaf7ff;
+  background-image:
+    linear-gradient(0deg, rgba(29, 59, 72, .4), transparent 42%),
+    var(--dream-skin-art);
+  background-repeat: no-repeat;
+  background-position: center, 8% 54%;
+  background-size: 100% 100%, cover;
+  box-shadow: 0 18px 38px rgba(57, 116, 148, .15), inset 0 0 0 1px rgba(255, 255, 255, .62);
+  pointer-events: none;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child {
+  position: relative !important;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 18px !important;
+  border: 1px solid rgba(70, 171, 194, .2) !important;
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, .86) !important;
+  box-shadow: 0 14px 30px rgba(58, 117, 148, .1) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before,
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child::after {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  min-height: 0 !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:first-child > div:first-child::after {
+  content: "猫猫工位已就绪\A\A扳手就位，灵感启动。\A选择一个项目，然后开始创造。";
+  position: absolute;
+  inset: 28px 28px auto;
+  display: block !important;
+  color: #293541;
+  font: 700 clamp(18px, 2vw, 30px)/1.42 ui-rounded, "PingFang SC", sans-serif;
+  white-space: pre-line;
+  text-shadow: none;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child > div:nth-child(2) {
+  position: relative !important;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 2;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home [data-feature="game-source"] {
+  color: #293541 !important;
+  font-size: clamp(24px, 2.6vw, 36px) !important;
+  text-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home [data-feature="game-source"]::before {
+  border-color: rgba(73, 166, 197, .24) !important;
+  background: linear-gradient(100deg, rgba(74, 203, 173, .95), rgba(255, 138, 36, .92)) !important;
+  color: #fff !important;
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-hero-art-name {
+  right: auto;
+  top: auto;
+  bottom: 80px;
+  left: 5%;
+  color: rgba(255, 255, 255, .92);
+  text-shadow: 0 2px 12px rgba(27, 52, 63, .44);
+}
+
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-composer-stamp,
+html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-washi {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 14px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="mecha-cat-studio"] .dream-skin-home > div:first-child::before {
+    width: 100%;
+    min-height: 240px;
+    flex: 0 0 240px;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Real terminal-grid composition: a dense system console occupies the left,
+   the agent artwork becomes a separate right module, and the real Codex
+   composer remains a full-width command line below.
+   ------------------------------------------------------------------------- */
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(210px, .72fr) !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  min-height: 100% !important;
+  padding: 18px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child::before {
+  content: "ROOT@HX-0:~$ systemctl status codex-agent\A\A[ OK ]  theme engine online\A[ OK ]  local workspace mounted\A[ NET ] encrypted tunnel ready\A[ CPU ] 12%     [ MEM ] 28%\A\A> awaiting next instruction_";
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 34px 16px 16px;
+  overflow: hidden;
+  border: 1px solid rgba(32, 249, 118, .46);
+  background:
+    linear-gradient(rgba(30, 255, 112, .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 255, 112, .04) 1px, transparent 1px),
+    #010604;
+  background-size: 24px 24px;
+  color: #75ffae;
+  font: 11px/1.72 "SF Mono", Consolas, monospace;
+  white-space: pre-wrap;
+  box-shadow: inset 0 20px rgba(24, 255, 113, .035);
+  pointer-events: none;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child::after {
+  content: "[ SYSTEM LOG ]   23:47:09\A--------------------------------\A 23:47:02  handshake complete\A 23:47:04  palette verified\A 23:47:08  layout modules ready";
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  min-height: 128px;
+  margin: 0 8px 8px;
+  padding: 12px;
+  border: 1px solid rgba(32, 249, 118, .26);
+  background: rgba(1, 8, 5, .96);
+  color: #4fcf83;
+  font: 9px/1.6 "SF Mono", Consolas, monospace;
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child > div:first-child {
+  position: relative !important;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 1px solid rgba(32, 249, 118, .46) !important;
+  background-position: 95% center !important;
+  background-size: auto 100% !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before {
+  width: 100% !important;
+  background: linear-gradient(0deg, rgba(0, 5, 2, .58), transparent 56%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  opacity: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child > div:nth-child(2) {
+  position: relative !important;
+  z-index: 1;
+  grid-column: 1 / 3;
+  grid-row: 2;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-hero-art-name {
+  top: 92px;
+  right: 5%;
+  font: 11px/1.2 "SF Mono", Consolas, monospace;
+  letter-spacing: .16em;
+  transform: none;
+}
+
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-composer-stamp,
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-washi,
+html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-quote {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   Real paper-board composition: character illustration, pinned work sheet and
+   the real composer form a three-column desk instead of another banner.
+   ------------------------------------------------------------------------- */
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, 36%) minmax(0, 64%) !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  gap: 16px !important;
+  min-height: 100% !important;
+  padding: 22px 24px !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 25px, rgba(109, 75, 40, .045) 25px 26px),
+    rgba(246, 226, 184, .72);
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child::before {
+  content: "";
+  grid-column: 1;
+  grid-row: 1 / 3;
+  min-width: 0;
+  min-height: 0;
+  border: 2px solid rgba(116, 73, 34, .34);
+  border-radius: 42% 8px 18px 8px;
+  background:
+    linear-gradient(0deg, rgba(80, 50, 25, .35), transparent 42%),
+    var(--dream-skin-art) 9% 56% / cover no-repeat;
+  box-shadow: 6px 8px 0 rgba(101, 61, 25, .14);
+  pointer-events: none;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child::after {
+  content: "今日委托   ·   配方记录";
+  position: absolute;
+  top: 34px;
+  left: calc(36% + 58px);
+  z-index: 2;
+  padding: 7px 18px;
+  border: 1px dashed rgba(105, 66, 30, .36);
+  background: #f7dfae;
+  color: #704326;
+  font: 700 11px/1 ui-rounded, "PingFang SC", sans-serif;
+  letter-spacing: .08em;
+  box-shadow: 3px 4px 0 rgba(101, 61, 25, .1);
+  transform: rotate(-1deg);
+  pointer-events: none;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child {
+  position: relative !important;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 50px 24px 20px !important;
+  border: 1px solid rgba(117, 74, 33, .3) !important;
+  border-radius: 4px 18px 4px 18px !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 25px, rgba(114, 80, 46, .065) 25px 26px),
+    #fff0ca !important;
+  box-shadow: 5px 7px 0 rgba(101, 61, 25, .12) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child::before,
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child::after {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
+  min-height: 0 !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:first-child > div:first-child::after {
+  content: "今日委托\A\A○ 整理主题资源\A○ 调整布局骨架\A○ 验证最终效果\A○ 准备一瓶好心情";
+  position: absolute;
+  inset: 62px 28px auto;
+  display: block !important;
+  color: #684026;
+  font: 650 clamp(16px, 1.8vw, 25px)/1.75 ui-rounded, "PingFang SC", sans-serif;
+  white-space: pre-line;
+  text-shadow: none;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child > div:nth-child(2) {
+  position: relative !important;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 2;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-hero-art-name,
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-composer-stamp,
+html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-washi {
+  display: none !important;
+}
+
+/* Minimal focus keeps one large quiet canvas, two compact shortcuts and a
+   narrow composer. The artwork is contained on the right rather than cropped
+   into the standard banner. */
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child {
+  min-height: 100% !important;
+  padding: 24px 34px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:first-child {
+  min-height: 390px !important;
+  flex: 1 1 auto !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 390px !important;
+  padding: 36px 40px !important;
+  background-color: transparent !important;
+  background-image:
+    linear-gradient(90deg, #fbfaf7 0 44%, rgba(251, 250, 247, .76) 58%, transparent 76%),
+    var(--dream-skin-art) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100%, contain !important;
+  background-position: center, right center !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:nth-child(2) {
+  width: 68% !important;
+  align-self: flex-start !important;
+}
+
+@media (max-width: 760px) {
+  html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child,
+  html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 14px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child::before,
+  html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child::before {
+    width: 100%;
+    min-height: 230px;
+    flex: 0 0 230px;
+  }
+
+  html.codex-dream-skin[data-dream-theme="hacker-zero"] .dream-skin-home > div:first-child::after,
+  html.codex-dream-skin[data-dream-theme="potion-workshop"] .dream-skin-home > div:first-child::after {
+    display: none;
+  }
+
+  html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:nth-child(2) {
+    width: 100% !important;
+  }
 }

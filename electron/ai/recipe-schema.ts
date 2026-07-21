@@ -36,6 +36,7 @@ export const RECIPE_JSON_SCHEMA = {
         "paper-board",
         "minimal-focus",
         "retro-messenger",
+        "silk-scroll",
       ],
     },
     hero: {

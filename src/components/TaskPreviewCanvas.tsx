@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { NormalizedTheme } from "../../electron/shared/types";
 import { compileTheme } from "../../electron/engine/compiler";
 import { RetroMessengerPreview } from "./RetroMessengerPreview";
+import { SilkScrollPreview } from "./SilkScrollPreview";
+import { MoonlitImmortalPreview } from "./MoonlitImmortalPreview";
 
 export interface TaskPreviewCanvasProps {
   theme: NormalizedTheme;
@@ -23,6 +25,14 @@ export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Ta
     return <RetroMessengerPreview theme={theme} heroUrl={heroUrl} wallpaperUrl={wallpaperUrl} stampUrl={stampUrl} page="task" />;
   }
 
+  if (theme.layout === "silk-scroll") {
+    return <SilkScrollPreview theme={theme} heroUrl={heroUrl} wallpaperUrl={wallpaperUrl} stampUrl={stampUrl} page="task" />;
+  }
+
+  if (theme.id === "moonlit-immortal") {
+    return <MoonlitImmortalPreview theme={theme} heroUrl={heroUrl} wallpaperUrl={wallpaperUrl} stampUrl={stampUrl} page="task" />;
+  }
+
   const compiled = compileTheme(theme, { mode, compact });
   const c = theme[mode];
 
@@ -40,7 +50,7 @@ export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Ta
         <span className="tl-dot" style={{ background: "#ff5f57" }} />
         <span className="tl-dot" style={{ background: "#febc2e" }} />
         <span className="tl-dot" style={{ background: "#28c840" }} />
-        <span className="preview-caption">Codex 任务页 · 近似预览 · {theme.layout}</span>
+        <span className="preview-caption">Codex 对话页 · 近似预览 · {theme.layout}</span>
         <div className="preview-toggles">
           <button className={`preview-toggle${mode === "light" ? " on" : ""}`} onClick={() => setMode("light")}>
             亮色
@@ -55,6 +65,7 @@ export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Ta
       </div>
       <div
         className={`mock codex-dream-skin codex-dream-skin--${theme.layout} codex-dream-skin--${mode} ${compact ? "codex-dream-skin--compact" : "codex-dream-skin--wide"}`}
+        data-dream-theme={theme.id}
         style={wrapperStyle}
       >
         {heroUrl && (
@@ -95,7 +106,10 @@ export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Ta
             </div>
           </div>
 
-          <div className="mock-main" style={{ padding: compact ? 14 : 22, gap: 14, display: "flex", flexDirection: "column" }}>
+          <div
+            className={`mock-main mock-task-main mock-task-main--${theme.layout}`}
+            style={{ padding: compact ? 14 : 22, gap: 14 }}
+          >
             <div
               className="mock-thread-header"
               style={{

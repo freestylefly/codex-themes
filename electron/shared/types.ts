@@ -48,6 +48,7 @@ export const LAYOUT_KINDS = [
   "paper-board",
   "minimal-focus",
   "retro-messenger",
+  "silk-scroll",
 ] as const;
 
 export type LayoutKind = (typeof LAYOUT_KINDS)[number];

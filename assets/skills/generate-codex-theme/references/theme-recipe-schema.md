@@ -9,7 +9,7 @@ The Theme Recipe is the only structured output the `generate-codex-theme` skill 
   "description": "string (max 160 chars)",
   "tagline": "string (max 160 chars)",
   "tags": ["string"],
-  "layout": "dream-banner | split-studio | full-canvas | terminal-grid | paper-board | minimal-focus | retro-messenger",
+  "layout": "dream-banner | split-studio | full-canvas | terminal-grid | paper-board | minimal-focus | retro-messenger | silk-scroll",
   "hero": {
     "fit": "cover | contain",
     "focusX": 0.0,
