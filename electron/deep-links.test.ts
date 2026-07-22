@@ -10,8 +10,20 @@ describe("parseOpenThemeUrl", () => {
     });
   });
 
+  it("accepts the two allow-listed workspace URLs", () => {
+    assert.deepEqual(parseOpenThemeUrl("codexthemes://create/custom"), {
+      type: "open-workspace",
+      workspace: "editor",
+    });
+    assert.deepEqual(parseOpenThemeUrl("codexthemes://create/ai"), {
+      type: "open-workspace",
+      workspace: "ai-studio",
+    });
+  });
+
   it("rejects unsupported hosts and actions", () => {
     assert.equal(parseOpenThemeUrl("codexthemes://apply/blue-window-messenger"), null);
+    assert.equal(parseOpenThemeUrl("codexthemes://create/settings"), null);
     assert.equal(parseOpenThemeUrl("https://theme/blue-window-messenger"), null);
   });
 
@@ -20,6 +32,7 @@ describe("parseOpenThemeUrl", () => {
     assert.equal(parseOpenThemeUrl("codexthemes://theme/a/b"), null);
     assert.equal(parseOpenThemeUrl("codexthemes://theme/Blue_Window"), null);
     assert.equal(parseOpenThemeUrl("codexthemes://theme/soft-moss?apply=1"), null);
+    assert.equal(parseOpenThemeUrl("codexthemes://create/ai/extra"), null);
   });
 
   it("rejects malformed and oversized input", () => {

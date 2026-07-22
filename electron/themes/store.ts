@@ -162,6 +162,7 @@ export class ThemeStore {
         try {
           const stat = await fs.stat(dir);
           if (!stat.isDirectory()) continue;
+          if (source === "preset" && !(await isPresetGalleryVisible(dir))) continue;
           const loaded = await loadTheme(dir);
           const meta = await readSidecarMeta(dir);
           // Historical market themes are treated as imported.
@@ -807,6 +808,18 @@ export class ThemeStore {
 
     const loaded = await loadTheme(dir);
     return themeSummaryFromLoaded(loaded, source, dir, null);
+  }
+}
+
+async function isPresetGalleryVisible(dir: string): Promise<boolean> {
+  try {
+    const raw = JSON.parse(await fs.readFile(path.join(dir, "theme.json"), "utf8")) as {
+      galleryVisible?: unknown;
+    };
+    return raw.galleryVisible !== false;
+  } catch {
+    // Invalid manifests are handled by loadTheme and skipped by listThemes.
+    return true;
   }
 }
 

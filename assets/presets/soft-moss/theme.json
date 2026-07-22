@@ -4,6 +4,7 @@
   "id": "soft-moss",
   "version": "2.0.0",
   "minEngineVersion": "2.0.0",
+  "galleryVisible": false,
   "name": "柔苔 Soft Moss",
   "description": "雨后石阶上的青苔色。",
   "tagline": "雨后石阶上的青苔色。",

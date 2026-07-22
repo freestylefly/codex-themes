@@ -148,11 +148,13 @@ async function enqueueOpenThemeUrl(raw: string): Promise<void> {
   const action = parseOpenThemeUrl(raw);
   if (!action || !themeStore) return;
 
-  const themes = await themeStore.listThemes();
-  const isBuiltIn = themes.some(
-    (theme) => theme.source === "preset" && theme.id === action.themeId,
-  );
-  if (!isBuiltIn) return;
+  if (action.type === "open-theme") {
+    const themes = await themeStore.listThemes();
+    const isBuiltIn = themes.some(
+      (theme) => theme.source === "preset" && theme.id === action.themeId,
+    );
+    if (!isBuiltIn) return;
+  }
 
   pendingOpenThemeActions.push(action);
   showWindow();

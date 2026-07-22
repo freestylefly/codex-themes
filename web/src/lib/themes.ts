@@ -6,6 +6,7 @@ interface ThemeManifest {
   description: string;
   tagline: string;
   version: string;
+  galleryVisible?: boolean;
   tags?: string[];
   layout: string;
   wallpaper?: string;
@@ -19,6 +20,7 @@ export interface WebTheme {
   description: string;
   tagline: string;
   version: string;
+  galleryVisible: boolean;
   tags: string[];
   layout: string;
   preview: ImageMetadata;
@@ -66,7 +68,7 @@ const backdropByPath = new Map(
   }),
 );
 
-export const themes: WebTheme[] = Object.entries(manifestModules)
+const allThemes: WebTheme[] = Object.entries(manifestModules)
   .map(([file, module]) => {
     const folderId = themeIdFromPath(file);
     const manifest = module.default;
@@ -82,6 +84,7 @@ export const themes: WebTheme[] = Object.entries(manifestModules)
       description: manifest.description,
       tagline: manifest.tagline,
       version: manifest.version,
+      galleryVisible: manifest.galleryVisible !== false,
       tags: manifest.tags ?? [],
       layout: manifest.layout,
       preview,
@@ -117,9 +120,11 @@ export const themes: WebTheme[] = Object.entries(manifestModules)
     return a.name.localeCompare(b.name, "zh-CN");
   });
 
-if (themes.length !== 20 || new Set(themes.map((theme) => theme.id)).size !== themes.length) {
-  throw new Error(`Expected 20 unique built-in themes, received ${themes.length}.`);
+if (allThemes.length !== 20 || new Set(allThemes.map((theme) => theme.id)).size !== allThemes.length) {
+  throw new Error(`Expected 20 unique built-in themes, received ${allThemes.length}.`);
 }
+
+export const themes = allThemes.filter((theme) => theme.galleryVisible);
 
 export function getTheme(id: string): WebTheme | undefined {
   return themes.find((theme) => theme.id === id);

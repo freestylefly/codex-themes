@@ -9,8 +9,8 @@ import type { InspectedThemePackage, ThemeSummary } from "../../electron/shared/
 
 /**
  * Curated gallery order: presets with original character or scene artwork and
- * richer, high-resolution previews should define the first screen. The older
- * palette-led presets remain available after the visual showcase.
+ * richer, high-resolution previews define the gallery. Palette-only bundled
+ * presets are filtered by the main process using theme metadata.
  */
 const FEATURED_PRESET_IDS = [
   "moonlit-immortal",
@@ -142,7 +142,7 @@ export function Gallery() {
       </div>
 
       <div className="section-label">内置预设</div>
-      <div className="theme-grid">
+      <div className="theme-grid theme-grid--curated-presets">
         {presets.map((theme) => (
           <ThemeCard theme={theme} key={theme.id} onPreview={setPreviewTheme} />
         ))}

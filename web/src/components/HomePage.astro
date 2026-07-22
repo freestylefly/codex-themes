@@ -1,6 +1,9 @@
 ---
 import { Image } from "astro:assets";
-import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-astro";
+import { ArrowLeft, ArrowRight, Palette, ShieldCheck, Sparkles, Wand2 } from "lucide-astro";
+import aiStudioClient from "../assets/product/ai-studio-client.jpg";
+import customThemeClient from "../assets/product/custom-theme-client.jpg";
+import themeGalleryClient from "../assets/product/theme-gallery-client.jpg";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ThemeCard from "./ThemeCard.astro";
 import { DOWNLOAD_URL } from "../config";
@@ -172,21 +175,111 @@ const description =
     </div>
   </section>
 
+  <section class="creation-section section-shell" id="create-theme">
+    <div class="creation-heading">
+      <div>
+        <div class="section-kicker">02 / {locale === "zh" ? "三种主题方式" : "Three ways to theme"}</div>
+        <h2>{locale === "zh" ? "选择现成的，也可以从零创造。" : "Choose one ready-made, or create from scratch."}</h2>
+      </div>
+      <p>
+        {locale === "zh"
+          ? "从一键换肤，到可视化编辑，再到让本地 Codex 根据一句话和参考图生成完整主题，都在同一个桌面应用里完成。"
+          : "Apply a finished look, build one visually, or let your local Codex turn a brief and reference image into a complete theme—all in one desktop app."}
+      </p>
+    </div>
+
+    <div class="creation-path-grid">
+      <article class="creation-path-card">
+        <div class="creation-path-visual">
+          <Image
+            src={themeGalleryClient}
+            alt={locale === "zh" ? "Codex Themes 客户端主题画廊" : "Codex Themes desktop theme gallery"}
+            widths={[480, 720, 960]}
+            sizes="(max-width: 820px) 100vw, 33vw"
+            format="webp"
+            loading="lazy"
+          />
+          <div class="creation-visual-badge">{locale === "zh" ? "10 款官方精选" : "10 curated themes"}</div>
+          <div class="creation-ready-state"><i></i>{locale === "zh" ? "可直接应用" : "Ready to apply"}</div>
+        </div>
+        <div class="creation-path-copy">
+          <div class="creation-path-meta"><span>01</span><Palette size={18} stroke-width={1.6} aria-hidden="true" /></div>
+          <h3>{locale === "zh" ? "一键换主题" : "Apply in one click"}</h3>
+          <p>{locale === "zh" ? "浏览官方主题，网页一键唤起应用，确认后立即切换，并且随时可以恢复。" : "Browse official themes, open the desktop app from the web, confirm, and switch instantly—with restore always available."}</p>
+          <a class="creation-path-action" href={href(locale, "/themes")}>
+            {locale === "zh" ? "浏览官方主题" : "Browse official themes"}<ArrowRight size={16} aria-hidden="true" />
+          </a>
+        </div>
+      </article>
+
+      <article class="creation-path-card">
+        <div class="creation-path-visual">
+          <Image
+            src={customThemeClient}
+            alt={locale === "zh" ? "Codex Themes 客户端自定义主题编辑器" : "Codex Themes desktop custom theme editor"}
+            widths={[480, 720, 960]}
+            sizes="(max-width: 820px) 100vw, 33vw"
+            format="webp"
+            loading="lazy"
+          />
+          <div class="creation-visual-badge">{locale === "zh" ? "实时预览" : "Live preview"}</div>
+          <div class="creation-swatch-row" aria-hidden="true">
+            <i style="--swatch: #e4b6ad"></i><i style="--swatch: #f6e9d9"></i><i style="--swatch: #78968d"></i><i style="--swatch: #965c67"></i>
+          </div>
+        </div>
+        <div class="creation-path-copy">
+          <div class="creation-path-meta"><span>02</span><Wand2 size={18} stroke-width={1.6} aria-hidden="true" /></div>
+          <h3>{locale === "zh" ? "自定义你的主题" : "Build your own theme"}</h3>
+          <p>{locale === "zh" ? "上传主图，选择布局，调节配色、透明度和焦点，在首页与对话页实时预览。" : "Upload artwork, choose a layout, and tune colors, transparency, and focus with live home and conversation previews."}</p>
+          <button class="creation-path-action" type="button" data-deep-link="codexthemes://create/custom">
+            {locale === "zh" ? "打开自定义主题" : "Open theme builder"}<ArrowRight size={16} aria-hidden="true" />
+          </button>
+        </div>
+      </article>
+
+      <article class="creation-path-card creation-path-card--ai">
+        <div class="creation-path-visual">
+          <Image
+            src={aiStudioClient}
+            alt={locale === "zh" ? "Codex Themes 客户端 AI 主题工作台" : "Codex Themes desktop AI theme studio"}
+            widths={[480, 720, 960]}
+            sizes="(max-width: 820px) 100vw, 33vw"
+            format="webp"
+            loading="lazy"
+          />
+          <div class="creation-visual-badge">{locale === "zh" ? "本地生成" : "Local generation"}</div>
+          <div class="creation-cli-state">
+            <span><i></i>{locale === "zh" ? "本地 Codex CLI 已连接" : "Local Codex CLI connected"}</span>
+            <code>codex · theme.generate()</code>
+          </div>
+        </div>
+        <div class="creation-path-copy">
+          <div class="creation-path-meta"><span>03</span><Sparkles size={18} stroke-width={1.6} aria-hidden="true" /></div>
+          <h3>{locale === "zh" ? "用本地 Codex 生成" : "Generate with local Codex"}</h3>
+          <p>{locale === "zh" ? "输入一句描述或添加参考图，由本机 Codex CLI 生成主题图片、布局和配色方案。" : "Describe an idea or attach a reference image, then let your local Codex CLI generate artwork, layout, and palette."}</p>
+          <button class="creation-path-action" type="button" data-deep-link="codexthemes://create/ai">
+            {locale === "zh" ? "连接本地 Codex 生成" : "Create with local Codex"}<ArrowRight size={16} aria-hidden="true" />
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
   <section class="theme-showcase section-shell">
     <div class="section-heading-row">
       <div>
-        <div class="section-kicker">02 / {locale === "zh" ? "官方主题" : "Official themes"}</div>
+        <div class="section-kicker">03 / {locale === "zh" ? "官方主题" : "Official themes"}</div>
         <h2>{locale === "zh" ? "找到今天想进入的工作空间" : "Find the workspace you want today"}</h2>
       </div>
       <a class="button button-text" href={href(locale, "/themes")}>{t.allThemes}</a>
     </div>
-    <div class="theme-grid">
+    <div class="theme-grid theme-grid--curated">
       {featured.map((theme) => <ThemeCard theme={theme} locale={locale} />)}
     </div>
   </section>
 
   <section class="steps-section section-shell" id="how-it-works">
-    <div class="section-kicker">03 / {t.navHow}</div>
+    <div class="section-kicker">04 / {t.navHow}</div>
     <h2>{locale === "zh" ? "从网页到 Codex，只需要三步" : "From the web to Codex in three steps"}</h2>
     <div class="steps-grid">
       <article>
@@ -211,13 +304,13 @@ const description =
     <div>
       <div class="eyebrow">{locale === "zh" ? "你的 CODEX，你的工作台" : "YOUR CODEX, YOUR WORKSPACE"}</div>
       <h2>{locale === "zh" ? "先从蓝窗信使开始。" : "Start with Blue Window."}</h2>
-      <p>{locale === "zh" ? "下载后即可使用全部 20 款内置主题，也可以创建自己的主题。" : "Get all 20 built-in themes, then create a workspace that is entirely yours."}</p>
+      <p>{locale === "zh" ? `下载后即可使用 ${themes.length} 款精选内置主题，也可以创建自己的主题。` : `Get ${themes.length} curated built-in themes, then create a workspace that is entirely yours.`}</p>
     </div>
     <a class="button button-blue" href={DOWNLOAD_URL}>{t.download}</a>
   </section>
 
   <section class="faq-section section-shell" id="faq">
-    <div class="section-kicker">04 / {t.navFaq}</div>
+    <div class="section-kicker">05 / {t.navFaq}</div>
     <div class="faq-layout">
       <h2>{locale === "zh" ? "下载前，你可能想知道" : "A few things before you download"}</h2>
       <div class="faq-list">
@@ -242,9 +335,14 @@ const description =
   </section>
 
   <script>
+    const carouselWindow = window as Window & { __codexThemesHomeCarouselCleanup?: () => void };
+    carouselWindow.__codexThemesHomeCarouselCleanup?.();
+    const carouselCleanups: Array<() => void> = [];
+
     document.querySelectorAll<HTMLElement>("[data-home-carousel]").forEach((carousel) => {
-      if (carousel.dataset.carouselReady === "true") return;
       carousel.dataset.carouselReady = "true";
+      const controller = new AbortController();
+      const { signal } = controller;
 
       const cards = Array.from(carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-card]"));
       const thumbs = Array.from(carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-thumb]"));
@@ -297,10 +395,16 @@ const description =
         autoplay = window.setInterval(() => select(selected + 1), 5200);
       };
 
-      carousel.querySelector("[data-carousel-prev]")?.addEventListener("click", () => select(selected - 1));
-      carousel.querySelector("[data-carousel-next]")?.addEventListener("click", () => select(selected + 1));
-      thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => select(index)));
-      cards.forEach((card, index) => card.addEventListener("click", () => select(index)));
+      carousel.querySelector("[data-carousel-prev]")?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        select(selected - 1);
+      }, { signal });
+      carousel.querySelector("[data-carousel-next]")?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        select(selected + 1);
+      }, { signal });
+      thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => select(index), { signal }));
+      cards.forEach((card, index) => card.addEventListener("click", () => select(index), { signal }));
 
       carousel.addEventListener("keydown", (event) => {
         if (event.key === "ArrowLeft") {
@@ -311,35 +415,44 @@ const description =
           event.preventDefault();
           select(selected + 1);
         }
-      });
+      }, { signal });
 
       stage?.addEventListener("pointerdown", (event) => {
+        if ((event.target as Element).closest("[data-carousel-prev], [data-carousel-next]")) return;
         dragStart = event.clientX;
         stage.setPointerCapture(event.pointerId);
-      });
+      }, { signal });
       stage?.addEventListener("pointerup", (event) => {
         if (dragStart === null) return;
         const distance = event.clientX - dragStart;
         if (Math.abs(distance) > 54) select(selected + (distance < 0 ? 1 : -1));
         dragStart = null;
-      });
+      }, { signal });
       stage?.addEventListener("pointercancel", () => {
         dragStart = null;
-      });
+      }, { signal });
 
-      carousel.addEventListener("pointerenter", stopAutoplay);
-      carousel.addEventListener("pointerleave", startAutoplay);
-      carousel.addEventListener("focusin", stopAutoplay);
+      carousel.addEventListener("pointerenter", stopAutoplay, { signal });
+      carousel.addEventListener("pointerleave", startAutoplay, { signal });
+      carousel.addEventListener("focusin", stopAutoplay, { signal });
       carousel.addEventListener("focusout", (event) => {
         if (!carousel.contains(event.relatedTarget as Node | null)) startAutoplay();
-      });
+      }, { signal });
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) stopAutoplay();
         else startAutoplay();
-      });
+      }, { signal });
 
       select(0);
       startAutoplay();
+      carouselCleanups.push(() => {
+        stopAutoplay();
+        controller.abort();
+      });
     });
+
+    carouselWindow.__codexThemesHomeCarouselCleanup = () => {
+      carouselCleanups.splice(0).forEach((cleanup) => cleanup());
+    };
   </script>
 </BaseLayout>

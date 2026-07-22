@@ -4,6 +4,7 @@
   "id": "peach-blush",
   "version": "2.0.0",
   "minEngineVersion": "2.0.0",
+  "galleryVisible": false,
   "name": "蜜桃腮红 Peach Blush",
   "description": "傍晚六点的粉色反光。",
   "tagline": "傍晚六点的粉色反光。",

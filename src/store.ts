@@ -163,6 +163,17 @@ export const useApp = create<AppStore>((set, get) => ({
   },
 
   openThemeFromWeb(action: OpenThemeAction) {
+    if (action.type === "open-workspace") {
+      if (action.workspace === "editor") {
+        set({ page: "editor", editingDraft: null });
+        get().toast("info", "已从官网打开自定义主题工作台。");
+      } else {
+        set({ page: "ai-studio" });
+        get().toast("info", "已连接本地 AI 主题工作台。");
+      }
+      return;
+    }
+
     const theme = get().themes.find(
       (candidate) => candidate.source === "preset" && candidate.id === action.themeId,
     );
