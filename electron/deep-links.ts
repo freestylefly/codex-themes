@@ -67,7 +67,7 @@ function parseDeepLink(raw: string): DeepLinkAction | null {
 
     if (url.hostname === "create") {
       const encoded = url.pathname.replace(/^\/+/, "");
-      if (!encoded || encoded.includes("/")) return null;
+      if (!encoded || encoded.includes("/") || url.search || url.hash) return null;
       if (encoded === "custom") return { type: "open-workspace", workspace: "editor" };
       if (encoded === "ai") return { type: "open-workspace", workspace: "ai-studio" };
       return null;
@@ -76,7 +76,7 @@ function parseDeepLink(raw: string): DeepLinkAction | null {
     if (url.hostname !== "theme") return null;
 
     const encoded = url.pathname.replace(/^\/+/, "");
-    if (!encoded || encoded.includes("/")) return null;
+    if (!encoded || encoded.includes("/") || url.search || url.hash) return null;
 
     const themeId = decodeURIComponent(encoded);
     if (!THEME_ID_RE.test(themeId)) return null;

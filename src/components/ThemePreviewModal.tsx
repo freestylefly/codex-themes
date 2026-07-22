@@ -1,21 +1,27 @@
-import { Check, Loader2, Play, X } from "lucide-react";
+import { Check, Loader2, Play, ShoppingCart, Download, X } from "lucide-react";
 import { useEffect } from "react";
-import type { ThemeSummary } from "../../electron/shared/types";
+import type { CommerceThemeSummary } from "../../electron/shared/types";
 import { useApp } from "../store";
 
 const SOURCE_LABEL = { preset: "内置预设", custom: "我的主题", imported: "已导入", purchased: "已购主题" } as const;
 
 interface ThemePreviewModalProps {
-  theme: ThemeSummary;
+  theme: CommerceThemeSummary;
   onClose(): void;
+  onPurchase?(): void;
+  onDownload?(): void;
 }
 
-export function ThemePreviewModal({ theme, onClose }: ThemePreviewModalProps) {
+export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: ThemePreviewModalProps) {
   const state = useApp((s) => s.state);
   const applyingId = useApp((s) => s.applyingId);
   const apply = useApp((s) => s.apply);
   const isActive = state?.activeThemeId === theme.id;
   const isApplying = applyingId === theme.id;
+  const isOwned = Boolean(theme.entitlement);
+  const isPaid = Boolean(theme.product);
+  const isInstalled = Boolean(theme.local);
+  const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -62,6 +68,9 @@ export function ThemePreviewModal({ theme, onClose }: ThemePreviewModalProps) {
             <span className="badge badge-layout">{theme.layout}</span>
             {theme.version && <span className="badge badge-version">v{theme.version}</span>}
             {theme.readOnly && <span className="badge badge-readonly">只读</span>}
+            {isPaid && !isOwned && theme.product && (
+              <span className="badge badge-paid">{formatPrice(theme.product.priceCents)}</span>
+            )}
           </div>
         </div>
 
@@ -71,6 +80,22 @@ export function ThemePreviewModal({ theme, onClose }: ThemePreviewModalProps) {
             <span className="btn-active">
               <Check size={13} strokeWidth={2.5} />当前主题
             </span>
+          ) : isPaid && !isOwned ? (
+            <button type="button" className="btn btn-primary" onClick={() => {
+              onClose();
+              onPurchase?.();
+            }}>
+              <ShoppingCart size={14} strokeWidth={2.5} />
+              {theme.product ? `${formatPrice(theme.product.priceCents)} 购买并使用` : "购买"}
+            </button>
+          ) : isOwned && !isInstalled ? (
+            <button type="button" className="btn btn-primary" onClick={() => {
+              onClose();
+              onDownload?.();
+            }}>
+              <Download size={14} strokeWidth={2.5} />
+              下载主题
+            </button>
           ) : (
             <button
               type="button"
@@ -80,11 +105,15 @@ export function ThemePreviewModal({ theme, onClose }: ThemePreviewModalProps) {
               title={state?.codexDesktop.installed ? "应用到 Codex" : "未检测到 Codex"}
             >
               {isApplying ? <Loader2 size={14} className="spin" /> : <Play size={14} strokeWidth={2.5} />}
-              应用该主题
+              {hasUpdate ? "更新后应用" : "应用该主题"}
             </button>
           )}
         </footer>
       </section>
     </div>
   );
+}
+
+function formatPrice(cents: number): string {
+  return `¥${(cents / 100).toFixed(2)}`;
 }
