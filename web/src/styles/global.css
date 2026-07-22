@@ -156,6 +156,17 @@ h3 {
   background: #185fc4;
 }
 
+.button-gold {
+  color: #141518;
+  background: #fbbf24;
+  border-color: #fbbf24;
+}
+
+.button-gold:hover {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
 .button-light {
   color: var(--ink);
   border-color: var(--line);

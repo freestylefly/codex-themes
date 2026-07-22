@@ -10,6 +10,7 @@ const { locale, theme } = Astro.props as { locale: Locale; theme: WebTheme };
 const item = localizeTheme(theme, locale);
 const t = copy[locale];
 const related = themes.filter((candidate) => candidate.id !== item.id).slice(0, 3);
+const priceText = item.isPaid ? `¥${(item.priceCents! / 100).toFixed(2)}` : null;
 ---
 
 <BaseLayout locale={locale} title={item.name} description={item.description} image={item.preview}>
@@ -23,7 +24,7 @@ const related = themes.filter((candidate) => candidate.id !== item.id).slice(0, 
     </nav>
     <div class="theme-detail-heading">
       <div>
-        <div class="eyebrow">{t.builtIn}</div>
+        <div class="eyebrow">{item.isPaid ? (locale === "zh" ? "付费主题" : "Paid theme") : t.builtIn}</div>
         <h1>{item.name}</h1>
         <p>{item.description}</p>
       </div>
@@ -47,17 +48,21 @@ const related = themes.filter((candidate) => candidate.id !== item.id).slice(0, 
         <div class="panel-label">{locale === "zh" ? "在桌面应用中打开" : "OPEN IN THE DESKTOP APP"}</div>
         <h2>{locale === "zh" ? "喜欢这个主题？" : "Like this workspace?"}</h2>
         <p>
-          {locale === "zh"
-            ? "点击后会尝试打开 Codex Themes，并定位到这个主题。真正应用前仍会向你确认。"
-            : "We’ll open Codex Themes and take you straight here. The app still asks before applying anything."}
+          {item.isPaid
+            ? (locale === "zh"
+                ? `这款主题售价 ${priceText}，请在 Codex Themes 客户端中登录并购买。官网不处理支付。`
+                : `This theme costs ${priceText}. Please log in and purchase it inside the Codex Themes desktop app. The website does not handle payments.`)
+            : (locale === "zh"
+                ? "点击后会尝试打开 Codex Themes，并定位到这个主题。真正应用前仍会向你确认。"
+                : "We’ll open Codex Themes and take you straight here. The app still asks before applying anything.")}
         </p>
-        <button class="button button-blue button-full" type="button" data-deep-link={item.deepLink}>
-          {t.useTheme}
+        <button class={`button ${item.isPaid ? "button-gold" : "button-blue"} button-full`} type="button" data-deep-link={item.deepLink}>
+          {item.isPaid ? (locale === "zh" ? `在客户端购买 ${priceText}` : `Buy in app ${priceText}`) : t.useTheme}
         </button>
         <a class="button button-light button-full" href={DOWNLOAD_URL}>{t.download}</a>
         <dl class="theme-facts">
           <div><dt>{locale === "zh" ? "布局" : "Layout"}</dt><dd>{item.layout}</dd></div>
-          <div><dt>{locale === "zh" ? "来源" : "Source"}</dt><dd>{t.builtIn}</dd></div>
+          <div><dt>{locale === "zh" ? "来源" : "Source"}</dt><dd>{item.isPaid ? (locale === "zh" ? "付费主题" : "Paid") : t.builtIn}</dd></div>
           <div><dt>{locale === "zh" ? "兼容" : "Support"}</dt><dd>macOS Apple silicon</dd></div>
         </dl>
       </aside>

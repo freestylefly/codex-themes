@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseOpenThemeUrl } from "./deep-links";
+import { parseOpenThemeUrl, parseAuthCallbackUrl, parsePaymentResultUrl } from "./deep-links";
 
 describe("parseOpenThemeUrl", () => {
   it("accepts a canonical theme URL", () => {
@@ -38,5 +38,53 @@ describe("parseOpenThemeUrl", () => {
   it("rejects malformed and oversized input", () => {
     assert.equal(parseOpenThemeUrl("not a url"), null);
     assert.equal(parseOpenThemeUrl(`codexthemes://theme/${"a".repeat(600)}`), null);
+  });
+
+  it("does not treat auth or payment URLs as theme URLs", () => {
+    assert.equal(parseOpenThemeUrl("codexthemes://auth/callback?code=abc"), null);
+    assert.equal(parseOpenThemeUrl("codexthemes://payment/result?orderId=123"), null);
+  });
+});
+
+describe("parseAuthCallbackUrl", () => {
+  it("accepts a valid auth callback", () => {
+    assert.deepEqual(parseAuthCallbackUrl("codexthemes://auth/callback?code=abc123"), {
+      type: "auth-callback",
+      code: "abc123",
+      state: null,
+    });
+  });
+
+  it("preserves optional state", () => {
+    assert.deepEqual(parseAuthCallbackUrl("codexthemes://auth/callback?code=abc&state=xyz"), {
+      type: "auth-callback",
+      code: "abc",
+      state: "xyz",
+    });
+  });
+
+  it("rejects missing code", () => {
+    assert.equal(parseAuthCallbackUrl("codexthemes://auth/callback"), null);
+  });
+
+  it("rejects non-auth URLs", () => {
+    assert.equal(parseAuthCallbackUrl("codexthemes://theme/blue-window-messenger"), null);
+  });
+});
+
+describe("parsePaymentResultUrl", () => {
+  it("accepts a valid payment result", () => {
+    assert.deepEqual(parsePaymentResultUrl("codexthemes://payment/result?orderId=ord-123"), {
+      type: "payment-result",
+      orderId: "ord-123",
+    });
+  });
+
+  it("rejects missing orderId", () => {
+    assert.equal(parsePaymentResultUrl("codexthemes://payment/result"), null);
+  });
+
+  it("rejects non-payment URLs", () => {
+    assert.equal(parsePaymentResultUrl("codexthemes://theme/blue-window-messenger"), null);
   });
 });

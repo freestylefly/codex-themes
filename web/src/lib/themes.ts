@@ -12,6 +12,7 @@ interface ThemeManifest {
   wallpaper?: string;
   wallpaperFocusX?: number;
   wallpaperFocusY?: number;
+  priceCents?: number;
 }
 
 export interface WebTheme {
@@ -28,6 +29,8 @@ export interface WebTheme {
   backdropFocus: { x: number; y: number };
   hasBackdropArtwork: boolean;
   deepLink: string;
+  priceCents?: number;
+  isPaid: boolean;
 }
 
 const manifestModules = import.meta.glob<{ default: ThemeManifest }>(
@@ -95,6 +98,8 @@ const allThemes: WebTheme[] = Object.entries(manifestModules)
       },
       hasBackdropArtwork: Boolean(backdropArtwork),
       deepLink: `codexthemes://theme/${encodeURIComponent(manifest.id)}`,
+      priceCents: manifest.priceCents,
+      isPaid: typeof manifest.priceCents === "number" && manifest.priceCents > 0,
     };
   })
   .sort((a, b) => {
