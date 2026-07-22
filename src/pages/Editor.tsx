@@ -1,11 +1,22 @@
-import { ImagePlus, Loader2, Save, Wand2, SlidersHorizontal, ChevronDown, ChevronUp, Stamp } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ImagePlus,
+  Loader2,
+  Save,
+  SlidersHorizontal,
+  Stamp,
+  Wand2,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import type {
   DensityPreset,
   ExtractedPalette,
   FontPreset,
   ImageFit,
-  LayoutKind,
   NormalizedCopy,
   NormalizedEffects,
   NormalizedTheme,
@@ -15,14 +26,30 @@ import type {
   ThemeDraftInput,
   ThemePalette,
 } from "../../electron/shared/types";
-import { LAYOUT_KINDS } from "../../electron/shared/types";
 import { defaultNormalizedTheme } from "../../electron/engine/normalize";
 import { PaletteEditor } from "../components/PaletteEditor";
 import { FullPaletteEditor } from "../components/FullPaletteEditor";
 import { PreviewCanvas } from "../components/PreviewCanvas";
 import { TaskPreviewCanvas } from "../components/TaskPreviewCanvas";
+import { LayoutCardSelector } from "../components/LayoutCardSelector";
+import { getLayoutCatalogItem } from "../layoutCatalog";
 import { api } from "../api";
 import { useApp } from "../store";
+
+type BuilderStep = 1 | 2 | 3 | 4;
+
+const BUILDER_STEPS: ReadonlyArray<{ id: BuilderStep; label: string }> = [
+  { id: 1, label: "主图" },
+  { id: 2, label: "布局" },
+  { id: 3, label: "风格" },
+  { id: 4, label: "完成" },
+];
+
+const NEXT_STEP_LABELS: Record<Exclude<BuilderStep, 4>, string> = {
+  1: "选择布局",
+  2: "调整风格",
+  3: "确认主题",
+};
 
 function defaultDraftInput(): ThemeDraftInput {
   const theme = defaultNormalizedTheme();
@@ -69,6 +96,7 @@ export function Editor() {
   const setPage = useApp((s) => s.setPage);
   const apply = useApp((s) => s.apply);
   const editingDraft = useApp((s) => s.editingDraft);
+  const themes = useApp((s) => s.themes);
 
   // editingDraft is fixed for the lifetime of this mount: edit flows set it
   // before the page switches, and plain navigation clears it.
@@ -78,6 +106,7 @@ export function Editor() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(editingDraft?.heroPreviewUrl ?? null);
   const [wallpaperPreviewUrl, setWallpaperPreviewUrl] = useState<string | null>(editingDraft?.wallpaperPreviewUrl ?? null);
   const [stampPreviewUrl, setStampPreviewUrl] = useState<string | null>(editingDraft?.stampPreviewUrl ?? null);
+  const [step, setStep] = useState<BuilderStep>(editingDraft ? 3 : 1);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState<"save" | "apply" | null>(null);
   const [advanced, setAdvanced] = useState(false);
@@ -92,6 +121,8 @@ export function Editor() {
     palette: true,
   });
   const [manualPalette, setManualPalette] = useState(Boolean(editingDraft?.draft.palettes));
+
+  const selectedLayout = getLayoutCatalogItem(input.layout);
 
   const previewTheme: NormalizedTheme = useMemo(() => {
     const base = defaultNormalizedTheme();
@@ -265,76 +296,347 @@ export function Editor() {
     }
   };
 
-  return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">{editingId ? `编辑「${input.name || editingId}」` : "自定义主题"}</h1>
-          <p className="page-sub">
-            {editingId
-              ? "修改将保存回原主题,ID 与 UUID 保持不变。"
-              : advanced
-                ? "高级模式:结构化参数,完全掌控主题外观。"
-                : "简单模式:选图、取色、改文案,30 秒生成主题。"}
-          </p>
-        </div>
-        <button className="btn" onClick={() => setAdvanced(!advanced)}>
-          <SlidersHorizontal size={14} />
-          {advanced ? "简单模式" : "高级模式"}
-        </button>
-      </div>
+  const goNext = () => {
+    if (step === 1 && !imagePath) {
+      toast("info", "请先选择一张主题主图。");
+      return;
+    }
+    setStep((current) => Math.min(4, current + 1) as BuilderStep);
+  };
 
-      <div className="editor-layout">
-        <div className="editor-panel">
-          <div
-            className={`dropzone${dragging ? " dragging" : ""}`}
-            onClick={() => void onPick()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragging(true);
-            }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => void onDrop(e)}
+  const goBack = () => {
+    setStep((current) => Math.max(1, current - 1) as BuilderStep);
+  };
+
+  const previewPanel = (
+    <section className="theme-builder-preview" aria-label="主题实时预览">
+      <div className="theme-builder-preview__toolbar">
+        <div className="theme-builder-preview__tabs" role="tablist" aria-label="预览页面">
+          <button
+            className={previewTab === "home" ? "is-active" : ""}
+            onClick={() => setPreviewTab("home")}
           >
-            {imagePreviewUrl ? (
-              <>
-                <img src={imagePreviewUrl} alt="" draggable={false} />
-                <div className="dropzone-veil">
-                  <ImagePlus size={15} />
-                  换一张
-                </div>
-              </>
-            ) : (
-              <>
-                <ImagePlus size={22} />
-                <span>
-                  点击选择主图,或直接拖进来
-                  <br />
-                  <span style={{ color: "var(--text-faint)", fontSize: 11 }}>PNG / JPEG / WebP,≤16MB</span>
-                </span>
-              </>
-            )}
+            首页
+          </button>
+          <button
+            className={previewTab === "task" ? "is-active" : ""}
+            onClick={() => setPreviewTab("task")}
+          >
+            任务页
+          </button>
+        </div>
+        <span>实时预览</span>
+      </div>
+      <div className="theme-builder-preview__canvas">
+        {previewTab === "home" ? (
+          <PreviewCanvas
+            theme={previewTheme}
+            heroUrl={imagePreviewUrl}
+            wallpaperUrl={wallpaperPreviewUrl}
+            stampUrl={stampPreviewUrl}
+          />
+        ) : (
+          <TaskPreviewCanvas
+            theme={previewTheme}
+            heroUrl={imagePreviewUrl}
+            wallpaperUrl={wallpaperPreviewUrl}
+            stampUrl={stampPreviewUrl}
+          />
+        )}
+      </div>
+      {imagePreviewUrl && (
+        <div className="theme-builder-current-art">
+          <div>
+            <span className="theme-builder-kicker">当前主图</span>
+            <strong>{input.name || "未命名主题"}</strong>
           </div>
+          <img src={imagePreviewUrl} alt="当前主题主图" />
+          <button className="btn btn-sm" onClick={() => setStep(1)}>
+            <ImagePlus size={13} />
+            返回更换图片
+          </button>
+        </div>
+      )}
+    </section>
+  );
 
-          <div className="field">
-            <span className="field-label">布局骨架</span>
-            <select
-              className="input"
-              value={input.layout}
-              onChange={(e) => update("layout", e.target.value as LayoutKind)}
-            >
-              {LAYOUT_KINDS.map((layout) => (
-                <option key={layout} value={layout}>
-                  {layout}
-                </option>
-              ))}
+  const uploadPanel = (
+    <div
+      className={`theme-builder-upload${dragging ? " dragging" : ""}${imagePreviewUrl ? " has-image" : ""}`}
+      onClick={() => void onPick()}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(event) => void onDrop(event)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") void onPick();
+      }}
+    >
+      {imagePreviewUrl ? (
+        <>
+          <img src={imagePreviewUrl} alt="已选择的主题主图" draggable={false} />
+          <div className="theme-builder-upload__overlay">
+            <ImagePlus size={18} />
+            <strong>更换主题主图</strong>
+            <span>点击选择，或把另一张图片拖进来</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <span className="theme-builder-upload__icon"><ImagePlus size={26} /></span>
+          <strong>拖入主题主图</strong>
+          <span>PNG / JPEG / WebP，最大 16MB</span>
+          <span className="btn btn-sm">浏览文件</span>
+        </>
+      )}
+    </div>
+  );
+
+  const advancedSettings = advanced ? (
+    <div className="theme-builder-advanced">
+      <button className="section-toggle" onClick={() => toggleSection("palette")}>
+        <span>完整调色板</span>
+        {expanded.palette ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded.palette && (
+        <>
+          <label className="row-checkbox">
+            <input type="checkbox" checked={manualPalette} onChange={() => void toggleManualPalette()} />
+            手动编辑亮色与暗色调色板
+          </label>
+          {manualPalette && input.palettes ? (
+            <FullPaletteEditor light={input.palettes.light} dark={input.palettes.dark} onChange={setPalette} />
+          ) : (
+            <PaletteEditor value={input.colors} onChange={(colors) => update("colors", colors)} />
+          )}
+        </>
+      )}
+
+      <button className="section-toggle" onClick={() => toggleSection("hero")}>
+        <span>主图参数</span>
+        {expanded.hero ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded.hero && (
+        <div className="theme-builder-control-grid">
+          <label className="field">
+            <span className="field-label">填充模式</span>
+            <select className="input" value={input.heroFit} onChange={(event) => update("heroFit", event.target.value as ImageFit)}>
+              <option value="cover">覆盖 cover</option>
+              <option value="contain">包含 contain</option>
             </select>
-          </div>
+          </label>
+          <label className="field">
+            <span className="field-label">文字对齐</span>
+            <select className="input" value={input.heroTextAlign} onChange={(event) => update("heroTextAlign", event.target.value as TextAlign)}>
+              <option value="left">左对齐</option>
+              <option value="center">居中</option>
+              <option value="right">右对齐</option>
+            </select>
+          </label>
+          {[
+            { key: "heroHeight", label: `高度 ${input.heroHeight}px`, min: 200, max: 360, value: input.heroHeight, convert: (value: number) => value },
+            { key: "heroZoom", label: `缩放 ${Math.round(input.heroZoom * 100)}%`, min: 50, max: 200, value: Math.round(input.heroZoom * 100), convert: (value: number) => value / 100 },
+            { key: "heroScrim", label: `遮罩 ${Math.round(input.heroScrim * 100)}%`, min: 0, max: 85, value: Math.round(input.heroScrim * 100), convert: (value: number) => value / 100 },
+            { key: "heroFocusX", label: `焦点 X ${Math.round(input.heroFocusX * 100)}%`, min: 0, max: 100, value: Math.round(input.heroFocusX * 100), convert: (value: number) => value / 100 },
+            { key: "heroFocusY", label: `焦点 Y ${Math.round(input.heroFocusY * 100)}%`, min: 0, max: 100, value: Math.round(input.heroFocusY * 100), convert: (value: number) => value / 100 },
+          ].map((control) => (
+            <label className="field" key={control.key}>
+              <span className="field-label">{control.label}</span>
+              <input
+                type="range"
+                min={control.min}
+                max={control.max}
+                value={control.value}
+                onChange={(event) => update(control.key as keyof ThemeDraftInput, control.convert(Number(event.target.value)) as never)}
+              />
+            </label>
+          ))}
+        </div>
+      )}
 
-          <div className="field">
+      <button className="section-toggle" onClick={() => toggleSection("appearance")}>
+        <span>外观与密度</span>
+        {expanded.appearance ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded.appearance && (
+        <div className="theme-builder-control-grid">
+          <label className="field">
+            <span className="field-label">圆角</span>
+            <select className="input" value={input.radius} onChange={(event) => update("radius", event.target.value as RadiusPreset)}>
+              {(["none", "sm", "md", "lg", "xl"] as RadiusPreset[]).map((value) => <option key={value}>{value}</option>)}
+            </select>
+          </label>
+          <label className="field">
+            <span className="field-label">紧凑度</span>
+            <select className="input" value={input.density} onChange={(event) => update("density", event.target.value as DensityPreset)}>
+              <option value="compact">紧凑</option><option value="normal">标准</option><option value="spacious">宽松</option>
+            </select>
+          </label>
+          <label className="field">
+            <span className="field-label">阴影</span>
+            <select className="input" value={input.shadow} onChange={(event) => update("shadow", event.target.value as ShadowPreset)}>
+              {(["none", "sm", "md", "lg"] as ShadowPreset[]).map((value) => <option key={value}>{value}</option>)}
+            </select>
+          </label>
+          <label className="field">
+            <span className="field-label">字体</span>
+            <select className="input" value={input.fontPreset} onChange={(event) => update("fontPreset", event.target.value as FontPreset)}>
+              <option value="system">系统</option><option value="rounded">圆润</option><option value="mono">等宽</option>
+            </select>
+          </label>
+          <label className="row-checkbox">
+            <input type="checkbox" checked={input.glass} onChange={(event) => update("glass", event.target.checked)} />
+            玻璃效果
+          </label>
+          <label className="field">
+            <span className="field-label">装饰强度 {Math.round(input.decoration * 100)}%</span>
+            <input type="range" min={0} max={100} value={Math.round(input.decoration * 100)} onChange={(event) => update("decoration", Number(event.target.value) / 100)} />
+          </label>
+        </div>
+      )}
+
+      <button className="section-toggle" onClick={() => toggleSection("effects")}>
+        <span>动效强度</span>
+        {expanded.effects ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded.effects && (
+        <div className="theme-builder-control-grid">
+          {[
+            { key: "particles", label: "粒子" }, { key: "aurora", label: "极光" },
+            { key: "glow", label: "光晕" }, { key: "noise", label: "噪点" },
+            { key: "grid", label: "网格" }, { key: "float", label: "漂浮" },
+          ].map(({ key, label }) => (
+            <label className="field" key={key}>
+              <span className="field-label">{label} {Math.round(input.effects[key as keyof NormalizedEffects] * 100)}%</span>
+              <input type="range" min={0} max={100} value={Math.round(input.effects[key as keyof NormalizedEffects] * 100)} onChange={(event) => updateEffect(key as keyof NormalizedEffects, Number(event.target.value) / 100)} />
+            </label>
+          ))}
+        </div>
+      )}
+
+      <button className="section-toggle" onClick={() => toggleSection("copy")}>
+        <span>应用内文案</span>
+        {expanded.copy ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded.copy && (
+        <div className="theme-builder-control-grid">
+          {[
+            { key: "brandSubtitle", label: "副标题" }, { key: "projectPrefix", label: "项目前缀" },
+            { key: "projectLabel", label: "项目标签" }, { key: "statusText", label: "状态文案" },
+            { key: "quote", label: "引言" },
+          ].map(({ key, label }) => (
+            <label className="field" key={key}>
+              <span className="field-label">{label}</span>
+              <input className="input" value={input.copy[key as keyof NormalizedCopy]} maxLength={80} onChange={(event) => updateCopy(key as keyof NormalizedCopy, event.target.value)} />
+            </label>
+          ))}
+        </div>
+      )}
+
+      <button className="section-toggle" onClick={() => toggleSection("wallpaper")}>
+        <span>壁纸与 Stamp</span>
+        {expanded.wallpaper ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded.wallpaper && (
+        <div className="theme-builder-media-settings">
+          <div>
+            <span className="field-label">全局壁纸</span>
+            <button className="btn btn-sm" onClick={() => void onPickWallpaper()}><ImagePlus size={13} />{wallpaperPreviewUrl ? "更换壁纸" : "添加壁纸"}</button>
+            {wallpaperPreviewUrl && <img src={wallpaperPreviewUrl} alt="壁纸预览" />}
+            <label className="row-checkbox"><input type="checkbox" checked={input.wallpaperEnabled} onChange={(event) => update("wallpaperEnabled", event.target.checked)} />启用壁纸</label>
+            <label className="field">
+              <span className="field-label">焦点 X {Math.round(input.wallpaperFocusX * 100)}%</span>
+              <input type="range" min={0} max={100} value={Math.round(input.wallpaperFocusX * 100)} onChange={(event) => update("wallpaperFocusX", Number(event.target.value) / 100)} />
+            </label>
+            <label className="field">
+              <span className="field-label">焦点 Y {Math.round(input.wallpaperFocusY * 100)}%</span>
+              <input type="range" min={0} max={100} value={Math.round(input.wallpaperFocusY * 100)} onChange={(event) => update("wallpaperFocusY", Number(event.target.value) / 100)} />
+            </label>
+            <label className="field">
+              <span className="field-label">透明度 {Math.round(input.wallpaperOpacity * 100)}%</span>
+              <input type="range" min={0} max={100} value={Math.round(input.wallpaperOpacity * 100)} onChange={(event) => update("wallpaperOpacity", Number(event.target.value) / 100)} />
+            </label>
+            <label className="field">
+              <span className="field-label">模糊 {input.wallpaperBlur}px</span>
+              <input type="range" min={0} max={24} value={input.wallpaperBlur} onChange={(event) => update("wallpaperBlur", Number(event.target.value))} />
+            </label>
+          </div>
+          <div>
+            <span className="field-label">方形 Stamp</span>
+            <div className="editor-actions">
+              <button className="btn btn-sm" onClick={() => void onPickStamp()}><Stamp size={13} />{stampPreviewUrl ? "更换" : "上传"}</button>
+              <button className="btn btn-sm" onClick={() => void onAutoCropStamp()}><ImagePlus size={13} />从主图裁切</button>
+            </div>
+            {stampPreviewUrl && <div className="theme-builder-stamp"><img src={stampPreviewUrl} alt="Stamp 预览" /><button className="btn btn-ghost btn-danger btn-sm" onClick={clearStamp}>清除</button></div>}
+          </div>
+        </div>
+      )}
+    </div>
+  ) : null;
+
+  return (
+    <div className="page theme-builder-page">
+      <header className="theme-builder-header">
+        <div className="theme-builder-title-row">
+          <h1 className="page-title">自定义主题</h1>
+          {editingId && <span title={input.name || editingId}>正在编辑 · {input.name || editingId}</span>}
+        </div>
+        <ol className="theme-builder-steps" aria-label="主题创建进度">
+          {BUILDER_STEPS.map((item, index) => (
+            <li key={item.id} className={`${step === item.id ? "is-active" : ""}${step > item.id ? " is-complete" : ""}`}>
+              <button onClick={() => (item.id < step || imagePath ? setStep(item.id) : undefined)}>
+                <span>{step > item.id ? <Check size={13} strokeWidth={3} /> : item.id}</span>
+                {item.label}
+              </button>
+              {index < BUILDER_STEPS.length - 1 && <i aria-hidden="true" />}
+            </li>
+          ))}
+        </ol>
+      </header>
+
+      <div className="editor-layout theme-builder-workspace" data-step={step}>
+        <div className="editor-panel theme-builder-controls">
+          <section className="theme-builder-step theme-builder-step--upload">
+            <div className="theme-builder-section-heading">
+              <div><span>第 1 步</span><h2>选择主题主图</h2></div>
+              <p>主体清晰、留白充足的图片会得到更好的界面效果。</p>
+            </div>
+            {uploadPanel}
+            <div className="theme-builder-upload-tips">
+              <span>建议比例 16:10</span><span>图片不会上传到云端</span><span>支持自动取色</span>
+            </div>
+          </section>
+
+          <section className="field theme-builder-step theme-builder-step--layout">
+            <div className="theme-builder-section-heading">
+              <div><span>第 2 步</span><h2>选择布局骨架</h2></div>
+              <p>布局决定内容与主图的空间关系，配色和材质会在下一步调整。</p>
+            </div>
+            <LayoutCardSelector
+              name="theme-layout"
+              value={input.layout}
+              onChange={(layout) => {
+                if (layout) update("layout", layout);
+              }}
+              themes={themes}
+            />
+          </section>
+
+          <section className="theme-builder-step theme-builder-step--style">
+            <div className="theme-builder-section-heading theme-builder-section-heading--actions">
+              <div><span>第 3 步</span><h2>调整主题风格</h2></div>
+              <button className="btn btn-sm" onClick={() => setAdvanced(!advanced)}>
+                <SlidersHorizontal size={13} />{advanced ? "收起高级设置" : "高级设置"}
+              </button>
+            </div>
+            <div className="field">
             <span className="field-label">配色(从图片自动提取,可微调)</span>
             <PaletteEditor value={input.colors} onChange={(colors) => update("colors", colors)} />
-          </div>
+            </div>
 
           <div className="field">
             <span className="field-label">主题名称</span>
@@ -389,7 +691,8 @@ export function Editor() {
             />
           </div>
 
-          {advanced && (
+          {advancedSettings}
+          {false && advanced && (
             <>
               <button className="section-toggle" onClick={() => toggleSection("palette")}>
                 <span>配色</span>
@@ -409,8 +712,8 @@ export function Editor() {
                   </div>
                   {manualPalette && input.palettes ? (
                     <FullPaletteEditor
-                      light={input.palettes.light}
-                      dark={input.palettes.dark}
+                      light={input.palettes!.light}
+                      dark={input.palettes!.dark}
                       onChange={setPalette}
                     />
                   ) : (
@@ -670,7 +973,7 @@ export function Editor() {
                   </button>
                   {wallpaperPreviewUrl && (
                     <img
-                      src={wallpaperPreviewUrl}
+                      src={wallpaperPreviewUrl!}
                       alt=""
                       style={{ width: "100%", height: 80, objectFit: "cover", borderRadius: 8, marginTop: 8 }}
                     />
@@ -726,7 +1029,7 @@ export function Editor() {
                   {stampPreviewUrl && (
                     <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
                       <img
-                        src={stampPreviewUrl}
+                        src={stampPreviewUrl!}
                         alt=""
                         style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8 }}
                       />
@@ -740,58 +1043,56 @@ export function Editor() {
             </>
           )}
 
-          <div className="editor-actions">
-            <button
-              className="btn"
-              disabled={!imagePath || busy !== null}
-              onClick={() => void save(false)}
-            >
-              {busy === "save" ? <Loader2 size={14} className="spin" /> : <Save size={14} />}
-              保存
-            </button>
-            <button
-              className="btn btn-primary"
-              disabled={!imagePath || busy !== null}
-              onClick={() => void save(true)}
-            >
-              {busy === "apply" ? <Loader2 size={14} className="spin" /> : <Wand2 size={14} />}
-              保存并应用
-            </button>
-          </div>
+          </section>
+
+          <section className="theme-builder-step theme-builder-step--complete">
+            <div className="theme-builder-section-heading">
+              <div><span>第 4 步</span><h2>确认主题</h2></div>
+              <p>检查主题信息和预览效果，确认后即可保存并应用到 Codex。</p>
+            </div>
+            <div className="theme-builder-summary">
+              {imagePreviewUrl && <img src={imagePreviewUrl} alt="主题主图缩略图" />}
+              <div className="theme-builder-summary__copy">
+                <span>主题名称</span><strong>{input.name || "未命名主题"}</strong>
+                <p>{input.tagline || "还没有填写主题标语。"}</p>
+              </div>
+              <dl>
+                <div><dt>布局</dt><dd>{selectedLayout.name}</dd></div>
+                <div><dt>模式</dt><dd>{advanced ? "高级" : "简单"}</dd></div>
+                <div><dt>标签</dt><dd>{input.tags.length ? input.tags.join(" · ") : "暂无"}</dd></div>
+              </dl>
+              <div className="theme-builder-summary__palette">
+                {Object.entries(input.colors).map(([name, value]) => <span key={name} title={`${name} ${value}`} style={{ background: value }} />)}
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div className="editor-panel" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div className="preview-tabs" style={{ display: "flex", gap: 8 }}>
-            <button
-              className={`preview-toggle${previewTab === "home" ? " on" : ""}`}
-              onClick={() => setPreviewTab("home")}
-            >
-              首页
-            </button>
-            <button
-              className={`preview-toggle${previewTab === "task" ? " on" : ""}`}
-              onClick={() => setPreviewTab("task")}
-            >
-              任务页
-            </button>
-          </div>
-          {previewTab === "home" ? (
-            <PreviewCanvas
-              theme={previewTheme}
-              heroUrl={imagePreviewUrl}
-              wallpaperUrl={wallpaperPreviewUrl}
-              stampUrl={stampPreviewUrl}
-            />
-          ) : (
-            <TaskPreviewCanvas
-              theme={previewTheme}
-              heroUrl={imagePreviewUrl}
-              wallpaperUrl={wallpaperPreviewUrl}
-              stampUrl={stampPreviewUrl}
-            />
-          )}
-        </div>
+        {previewPanel}
       </div>
+
+      <footer className="theme-builder-actions">
+        <button className="btn" disabled={step === 1 || busy !== null} onClick={goBack}>
+          <ArrowLeft size={14} />上一步
+        </button>
+        <div className="theme-builder-actions__meta">
+          <strong>{selectedLayout.name}</strong><span>{step} / 4</span>
+        </div>
+        <div className="theme-builder-actions__primary">
+          {step < 4 ? (
+            <button className="btn btn-primary" disabled={step === 1 && !imagePath} onClick={goNext}>
+              下一步：{NEXT_STEP_LABELS[step as Exclude<BuilderStep, 4>]}<ArrowRight size={14} />
+            </button>
+          ) : (
+            <button className="btn btn-primary" disabled={!imagePath || busy !== null} onClick={() => void save(true)}>
+              {busy === "apply" ? <Loader2 size={14} className="spin" /> : <Wand2 size={14} />}保存并应用
+            </button>
+          )}
+          <button className="btn" disabled={!imagePath || busy !== null} onClick={() => void save(false)}>
+            {busy === "save" ? <Loader2 size={14} className="spin" /> : <Save size={14} />}保存草稿
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

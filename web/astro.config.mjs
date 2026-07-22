@@ -6,6 +6,9 @@ export default defineConfig({
   output: "static",
   integrations: [sitemap()],
   vite: {
+    ssr: {
+      noExternal: ["lucide-astro"],
+    },
     server: {
       host: "0.0.0.0",
       allowedHosts: ["terminal.local"],

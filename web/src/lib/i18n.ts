@@ -32,6 +32,21 @@ const englishThemes: Record<string, { description: string; tagline: string }> = 
     description: "Paper texture, muted rose accents, and the softness of an old book.",
     tagline: "A thoughtful workspace with editorial warmth.",
   },
+  "moonlit-immortal": {
+    description:
+      "A bright Eastern-fantasy workspace shaped by white-gold moonlight, ice-blue sword arrays, and a celestial cloud city.",
+    tagline: "Moonlight becomes the blade; the cloud sea becomes the page.",
+  },
+  "mirror-lake-ribbon": {
+    description:
+      "An airy Eastern-fantasy workspace with a lotus-covered mirror lake, ribbon-sword choreography, and a horizontal silk-scroll task flow.",
+    tagline: "Unroll a ribbon of lake light and write with grace.",
+  },
+  "shanhai-nexus": {
+    description:
+      "An original guoman fantasy workspace shaped by ink-wash mountains, jade spirit light, and antique-gold linework.",
+    tagline: "Write the next legend between cloud seas and star maps.",
+  },
   "peach-blush": {
     description: "A light peach theme inspired by the pink reflection at early evening.",
     tagline: "Soft color without losing focus.",
@@ -39,6 +54,11 @@ const englishThemes: Record<string, { description: string; tagline: string }> = 
   "soft-moss": {
     description: "A grounded green palette inspired by moss after rain.",
     tagline: "A small patch of calm for your desktop.",
+  },
+  "starcap-teemo": {
+    description:
+      "A bright, adorable fantasy workspace with a mint-green scout, starlit spores, and a cloud-top mushroom forest.",
+    tagline: "Plant an idea in the morning light and watch it grow into a star.",
   },
   "vanilla-sky": {
     description: "Warm sunlight, pale blue air, and generous breathing room.",

@@ -1,11 +1,11 @@
-import { Check, Copy, Download, Loader2, Pencil, Play, Trash2 } from "lucide-react";
+import { Check, Copy, Download, Loader2, Maximize2, Pencil, Play, Trash2 } from "lucide-react";
 import type { ThemeSummary } from "../../electron/shared/types";
 import { useApp } from "../store";
 import { api } from "../api";
 
 const SOURCE_LABEL = { preset: "预设", custom: "自定义", imported: "导入" } as const;
 
-export function ThemeCard({ theme }: { theme: ThemeSummary }) {
+export function ThemeCard({ theme, onPreview }: { theme: ThemeSummary; onPreview(theme: ThemeSummary): void }) {
   const state = useApp((s) => s.state);
   const applyingId = useApp((s) => s.applyingId);
   const apply = useApp((s) => s.apply);
@@ -41,15 +41,24 @@ export function ThemeCard({ theme }: { theme: ThemeSummary }) {
       }`}
       data-theme-id={theme.id}
     >
-      <div className="card-preview">
+      <button
+        type="button"
+        className="card-preview"
+        onClick={() => onPreview(theme)}
+        aria-label={`放大查看${theme.name}`}
+      >
         <img src={theme.previewUrl} alt={theme.name} draggable={false} />
+        <span className="card-preview-expand" aria-hidden="true">
+          <Maximize2 size={14} />
+          放大查看
+        </span>
         {isActive && (
           <span className="active-ribbon">
             <Check size={11} strokeWidth={3} />
             使用中
           </span>
         )}
-      </div>
+      </button>
       <div className="card-body">
         <div className="card-title-row">
           <span className="card-name" title={theme.name}>

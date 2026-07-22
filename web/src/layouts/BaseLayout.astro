@@ -13,9 +13,18 @@ interface Props {
   title?: string;
   description: string;
   image?: ImageMetadata;
+  bodyClass?: string;
+  themeColor?: string;
 }
 
-const { locale, title, description, image = bluePreview } = Astro.props;
+const {
+  locale,
+  title,
+  description,
+  image = bluePreview,
+  bodyClass,
+  themeColor = "#f8f7f3",
+} = Astro.props;
 const pageTitle = title ? `${title} · ${SITE_NAME}` : `${SITE_NAME} · 给 Codex 换一种工作心情`;
 const canonical = new URL(Astro.url.pathname, SITE_URL);
 const alternatePath =
@@ -33,7 +42,7 @@ const socialImage = new URL(image.src, SITE_URL);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f8f7f3" />
+    <meta name="theme-color" content={themeColor} />
     <meta name="description" content={description} />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href={canonical} />
@@ -52,7 +61,7 @@ const socialImage = new URL(image.src, SITE_URL);
     <meta name="twitter:image" content={socialImage} />
     <title>{pageTitle}</title>
   </head>
-  <body>
+  <body class={bodyClass}>
     <a class="skip-link" href="#main-content">{locale === "zh" ? "跳到正文" : "Skip to content"}</a>
     <Header locale={locale} pathname={Astro.url.pathname} />
     <main id="main-content">

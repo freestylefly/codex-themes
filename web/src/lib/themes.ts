@@ -63,13 +63,30 @@ export const themes: WebTheme[] = Object.entries(manifestModules)
     };
   })
   .sort((a, b) => {
-    if (a.id === "blue-window-messenger") return -1;
-    if (b.id === "blue-window-messenger") return 1;
+    const featuredOrder = [
+      "blue-window-messenger",
+      "mirror-lake-ribbon",
+      "starcap-teemo",
+      "moonlit-immortal",
+      "shanhai-nexus",
+      "neon-star-hunter",
+      "mecha-cat-studio",
+      "hacker-zero",
+      "potion-workshop",
+      "focus-capybara",
+    ];
+    const aFeatured = featuredOrder.indexOf(a.id);
+    const bFeatured = featuredOrder.indexOf(b.id);
+    if (aFeatured !== -1 || bFeatured !== -1) {
+      if (aFeatured === -1) return 1;
+      if (bFeatured === -1) return -1;
+      return aFeatured - bFeatured;
+    }
     return a.name.localeCompare(b.name, "zh-CN");
   });
 
-if (themes.length !== 11 || new Set(themes.map((theme) => theme.id)).size !== themes.length) {
-  throw new Error(`Expected 11 unique built-in themes, received ${themes.length}.`);
+if (themes.length !== 20 || new Set(themes.map((theme) => theme.id)).size !== themes.length) {
+  throw new Error(`Expected 20 unique built-in themes, received ${themes.length}.`);
 }
 
 export function getTheme(id: string): WebTheme | undefined {

@@ -118,6 +118,14 @@ describe("normalizeTheme", () => {
     assert.equal(compiled.variables["--ds-retro-toolbar-height"], "52px");
   });
 
+  it("preserves the silk scroll layout", () => {
+    const { theme } = normalizeTheme({ ...minimalV2, layout: "silk-scroll" });
+    const compiled = compileTheme(theme);
+    assert.equal(theme.layout, "silk-scroll");
+    assert.ok(compiled.classes.includes("codex-dream-skin--silk-scroll"));
+    assert.equal(compiled.variables["--ds-layout"], "silk-scroll");
+  });
+
   it("auto-derives a dark palette when missing", () => {
     const v2 = { ...minimalV2, dark: undefined };
     const { theme } = normalizeTheme(v2);
@@ -206,6 +214,7 @@ describe("compileTheme", () => {
     assert.equal(light.variables["--ds-layout"], "split-studio");
     assert.equal(dark.variables["--ds-bg"], theme.dark.background);
     assert.ok(light.classes.includes("codex-dream-skin--split-studio"));
+    assert.equal(light.attrs["data-dream-theme"], theme.id);
   });
 
   it("includes compact mode class", () => {
@@ -232,5 +241,96 @@ describe("loadTheme", () => {
     assert.equal(built.theme.resources.stamp, "stamp.png");
     assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
     assert.ok(built.payload.includes("dream-skin-retro-friend-avatar"));
+  });
+
+  it("loads the Shanhai Nexus preset with its hero, wallpaper, and stamp", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/shanhai-nexus",
+    );
+    assert.equal(built.theme.id, "shanhai-nexus");
+    assert.equal(built.theme.layout, "full-canvas");
+    assert.equal(built.theme.resources.hero, "hero.png");
+    assert.equal(built.theme.resources.wallpaper, "hero.png");
+    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
+  });
+
+  it("loads the Moonlit Immortal preset with its bright full-canvas assets", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/moonlit-immortal",
+    );
+    assert.equal(built.theme.id, "moonlit-immortal");
+    assert.equal(built.theme.layout, "full-canvas");
+    assert.equal(built.theme.resources.hero, "hero.png");
+    assert.equal(built.theme.resources.wallpaper, "hero.png");
+    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.version, "1.3.1");
+    assert.equal(built.theme.light.background, "#dcecff");
+    assert.equal(built.theme.dark.background, "#061a3d");
+    assert.ok(built.payload.includes("data-dream-theme"));
+    assert.ok(built.payload.includes("codex-dream-skin-moonlit-welcome"));
+    assert.doesNotThrow(() => new Function(built.payload));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
+  });
+
+  it("loads the Starcap Teemo preset with its light and dark forest palettes", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/starcap-teemo",
+    );
+    assert.equal(built.theme.id, "starcap-teemo");
+    assert.equal(built.theme.layout, "full-canvas");
+    assert.equal(built.theme.resources.hero, "hero.png");
+    assert.equal(built.theme.resources.wallpaper, "hero.png");
+    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.light.background, "#f4faef");
+    assert.equal(built.theme.dark.background, "#172a26");
+    assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
+  });
+
+  it("loads the Mirror Lake Ribbon preset with its silk-scroll assets", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/mirror-lake-ribbon",
+    );
+    assert.equal(built.theme.id, "mirror-lake-ribbon");
+    assert.equal(built.theme.layout, "silk-scroll");
+    assert.equal(built.theme.resources.hero, "hero.png");
+    assert.equal(built.theme.resources.wallpaper, "wallpaper.png");
+    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.light.background, "#f6eee8");
+    assert.equal(built.theme.dark.background, "#261c22");
+    assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
+  });
+
+  it("loads every concept preset with the approved layout and WebP hero", async () => {
+    const expected = new Map([
+      ["neon-star-hunter", "dream-banner"],
+      ["mecha-cat-studio", "split-studio"],
+      ["hacker-zero", "terminal-grid"],
+      ["potion-workshop", "paper-board"],
+      ["focus-capybara", "minimal-focus"],
+    ]);
+
+    for (const [id, layout] of expected) {
+      const built = await buildPayload("./assets/inject", `./assets/presets/${id}`);
+      assert.equal(built.theme.id, id);
+      assert.equal(built.theme.layout, layout);
+      assert.equal(built.theme.resources.hero, "hero.webp");
+      assert.equal(built.theme.resources.preview, "preview.png");
+      assert.ok(built.payload.includes(`data-dream-theme=\"${id}\"`) || built.payload.includes("data-dream-theme"));
+      assert.doesNotThrow(() => new Function(built.payload));
+      assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
+    }
   });
 });

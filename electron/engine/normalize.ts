@@ -282,7 +282,7 @@ function normalizeV2(raw: ThemeConfigV2, warnings: string[]): NormalizedTheme {
     dark,
     layout: pickEnum(
       raw.layout,
-      ["dream-banner", "split-studio", "full-canvas", "terminal-grid", "paper-board", "minimal-focus", "retro-messenger"],
+      ["dream-banner", "split-studio", "full-canvas", "terminal-grid", "paper-board", "minimal-focus", "retro-messenger", "silk-scroll"],
       "dream-banner",
     ),
     hero: {
