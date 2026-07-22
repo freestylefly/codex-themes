@@ -18,13 +18,18 @@ import { registerIpc } from "./ipc";
 import { AppTray } from "./tray";
 import { resolvePickedImage } from "./picked-images";
 import { initAutoUpdater } from "./updater";
-import { CODEX_THEMES_PROTOCOL, parseOpenThemeUrl } from "./deep-links";
+import { CODEX_THEMES_PROTOCOL, parseOpenThemeUrl, parseAuthCallbackUrl, parsePaymentResultUrl } from "./deep-links";
 import type { OpenThemeAction } from "./shared/types";
+import { AuthClient } from "./auth/client";
+import { AuthTokenStore } from "./auth/store";
+import { CommerceService } from "./commerce/service";
 
 // Files launched before the app is ready (double-click / drag to Dock).
 const pendingOpenFiles: string[] = [];
 const pendingOpenThemeUrls: string[] = [];
 const pendingOpenThemeActions: OpenThemeAction[] = [];
+const pendingAuthCallbacks: string[] = [];
+const pendingPaymentResults: string[] = [];
 
 function isCodexthemeFile(file: string): boolean {
   return path.extname(file).toLowerCase() === ".codextheme";
@@ -86,6 +91,8 @@ let mainWindow: BrowserWindow | null = null;
 let quitting = false;
 let controller: ThemeController;
 let themeStore: ThemeStore | null = null;
+let authClient: AuthClient | null = null;
+let commerceService: CommerceService | null = null;
 
 function createWindow(paths: AppPaths): void {
   mainWindow = new BrowserWindow({
@@ -170,6 +177,18 @@ app.on("open-file", (event, filePath) => {
 
 app.on("open-url", (event, url) => {
   event.preventDefault();
+  if (parseAuthCallbackUrl(url)) {
+    if (authClient) void authClient.handleAuthCallback(url);
+    else pendingAuthCallbacks.push(url);
+    return;
+  }
+  const payment = parsePaymentResultUrl(url);
+  if (payment) {
+    if (commerceService) void commerceService.reconcileOrder(payment.orderId);
+    else pendingPaymentResults.push(payment.orderId);
+    showWindow();
+    return;
+  }
   if (themeStore) void enqueueOpenThemeUrl(url);
   else pendingOpenThemeUrls.push(url);
 });
@@ -180,6 +199,17 @@ app.on("second-instance", (_event, argv) => {
   if (file) pendingOpenFiles.push(file);
   const url = argv.find((arg) => arg.startsWith(CODEX_THEMES_PROTOCOL));
   if (url) {
+    if (parseAuthCallbackUrl(url)) {
+      if (authClient) void authClient.handleAuthCallback(url);
+      else pendingAuthCallbacks.push(url);
+      return;
+    }
+    const payment = parsePaymentResultUrl(url);
+    if (payment) {
+      if (commerceService) void commerceService.reconcileOrder(payment.orderId);
+      else pendingPaymentResults.push(payment.orderId);
+      return;
+    }
     if (themeStore) void enqueueOpenThemeUrl(url);
     else pendingOpenThemeUrls.push(url);
   }
@@ -200,10 +230,35 @@ app.whenReady().then(async () => {
   const store = new ThemeStore({
     presetsRoot: paths.presetsRoot,
     userThemesRoot: paths.userThemesRoot,
+    purchasedThemesRoot: paths.purchasedThemesRoot,
   });
   themeStore = store;
   void store.cleanupWorkDirs().catch(() => {});
   controller = new ThemeController(paths, store, settings);
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const commerceApiUrl = process.env.VITE_COMMERCE_API_URL ?? "https://codex-themes.vercel.app";
+
+  if (supabaseUrl && supabaseAnonKey) {
+    authClient = new AuthClient({
+      supabaseUrl,
+      supabaseAnonKey,
+      tokenStore: new AuthTokenStore(paths.userDataRoot),
+      onOpenExternalUrl: (url) => shell.openExternal(url),
+    });
+    commerceService = new CommerceService({
+      apiBaseUrl: commerceApiUrl,
+      authClient,
+      store,
+      purchasedThemesRoot: paths.purchasedThemesRoot,
+    });
+    await authClient.init().catch((err) => {
+      console.error("Auth init failed:", (err as Error).message);
+    });
+  } else {
+    console.warn("SUPABASE_URL or SUPABASE_ANON_KEY not set; auth/commerce disabled.");
+  }
 
   // theme-image://<theme-id>/<filename> — confined to known theme roots.
   protocol.handle("theme-image", async (request) => {
@@ -236,6 +291,8 @@ app.whenReady().then(async () => {
     controller,
     settings,
     store,
+    authClient: authClient ?? undefined,
+    commerceService: commerceService ?? undefined,
     getWindow: () => mainWindow,
     consumeOpenThemeAction: () => pendingOpenThemeActions.shift() ?? null,
   });
@@ -267,12 +324,33 @@ app.whenReady().then(async () => {
     if (file) await importPackageFromPath(file, store, () => mainWindow);
   }
 
+  // Process auth callbacks that arrived before the service was ready.
+  while (pendingAuthCallbacks.length > 0) {
+    const url = pendingAuthCallbacks.shift();
+    if (url) await authClient?.handleAuthCallback(url);
+  }
+
+  // Process payment deep links that arrived before the service was ready.
+  while (pendingPaymentResults.length > 0) {
+    const orderId = pendingPaymentResults.shift();
+    if (orderId) await commerceService?.reconcileOrder(orderId);
+  }
+
   const startupUrls = new Set([
     ...pendingOpenThemeUrls.splice(0),
     ...process.argv.filter((arg) => arg.startsWith(CODEX_THEMES_PROTOCOL)),
   ]);
-  for (const url of startupUrls) {
-    await enqueueOpenThemeUrl(url);
+  for (const raw of startupUrls) {
+    if (parseAuthCallbackUrl(raw)) {
+      await authClient?.handleAuthCallback(raw);
+      continue;
+    }
+    const payment = parsePaymentResultUrl(raw);
+    if (payment) {
+      await commerceService?.reconcileOrder(payment.orderId);
+      continue;
+    }
+    await enqueueOpenThemeUrl(raw);
   }
 });
 

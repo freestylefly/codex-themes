@@ -242,7 +242,77 @@ export interface NormalizedTheme {
 /** Library / UI summaries                                                */
 /** ---------------------------------------------------------------------- */
 
-export type ThemeSource = "preset" | "custom" | "imported";
+export type ThemeSource = "preset" | "custom" | "imported" | "purchased";
+
+export type AuthProvider = "email" | "github";
+
+export interface AuthUserSummary {
+  id: string;
+  email: string;
+  avatarUrl: string | null;
+  provider: AuthProvider;
+  /** ISO timestamp of account creation. */
+  createdAt: string;
+}
+
+export type AuthStateStatus = "loading" | "unauthenticated" | "authenticated" | "error";
+
+export interface AuthState {
+  status: AuthStateStatus;
+  user: AuthUserSummary | null;
+  /** Count of purchased themes, surfaced in the account card. */
+  entitlementCount: number;
+  error: string | null;
+}
+
+export interface ThemeProduct {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  version: string;
+  layout: LayoutKind;
+  previewUrl: string;
+  /** Price in Chinese yuan cents. */
+  priceCents: number;
+  minEngineVersion: string;
+  /** Whether the product is publicly listed. */
+  published: boolean;
+}
+
+export type PurchaseOrderStatus = "pending" | "paid" | "closed" | "failed" | "refunded";
+
+export interface PurchaseOrder {
+  id: string;
+  themeId: string;
+  themeName: string;
+  priceCents: number;
+  status: PurchaseOrderStatus;
+  /** Alipay out_trade_no. */
+  outTradeNo: string;
+  /** ISO timestamp when the order was created. */
+  createdAt: string;
+  /** ISO timestamp when the order was paid, if applicable. */
+  paidAt: string | null;
+}
+
+export interface ThemeEntitlement {
+  themeId: string;
+  themeName: string;
+  version: string;
+  status: "active" | "revoked";
+  /** ISO timestamp when the entitlement was granted. */
+  createdAt: string;
+}
+
+export interface CommerceThemeSummary extends ThemeSummary {
+  /** Present when the theme is part of the paid catalog. */
+  product?: ThemeProduct;
+  /** Entitlement status, if the user owns this theme. */
+  entitlement?: ThemeEntitlement;
+  /** Latest local installed state for purchased themes. */
+  local?: ThemeSummary;
+}
 
 export interface ThemeSummary {
   id: string;
@@ -631,6 +701,23 @@ export interface CodexThemesApi {
   deleteAiThemeJob(jobId: string): Promise<void>;
   respondToCodexApproval(requestId: string, decision: CodexApprovalDecision): Promise<void>;
 
+  /** ---------------------------------------------------------------------- */
+  /** Auth & commerce                                                        */
+  /** ---------------------------------------------------------------------- */
+
+  authGetState(): Promise<AuthState>;
+  authSendEmailOtp(email: string): Promise<{ ok: boolean; error?: string }>;
+  authVerifyEmailOtp(email: string, token: string): Promise<{ ok: boolean; error?: string }>;
+  authSignInGitHub(): Promise<{ ok: boolean; error?: string; url?: string }>;
+  authSignOut(): Promise<{ ok: boolean; error?: string }>;
+
+  commerceListCatalog(): Promise<ThemeProduct[]>;
+  commerceCreateOrder(themeId: string, idempotencyKey: string): Promise<PurchaseOrder>;
+  commerceGetOrder(orderId: string): Promise<PurchaseOrder>;
+  commerceReconcileOrder(orderId: string): Promise<PurchaseOrder>;
+  commerceListEntitlements(): Promise<ThemeEntitlement[]>;
+  commerceDownloadTheme(themeId: string): Promise<{ ok: boolean; error?: string; filePath?: string }>;
+
   onStateChanged(cb: (state: AppState) => void): () => void;
   /** Fired when a website deep-link action is ready to consume. */
   onOpenThemeActionAvailable(cb: () => void): () => void;
@@ -641,4 +728,8 @@ export interface CodexThemesApi {
   onAiThemeJobChanged(cb: (job: AiThemeJob) => void): () => void;
   /** Fired when Codex asks for an approval during an AI job. */
   onCodexApprovalRequested(cb: (request: CodexApprovalRequest) => void): () => void;
+  /** Fired when the authenticated user or auth error changes. */
+  onAuthChanged(cb: (state: AuthState) => void): () => void;
+  /** Fired when an order status changes (payment completed, etc.). */
+  onOrderChanged(cb: (order: PurchaseOrder) => void): () => void;
 }

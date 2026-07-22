@@ -7,12 +7,14 @@ import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type {
   AiThemeJob,
   AppState,
+  AuthState,
   CodexApprovalRequest,
   CodexThemesApi,
   CustomThemeInput,
   InspectedThemePackage,
   LogLine,
   OpenThemeAction,
+  PurchaseOrder,
   RendererSettings,
   ThemeDraftInput,
   ThemeGenerationRequest,
@@ -72,6 +74,23 @@ const api: CodexThemesApi = {
   respondToCodexApproval: (requestId: string, decision: "accept" | "decline" | "cancel") =>
     ipcRenderer.invoke("ai:respondApproval", requestId, decision),
 
+  authGetState: () => ipcRenderer.invoke("auth:getState"),
+  authSendEmailOtp: (email: string) => ipcRenderer.invoke("auth:sendEmailOtp", email),
+  authVerifyEmailOtp: (email: string, token: string) =>
+    ipcRenderer.invoke("auth:verifyEmailOtp", email, token),
+  authSignInGitHub: () => ipcRenderer.invoke("auth:signInGitHub"),
+  authSignOut: () => ipcRenderer.invoke("auth:signOut"),
+
+  commerceListCatalog: () => ipcRenderer.invoke("commerce:listCatalog"),
+  commerceCreateOrder: (themeId: string, idempotencyKey: string) =>
+    ipcRenderer.invoke("commerce:createOrder", themeId, idempotencyKey),
+  commerceGetOrder: (orderId: string) => ipcRenderer.invoke("commerce:getOrder", orderId),
+  commerceReconcileOrder: (orderId: string) =>
+    ipcRenderer.invoke("commerce:reconcileOrder", orderId),
+  commerceListEntitlements: () => ipcRenderer.invoke("commerce:listEntitlements"),
+  commerceDownloadTheme: (themeId: string) =>
+    ipcRenderer.invoke("commerce:downloadTheme", themeId),
+
   onStateChanged: (cb: (state: AppState) => void) => subscribe("app:stateChanged", cb),
   onOpenThemeActionAvailable: (cb: () => void) =>
     subscribe<OpenThemeAction | undefined>("app:openThemeActionAvailable", () => cb()),
@@ -80,6 +99,8 @@ const api: CodexThemesApi = {
   onAiThemeJobChanged: (cb: (job: AiThemeJob) => void) => subscribe("ai:jobChanged", cb),
   onCodexApprovalRequested: (cb: (request: CodexApprovalRequest) => void) =>
     subscribe("ai:approvalRequested", cb),
+  onAuthChanged: (cb: (state: AuthState) => void) => subscribe("auth:changed", cb),
+  onOrderChanged: (cb: (order: PurchaseOrder) => void) => subscribe("commerce:orderChanged", cb),
 };
 
 contextBridge.exposeInMainWorld("codexThemes", {

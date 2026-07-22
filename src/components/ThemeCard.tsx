@@ -3,7 +3,7 @@ import type { ThemeSummary } from "../../electron/shared/types";
 import { useApp } from "../store";
 import { api } from "../api";
 
-const SOURCE_LABEL = { preset: "预设", custom: "自定义", imported: "导入" } as const;
+const SOURCE_LABEL = { preset: "预设", custom: "自定义", imported: "导入", purchased: "已购" } as const;
 
 export function ThemeCard({ theme, onPreview }: { theme: ThemeSummary; onPreview(theme: ThemeSummary): void }) {
   const state = useApp((s) => s.state);

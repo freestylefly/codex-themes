@@ -22,6 +22,8 @@ import type { AppPaths } from "./paths";
 import type { ThemeController } from "./controller";
 import type { SettingsStore } from "./settings";
 import type { ThemeStore } from "./themes/store";
+import { AuthClient } from "./auth/client";
+import { CommerceService } from "./commerce/service";
 import { extractPalette } from "./themes/palette";
 import { registerPickedImage } from "./picked-images";
 import { IMAGE_EXTENSIONS, MAX_ART_BYTES } from "./engine/constants";
@@ -39,6 +41,8 @@ interface IpcContext {
   controller: ThemeController;
   settings: SettingsStore;
   store: ThemeStore;
+  authClient?: AuthClient;
+  commerceService?: CommerceService;
   getWindow: () => BrowserWindow | null;
   consumeOpenThemeAction: () => OpenThemeAction | null;
 }
@@ -49,12 +53,14 @@ function send(getWindow: () => BrowserWindow | null, channel: string, payload: u
 }
 
 export function registerIpc(ctx: IpcContext): void {
-  const { controller, settings, store, getWindow, consumeOpenThemeAction } = ctx;
+  const { controller, settings, store, authClient, commerceService, getWindow, consumeOpenThemeAction } = ctx;
 
   controller.on("stateChanged", (state) => send(getWindow, "app:stateChanged", state));
   controller.on("log", (line) => send(getWindow, "app:log", line));
   controller.on("aiJobChanged", (job) => send(getWindow, "ai:jobChanged", job));
   controller.on("codexApprovalRequested", (request) => send(getWindow, "ai:approvalRequested", request));
+  authClient?.on("authChanged", (state) => send(getWindow, "auth:changed", state));
+  commerceService?.on("orderChanged", (order) => send(getWindow, "commerce:orderChanged", order));
 
   ipcMain.handle("app:getState", () => controller.getState());
   ipcMain.handle("app:consumeOpenThemeAction", () => consumeOpenThemeAction());
@@ -268,4 +274,25 @@ export function registerIpc(ctx: IpcContext): void {
   ipcMain.handle("ai:listJobs", () => controller.listAiThemeJobs());
   ipcMain.handle("ai:deleteJob", (_event, jobId: string) => controller.deleteAiThemeJob(jobId));
   ipcMain.handle("ai:respondApproval", (_event, requestId: string, decision: "accept" | "decline" | "cancel") => controller.respondToCodexApproval(requestId, decision));
+
+  ipcMain.handle("auth:getState", () => authClient?.getState() ?? { status: "unauthenticated", user: null, entitlementCount: 0, error: null });
+  ipcMain.handle("auth:sendEmailOtp", (_event, email: string) => authClient?.sendEmailOtp(email) ?? { ok: false, error: "认证服务未启用。" });
+  ipcMain.handle("auth:verifyEmailOtp", (_event, email: string, token: string) =>
+    authClient?.verifyEmailOtp(email, token) ?? { ok: false, error: "认证服务未启用。" },
+  );
+  ipcMain.handle("auth:signInGitHub", () => authClient?.startGitHubSignIn() ?? { ok: false, error: "认证服务未启用。" });
+  ipcMain.handle("auth:signOut", () => authClient?.signOut() ?? { ok: false, error: "认证服务未启用。" });
+
+  ipcMain.handle("commerce:listCatalog", () => commerceService?.listCatalog() ?? []);
+  ipcMain.handle("commerce:createOrder", (_event, themeId: string) =>
+    commerceService?.createOrder(themeId) ?? Promise.reject(new Error("Commerce service not enabled.")),
+  );
+  ipcMain.handle("commerce:getOrder", (_event, orderId: string) => commerceService?.getOrder(orderId) ?? Promise.reject(new Error("Commerce service not enabled.")));
+  ipcMain.handle("commerce:reconcileOrder", (_event, orderId: string) =>
+    commerceService?.reconcileOrder(orderId) ?? Promise.reject(new Error("Commerce service not enabled.")),
+  );
+  ipcMain.handle("commerce:listEntitlements", () => commerceService?.listEntitlements() ?? []);
+  ipcMain.handle("commerce:downloadTheme", (_event, themeId: string) =>
+    commerceService?.downloadTheme(themeId) ?? { ok: false, error: "Commerce service not enabled." },
+  );
 }

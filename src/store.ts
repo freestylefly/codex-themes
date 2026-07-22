@@ -8,17 +8,20 @@ import type {
   AiThemeJob,
   AiThemeJobSummary,
   AppState,
+  AuthState,
   CodexApprovalRequest,
   LoadedThemeDraft,
   LogLine,
   OpenThemeAction,
   RendererSettings,
+  ThemeEntitlement,
   ThemeGenerationRequest,
+  ThemeProduct,
   ThemeSummary,
 } from "../electron/shared/types";
 import { api } from "./api";
 
-export type Page = "gallery" | "editor" | "ai-studio" | "settings";
+export type Page = "gallery" | "editor" | "ai-studio" | "settings" | "account";
 
 export interface Toast {
   id: number;
@@ -42,6 +45,11 @@ interface AppStore {
   pendingApproval: CodexApprovalRequest | null;
   /** Draft loaded for in-place editing; null means the editor creates a new theme. */
   editingDraft: LoadedThemeDraft | null;
+  auth: AuthState | null;
+  catalog: ThemeProduct[];
+  entitlements: ThemeEntitlement[];
+  pendingOrderId: string | null;
+  purchasingThemeId: string | null;
 
   init(): Promise<void>;
   setPage(page: Page): void;
@@ -74,6 +82,20 @@ interface AppStore {
   dismissApproval(): void;
   /** Validate and present a website-requested built-in theme. */
   openThemeFromWeb(action: OpenThemeAction): void;
+
+  /** Auth */
+  refreshAuth(): Promise<void>;
+  sendEmailOtp(email: string): Promise<{ ok: boolean; error?: string }>;
+  verifyEmailOtp(email: string, token: string): Promise<{ ok: boolean; error?: string }>;
+  signInGitHub(): Promise<{ ok: boolean; error?: string; url?: string }>;
+  signOut(): Promise<void>;
+
+  /** Commerce */
+  refreshCatalog(): Promise<void>;
+  refreshEntitlements(): Promise<void>;
+  purchaseTheme(themeId: string): Promise<void>;
+  pollOrder(orderId: string): Promise<void>;
+  downloadPurchasedTheme(themeId: string): Promise<void>;
 }
 
 let toastSeq = 0;
@@ -106,6 +128,11 @@ export const useApp = create<AppStore>((set, get) => ({
   activeAiJob: null,
   pendingApproval: null,
   editingDraft: null,
+  auth: null,
+  catalog: [],
+  entitlements: [],
+  pendingOrderId: null,
+  purchasingThemeId: null,
 
   async init() {
     const consumeOpenThemeActions = async () => {
@@ -152,14 +179,34 @@ export const useApp = create<AppStore>((set, get) => ({
     api.onCodexApprovalRequested((request) => {
       set({ pendingApproval: request });
     });
-    const [state, settings, themes, aiJobs] = await Promise.all([
+    api.onAuthChanged((auth) => {
+      set({ auth });
+      if (auth.status === "authenticated") {
+        void get().refreshEntitlements();
+      } else {
+        set({ entitlements: [] });
+      }
+    });
+    api.onOrderChanged((order) => {
+      if (order.status === "paid") {
+        set({ pendingOrderId: null, purchasingThemeId: null });
+        void get().refreshEntitlements();
+        get().toast("ok", `支付成功:「${order.themeName}」已加入已购主题。`);
+      }
+    });
+    const [state, settings, themes, aiJobs, auth] = await Promise.all([
       api.getState(),
       api.getSettings(),
       api.listThemes(),
       api.listAiThemeJobs(),
+      api.authGetState(),
     ]);
-    set({ state, settings, themes, aiJobs, ready: true });
+    set({ state, settings, themes, aiJobs, auth, ready: true });
     await consumeOpenThemeActions();
+    if (auth.status === "authenticated") {
+      void get().refreshCatalog();
+      void get().refreshEntitlements();
+    }
   },
 
   openThemeFromWeb(action: OpenThemeAction) {
@@ -362,6 +409,125 @@ export const useApp = create<AppStore>((set, get) => ({
 
   dismissApproval() {
     set({ pendingApproval: null });
+  },
+
+  async refreshAuth() {
+    set({ auth: await api.authGetState() });
+  },
+
+  async sendEmailOtp(email) {
+    const result = await api.authSendEmailOtp(email);
+    if (!result.ok) get().toast("err", result.error ?? "发送验证码失败");
+    return result;
+  },
+
+  async verifyEmailOtp(email, token) {
+    const result = await api.authVerifyEmailOtp(email, token);
+    if (result.ok) {
+      await get().refreshAuth();
+      await get().refreshCatalog();
+      await get().refreshEntitlements();
+      get().toast("ok", "登录成功。");
+    } else {
+      get().toast("err", result.error ?? "验证码无效");
+    }
+    return result;
+  },
+
+  async signInGitHub() {
+    const result = await api.authSignInGitHub();
+    if (!result.ok) get().toast("err", result.error ?? "GitHub 登录失败");
+    return result;
+  },
+
+  async signOut() {
+    const result = await api.authSignOut();
+    if (result.ok) {
+      set({ auth: { status: "unauthenticated", user: null, entitlementCount: 0, error: null }, catalog: [], entitlements: [] });
+      get().toast("info", "已退出登录。");
+    } else {
+      get().toast("err", result.error ?? "退出失败");
+    }
+  },
+
+  async refreshCatalog() {
+    try {
+      set({ catalog: await api.commerceListCatalog() });
+    } catch (error) {
+      console.warn("Failed to refresh catalog:", (error as Error).message);
+    }
+  },
+
+  async refreshEntitlements() {
+    try {
+      const entitlements = await api.commerceListEntitlements();
+      set({ entitlements });
+      // Refresh themes so purchased themes appear as source === "purchased".
+      await get().refreshThemes();
+    } catch (error) {
+      console.warn("Failed to refresh entitlements:", (error as Error).message);
+    }
+  },
+
+  async purchaseTheme(themeId) {
+    const auth = get().auth;
+    if (!auth || auth.status !== "authenticated") {
+      get().toast("info", "请先登录账号。");
+      set({ page: "account" });
+      return;
+    }
+    set({ purchasingThemeId: themeId });
+    try {
+      const order = await api.commerceCreateOrder(themeId, crypto.randomUUID());
+      set({ pendingOrderId: order.id });
+      // The main process already opened the Alipay cashier when the order was created on the server.
+      // Poll until paid or until the payment deep link wakes us up.
+      await get().pollOrder(order.id);
+    } catch (error) {
+      get().toast("err", `创建订单失败:${(error as Error).message}`);
+    } finally {
+      set((s) => (s.purchasingThemeId === themeId ? { purchasingThemeId: null } : {}));
+    }
+  },
+
+  async pollOrder(orderId) {
+    let attempts = 0;
+    const maxAttempts = 40; // ~2 minutes at 3s intervals
+    while (attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      const order = await api.commerceGetOrder(orderId);
+      if (order.status === "paid") {
+        set({ pendingOrderId: null });
+        await get().refreshEntitlements();
+        get().toast("ok", `支付成功:「${order.themeName}」已加入已购主题。`);
+        return;
+      }
+      if (order.status === "closed" || order.status === "failed") {
+        set({ pendingOrderId: null });
+        get().toast("err", "订单已关闭或支付失败。");
+        return;
+      }
+      attempts++;
+    }
+    // Final reconcile attempt before giving up.
+    const finalOrder = await api.commerceReconcileOrder(orderId);
+    if (finalOrder.status === "paid") {
+      set({ pendingOrderId: null });
+      await get().refreshEntitlements();
+      get().toast("ok", `支付成功:「${finalOrder.themeName}」已加入已购主题。`);
+    } else {
+      get().toast("err", "支付状态未知,请在已购主题中刷新。");
+    }
+  },
+
+  async downloadPurchasedTheme(themeId) {
+    const result = await api.commerceDownloadTheme(themeId);
+    if (result.ok) {
+      await get().refreshThemes();
+      get().toast("ok", "主题已下载。");
+    } else {
+      get().toast("err", result.error ?? "下载失败");
+    }
   },
 }));
 

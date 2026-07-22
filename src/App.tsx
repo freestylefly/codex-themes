@@ -1,4 +1,4 @@
-import { LayoutGrid, Loader2, Palette, Settings2, Sparkles, Wand2 } from "lucide-react";
+import { LayoutGrid, Loader2, Palette, Settings2, Sparkles, User, Wand2 } from "lucide-react";
 import { useEffect } from "react";
 import { ConfirmRestartModal } from "./components/ConfirmRestartModal";
 import { OpenThemeModal } from "./components/OpenThemeModal";
@@ -9,6 +9,7 @@ import { Editor } from "./pages/Editor";
 import { Gallery } from "./pages/Gallery";
 import { Onboarding } from "./pages/Onboarding";
 import { Settings } from "./pages/Settings";
+import { Account } from "./pages/Account";
 import { useApp, type Page } from "./store";
 
 const NAV: { page: Page; label: string; icon: React.ReactNode }[] = [
@@ -23,6 +24,7 @@ export function App() {
   const page = useApp((s) => s.page);
   const setPage = useApp((s) => s.setPage);
   const settings = useApp((s) => s.settings);
+  const auth = useApp((s) => s.auth);
   const init = useApp((s) => s.init);
 
   useEffect(() => {
@@ -40,6 +42,8 @@ export function App() {
   if (settings && !settings.onboardingDone) {
     return <Onboarding />;
   }
+
+  const isAuthenticated = auth?.status === "authenticated";
 
   return (
     <div className="app-shell">
@@ -65,6 +69,13 @@ export function App() {
           </button>
         ))}
         <div className="sidebar-spacer" />
+        <button
+          className={`nav-item nav-item--account${page === "account" ? " active" : ""}`}
+          onClick={() => setPage("account")}
+        >
+          <User size={15} />
+          {isAuthenticated ? auth.user?.email ?? "账号" : "登录 / 账号"}
+        </button>
         <StatusCard />
       </aside>
       <main className="main">
@@ -72,6 +83,7 @@ export function App() {
         {page === "ai-studio" && <AiStudio />}
         {page === "editor" && <Editor />}
         {page === "settings" && <Settings />}
+        {page === "account" && <Account />}
       </main>
       <ConfirmRestartModal />
       <OpenThemeModal />

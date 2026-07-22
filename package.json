@@ -21,12 +21,16 @@
     "dist:dir": "electron-vite build && node scripts/build-dist.mjs --dir"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.8",
+    "@vercel/node": "^5.8.26",
     "adm-zip": "^0.6.0",
+    "alipay-sdk": "^4.14.0",
     "electron-updater": "^6.8.9",
     "lucide-astro": "^0.468.0",
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import type { ThemeSummary } from "../../electron/shared/types";
 import { useApp } from "../store";
 
-const SOURCE_LABEL = { preset: "内置预设", custom: "我的主题", imported: "已导入" } as const;
+const SOURCE_LABEL = { preset: "内置预设", custom: "我的主题", imported: "已导入", purchased: "已购主题" } as const;
 
 interface ThemePreviewModalProps {
   theme: ThemeSummary;

@@ -5,6 +5,25 @@ import fs from "node:fs";
 import type { Plugin } from "vite";
 
 /**
+ * Expose a curated set of environment variables to the main process. Secrets
+ * (service role, Alipay private key) are intentionally absent; only the public
+ * Supabase URL + anon key and the commerce API base URL are available.
+ */
+function mainEnvPlugin(): Plugin {
+  const vars: Record<string, string> = {};
+  for (const key of ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_COMMERCE_API_URL"]) {
+    const value = process.env[key];
+    if (value) vars[`process.env.${key}`] = JSON.stringify(value);
+  }
+  return {
+    name: "main-env",
+    config() {
+      return { define: vars };
+    },
+  };
+}
+
+/**
  * Copy inject assets into the main build output so that direct dist launches
  * (e.g. WeSight running dist/main/index.js) can resolve dream-skin.css and
  * renderer-inject.js even when the app path points inside dist/main.
@@ -31,7 +50,7 @@ function copyInjectAssets(): Plugin {
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin(), copyInjectAssets()],
+    plugins: [externalizeDepsPlugin(), copyInjectAssets(), mainEnvPlugin()],
     build: {
       outDir: "dist/main",
       rollupOptions: {

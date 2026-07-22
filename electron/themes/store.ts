@@ -43,6 +43,7 @@ const INSPECT_DIR_TTL_MS = 24 * 60 * 60 * 1000;
 export interface StorePaths {
   presetsRoot: string;
   userThemesRoot: string;
+  purchasedThemesRoot?: string;
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i;
@@ -143,13 +144,17 @@ export class ThemeStore {
     return this.paths.userThemesRoot;
   }
 
-  /** Scan preset + user roots; invalid themes are skipped with a warning. */
+  /** Scan preset + user + purchased roots; invalid themes are skipped with a warning. */
   async listThemes(): Promise<ThemeSummary[]> {
     const out: ThemeSummary[] = [];
-    for (const [source, root] of [
+    const roots: [ThemeSource, string][] = [
       ["preset", this.paths.presetsRoot],
       ["custom", this.paths.userThemesRoot],
-    ] as [ThemeSource, string][]) {
+    ];
+    if (this.paths.purchasedThemesRoot) {
+      roots.push(["purchased", this.paths.purchasedThemesRoot]);
+    }
+    for (const [source, root] of roots) {
       let entries: string[] = [];
       try {
         entries = await fs.readdir(root);
@@ -165,8 +170,9 @@ export class ThemeStore {
           if (source === "preset" && !(await isPresetGalleryVisible(dir))) continue;
           const loaded = await loadTheme(dir);
           const meta = await readSidecarMeta(dir);
-          // Historical market themes are treated as imported.
-          const resolvedSource: ThemeSource = meta?.author ? "imported" : source;
+          // Historical market themes are treated as imported; purchased roots stay purchased.
+          const resolvedSource: ThemeSource =
+            source === "purchased" ? "purchased" : meta?.author ? "imported" : source;
           out.push(themeSummaryFromLoaded(loaded, resolvedSource, dir, meta));
         } catch (error) {
           // skip invalid theme dirs silently
@@ -179,7 +185,9 @@ export class ThemeStore {
 
   /** Resolve a theme id to its directory (presets win on collision). */
   async resolveThemeDir(id: string): Promise<string | null> {
-    for (const root of [this.paths.presetsRoot, this.paths.userThemesRoot]) {
+    const roots = [this.paths.presetsRoot, this.paths.userThemesRoot];
+    if (this.paths.purchasedThemesRoot) roots.push(this.paths.purchasedThemesRoot);
+    for (const root of roots) {
       let entries: string[] = [];
       try {
         entries = await fs.readdir(root);
@@ -600,15 +608,21 @@ export class ThemeStore {
    */
   async importInspectedTheme(
     inspection: InspectedThemePackage,
-    opts: { newId?: string } = {},
+    opts: { newId?: string; targetSource?: "custom" | "purchased" } = {},
   ): Promise<ThemeSummary> {
     const { summary } = inspection;
     const tempDir = await this.assertInspectDir(inspection.tempDir);
     if (!tempDir) throw new Error("预检目录已失效,请重新选择主题包。");
     const safeId = sanitizeId(opts.newId ?? summary.id);
-    const targetDir = path.join(this.paths.userThemesRoot, safeId);
-    const stagingDir = path.join(this.paths.userThemesRoot, `.staging-${safeId}-${Date.now()}`);
-    const backupDir = path.join(this.paths.userThemesRoot, `.backup-${safeId}-${Date.now()}`);
+
+    const targetSource = opts.targetSource ?? "custom";
+    const baseDir =
+      targetSource === "purchased" && this.paths.purchasedThemesRoot
+        ? this.paths.purchasedThemesRoot
+        : this.paths.userThemesRoot;
+    const targetDir = path.join(baseDir, safeId);
+    const stagingDir = path.join(baseDir, `.staging-${safeId}-${Date.now()}`);
+    const backupDir = path.join(baseDir, `.backup-${safeId}-${Date.now()}`);
 
     try {
       await fs.mkdir(stagingDir, { recursive: true, mode: 0o700 });
@@ -650,7 +664,7 @@ export class ThemeStore {
       await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
 
       const loaded = await loadTheme(targetDir);
-      return themeSummaryFromLoaded(loaded, "imported", targetDir, null);
+      return themeSummaryFromLoaded(loaded, targetSource, targetDir, null);
     } finally {
       await fs.rm(stagingDir, { recursive: true, force: true }).catch(() => {});
     }

@@ -18,6 +18,7 @@ export interface AppPaths {
   /** userData-derived locations. */
   userDataRoot: string;
   userThemesRoot: string;
+  purchasedThemesRoot: string;
   aiJobsRoot: string;
   downloadsDir: string;
   settingsFile: string;
@@ -117,6 +118,7 @@ export async function resolveAppPaths(): Promise<AppPaths> {
     skillsRoot: path.join(assetsRoot, "skills", "generate-codex-theme"),
     userDataRoot,
     userThemesRoot: path.join(userDataRoot, "themes"),
+    purchasedThemesRoot: path.join(userDataRoot, "purchased-themes"),
     aiJobsRoot: path.join(userDataRoot, "ai-jobs"),
     downloadsDir: path.join(userDataRoot, "downloads"),
     settingsFile: path.join(userDataRoot, "settings.json"),
