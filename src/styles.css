@@ -4015,6 +4015,338 @@ body {
   background: #fff;
 }
 
+.retro-preview-main--home {
+  display: block;
+  overflow: hidden;
+  background: #f9fcff;
+}
+
+.retro-home-portal {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(160px, 1.28fr) auto minmax(112px, .82fr) auto;
+  gap: 9px;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 13px 14px 12px;
+  background: linear-gradient(180deg, #fafdff 0%, #fff 58%, #f5faff 100%);
+  scrollbar-width: thin;
+  scrollbar-color: #9fc7e5 #edf7fe;
+}
+
+.retro-home-hero {
+  position: relative;
+  min-height: 160px;
+  display: grid;
+  grid-template-columns: minmax(126px, 31%) minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #478fce;
+  border-radius: 7px;
+  background-color: #dff2ff;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .96), 0 1px 3px rgba(24, 91, 149, .13);
+}
+
+.retro-home-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0 38%, rgba(255, 255, 255, .16) 58%, rgba(255, 255, 255, .28));
+}
+
+.retro-home-hero > img,
+.retro-home-hero > svg {
+  position: relative;
+  z-index: 1;
+  width: min(84%, 142px);
+  height: 88%;
+  justify-self: center;
+  object-fit: contain;
+  color: #2876c8;
+  filter: saturate(108%) drop-shadow(0 4px 4px rgba(22, 75, 126, .25));
+}
+
+.retro-home-hero > div {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: 12px 9% 12px 4px;
+}
+
+.retro-home-hero h2 {
+  margin: 0;
+  color: #1357a6;
+  font-size: clamp(20px, 3.1cqw, 34px);
+  font-weight: 750;
+  letter-spacing: -.035em;
+  line-height: 1.12;
+  text-shadow: 0 1px #fff;
+}
+
+.retro-home-hero p {
+  margin: 6px 0 12px;
+  color: #234f81;
+  font-size: clamp(11px, 1.7cqw, 18px);
+  line-height: 1.3;
+}
+
+.retro-home-hero button {
+  height: 37px;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  gap: 7px;
+  padding: 0 0 0 13px;
+  border: 1px solid #155ca8;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #62adeb 0%, #2f83d3 48%, #1566bc 100%);
+  color: #fff;
+  font: 700 12px/1 Tahoma, "Segoe UI", sans-serif;
+  text-shadow: 0 1px #124f91;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .7), 0 2px 4px rgba(19, 87, 166, .2);
+}
+
+.retro-home-hero button > span {
+  width: 33px;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  margin-left: 5px;
+  border-left: 1px solid rgba(12, 75, 145, .55);
+  box-shadow: inset 1px 0 rgba(255, 255, 255, .35);
+}
+
+.retro-home-hero button:hover,
+.retro-home-hero button:focus-visible {
+  border-color: #0f4f9a;
+  background: linear-gradient(180deg, #73b9ed 0%, #378cda 48%, #1764bd 100%);
+  outline: 2px solid rgba(40, 118, 200, .22);
+  outline-offset: 2px;
+}
+
+.retro-home-section {
+  min-width: 0;
+  border: 1px solid #a3cae8;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #fff, #f9fcff);
+  box-shadow: inset 0 1px #fff, 0 1px 3px rgba(24, 91, 149, .08);
+}
+
+.retro-home-section h3 {
+  height: 27px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 11px;
+  color: #2465a6;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 1px #fff;
+}
+
+.retro-home-quick > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  padding: 0 9px 9px;
+}
+
+.retro-home-quick button {
+  min-width: 0;
+  min-height: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #9bc6e7;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #fff, #edf7fe);
+  color: #173b61;
+  box-shadow: inset 0 1px #fff;
+}
+
+.retro-home-quick button:hover,
+.retro-home-quick button:focus-visible {
+  border-color: #2876c8;
+  background: linear-gradient(180deg, #fff, #dceffa);
+  outline: 2px solid rgba(40, 118, 200, .16);
+  outline-offset: 1px;
+}
+
+.retro-home-quick button > span {
+  width: 34px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #2b75bb;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #73b9ed, #2876c8);
+  color: #fff;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .68), 0 2px 3px rgba(28, 91, 149, .18);
+}
+
+.retro-home-quick b {
+  overflow: hidden;
+  max-width: calc(100% - 8px);
+  font-size: 9px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retro-home-recent > div {
+  margin: 0 9px 8px;
+  overflow: hidden;
+  border: 1px solid #b4d4eb;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.retro-home-recent button {
+  width: 100%;
+  height: 29px;
+  display: grid;
+  grid-template-columns: 18px auto 8px minmax(0, 1fr) 12px auto auto;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: 0;
+  border-bottom: 1px solid #d7e8f4;
+  background: #fff;
+  color: #31516f;
+  font: 9px/1 Tahoma, "Segoe UI", sans-serif;
+  text-align: left;
+}
+
+.retro-home-recent button:last-child { border-bottom: 0; }
+.retro-home-recent button:hover,
+.retro-home-recent button.is-active { background: #edf7fe; }
+.retro-home-recent button:focus-visible { outline: 2px solid #5a9bd5; outline-offset: -2px; }
+.retro-home-recent button > svg { color: #317bc3; }
+.retro-home-recent button b { color: #245990; }
+.retro-home-recent button i { color: #9db4c6; font-style: normal; }
+.retro-home-recent button em { color: #3f6487; font-style: normal; }
+.retro-home-recent button small { color: #7891a6; font-size: 8px; white-space: nowrap; }
+
+.retro-home-bottom {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.retro-home-context {
+  position: relative;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 12px 9px 0;
+  border: 1px solid #b7d7eb;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #fff, #f0f8fe);
+  color: #31516f;
+  font-size: 9px;
+}
+
+.retro-home-context::before {
+  content: "选择项目";
+  position: absolute;
+  top: 4px;
+  left: 9px;
+  color: #2465a6;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.retro-home-context button,
+.retro-home-context span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.retro-home-context button {
+  height: 25px;
+  padding: 0 9px;
+  border: 1px solid #9fc9e7;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #fff, #e7f4fd);
+  color: #244f7b;
+  font: 600 9px/1 Tahoma, "Segoe UI", sans-serif;
+}
+
+.retro-home-context small {
+  margin-left: auto;
+  color: #2a8d38;
+  font-size: 8px;
+}
+
+.retro-home-composer {
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px 5px 11px;
+  border: 1px solid #74a9d8;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #fff, #edf7fe);
+  box-shadow: inset 0 1px #fff, 0 1px 3px rgba(24, 91, 149, .12);
+}
+
+.retro-home-composer:focus-within {
+  border-color: #2876c8;
+  box-shadow: 0 0 0 2px rgba(40, 118, 200, .12), inset 0 1px #fff;
+}
+
+.retro-home-composer textarea {
+  width: 100%;
+  min-height: 22px;
+  resize: none;
+  overflow: hidden;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #28465f;
+  font: 10px/1.4 Tahoma, "Segoe UI", sans-serif;
+}
+
+.retro-home-composer textarea::placeholder { color: #8ca0b1; }
+
+.retro-home-composer > button {
+  width: 38px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: #2d82d1;
+}
+
+.retro-home-composer > button span { display: none; }
+
+.retro-home-composer > button:disabled {
+  border-color: transparent;
+  background: transparent;
+  color: #7c98ad;
+}
+
+.retro-home-composer > button:not(:disabled):hover,
+.retro-home-composer > button:not(:disabled):focus-visible {
+  border-color: #86bce5;
+  background: #e5f3fd;
+  outline: 2px solid rgba(40, 118, 200, .16);
+  outline-offset: 1px;
+}
+
 .retro-preview-thread-title {
   display: flex;
   align-items: center;

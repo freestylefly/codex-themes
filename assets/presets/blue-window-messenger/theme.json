@@ -2,10 +2,10 @@
   "schemaVersion": 2,
   "uuid": "preset-blue-window-messenger",
   "id": "blue-window-messenger",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "minEngineVersion": "2.0.0",
   "name": "蓝窗信使 Blue Window",
-  "description": "三栏桌面信使结构、XP 蓝色窗框与紧凑任务面板组成的高密度复古主题。",
+  "description": "三栏桌面信使结构、XP 蓝色窗框与欢迎门户组成的高密度复古主题。",
   "tagline": "把 2007 年的蓝色信使窗口，变成今天的 Codex 工作台。",
   "tags": [
     "复古",

@@ -4,6 +4,7 @@
   const STYLE_ID = "codex-dream-skin-style";
   const CHROME_ID = "codex-dream-skin-chrome";
   const MOONLIT_WELCOME_ID = "codex-dream-skin-moonlit-welcome";
+  const BLUE_WINDOW_HOME_ID = "codex-dream-skin-blue-window-home";
   const SHELL_ATTR = "data-dream-shell";
   const VERSION = version || "1.0.0";
   const THEME = themeConfig && typeof themeConfig === "object" ? themeConfig : {};
@@ -338,6 +339,230 @@
     });
   };
 
+  /**
+   * Blue Window replaces the generic Codex landing composition with a compact
+   * 2007-style welcome portal. The visible controls proxy the real Codex home
+   * controls underneath, so suggestions, composer submission and task links
+   * continue to use the app's own behavior instead of becoming static chrome.
+   */
+  const ensureBlueWindowHome = (home) => {
+    const existingPanels = [...document.querySelectorAll(`#${BLUE_WINDOW_HOME_ID}`)];
+    if (THEME.id !== "blue-window-messenger" || !home) {
+      existingPanels.forEach((panel) => panel.remove());
+      return;
+    }
+
+    existingPanels.forEach((panel) => {
+      if (panel.parentElement !== home) panel.remove();
+    });
+
+    let panel = home.querySelector(`:scope > #${BLUE_WINDOW_HOME_ID}`);
+    const findNativeSend = () => {
+      const buttons = [...home.querySelectorAll("button")]
+        .filter((button) => !button.closest(`#${BLUE_WINDOW_HOME_ID}`));
+      const labelled = buttons.find((button) => {
+        const label = `${button.getAttribute("aria-label") || ""} ${button.textContent || ""}`;
+        return /send|submit|发送|提交/i.test(label);
+      });
+      if (labelled) return labelled;
+      const composerButtons = [...(home.querySelector(".composer-surface-chrome")?.querySelectorAll("button") || [])];
+      return composerButtons.sort((a, b) => b.getBoundingClientRect().right - a.getBoundingClientRect().right)[0] || null;
+    };
+    if (!panel) {
+      panel = document.createElement("section");
+      panel.id = BLUE_WINDOW_HOME_ID;
+      panel.className = "dream-skin-blue-window-home";
+      panel.setAttribute("aria-label", "蓝窗信使欢迎工作台");
+      panel.innerHTML = `
+        <section class="blue-window-home__hero">
+          <img class="blue-window-home__mascot" alt="Codex 小蓝">
+          <div class="blue-window-home__hero-copy">
+            <h1>欢迎回来，苍何</h1>
+            <p>今天想和 Codex 一起做什么？</p>
+            <button type="button" class="blue-window-home__primary">新建任务 <span aria-hidden="true">›</span></button>
+          </div>
+        </section>
+        <section class="blue-window-home__section blue-window-home__quick-section">
+          <h2>快速开始</h2>
+          <div class="blue-window-home__quick-actions">
+            <button type="button" data-suggestion-index="0"><span class="blue-window-home__action-icon"></span><b>探索并理解代码</b></button>
+            <button type="button" data-suggestion-index="1"><span class="blue-window-home__action-icon"></span><b>构建新功能</b></button>
+            <button type="button" data-suggestion-index="2"><span class="blue-window-home__action-icon"></span><b>审查代码</b></button>
+            <button type="button" data-suggestion-index="3"><span class="blue-window-home__action-icon"></span><b>修复问题</b></button>
+          </div>
+        </section>
+        <section class="blue-window-home__section blue-window-home__continue-section">
+          <h2>继续工作</h2>
+          <div class="blue-window-home__recent-list">
+            <button type="button" data-task-target="检查主图主题定制"><span class="blue-window-home__recent-icon"></span><b>codex-themes</b><i>/</i><span>主题配置优化</span><small>刚刚</small></button>
+            <button type="button" data-task-target="codex-themes"><span class="blue-window-home__recent-icon"></span><b>codex-themes</b><i>/</i><span>sidebar-enhancement.ts</span><small>2 小时前</small></button>
+            <button type="button" data-task-target="README.md"><span class="blue-window-home__recent-icon"></span><b>codex-themes</b><i>/</i><span>README.md</span><small>昨天</small></button>
+          </div>
+        </section>
+        <section class="blue-window-home__composer-zone">
+          <div class="blue-window-home__project-context">
+            <button type="button" data-project-target="codex-themes"><span class="blue-window-home__context-icon"></span><b>codex-themes</b></button>
+            <span>本地</span><span>main</span>
+          </div>
+          <div class="blue-window-home__composer">
+            <textarea rows="1" aria-label="告诉 Codex 你想完成什么" placeholder="告诉 Codex 你想完成什么…"></textarea>
+            <button type="button" class="blue-window-home__send" aria-label="发送任务"><span class="blue-window-home__send-label">发送</span><span class="blue-window-home__send-icon"></span></button>
+          </div>
+        </section>`;
+      home.appendChild(panel);
+
+      const findNativeComposer = () => [...home.querySelectorAll('textarea, [contenteditable="true"]')]
+        .find((candidate) => !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`));
+
+      const syncNativeComposer = (value) => {
+        const nativeComposer = findNativeComposer();
+        if (!nativeComposer) return null;
+        if (nativeComposer instanceof HTMLTextAreaElement || nativeComposer instanceof HTMLInputElement) {
+          const prototype = nativeComposer instanceof HTMLTextAreaElement
+            ? HTMLTextAreaElement.prototype
+            : HTMLInputElement.prototype;
+          const setter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+          if (setter) setter.call(nativeComposer, value);
+          else nativeComposer.value = value;
+        } else {
+          nativeComposer.textContent = value;
+        }
+        nativeComposer.dispatchEvent(new InputEvent("input", {
+          bubbles: true,
+          inputType: "insertText",
+          data: value,
+        }));
+        return nativeComposer;
+      };
+
+      const focusComposer = () => {
+        const input = panel.querySelector("textarea");
+        input?.focus();
+      };
+
+      panel.querySelector(".blue-window-home__primary")?.addEventListener("click", focusComposer);
+      panel.querySelector(".blue-window-home__composer textarea")?.addEventListener("input", (event) => {
+        syncNativeComposer(event.currentTarget.value);
+      });
+
+      const submitComposer = () => {
+        const input = panel.querySelector(".blue-window-home__composer textarea");
+        const value = input?.value?.trim() || "";
+        if (!value) {
+          focusComposer();
+          return;
+        }
+        const nativeComposer = syncNativeComposer(value);
+        const nativeSend = findNativeSend();
+        if (nativeSend) nativeSend.click();
+        else if (nativeComposer) {
+          nativeComposer.focus();
+          nativeComposer.dispatchEvent(new KeyboardEvent("keydown", {
+            key: "Enter",
+            code: "Enter",
+            bubbles: true,
+            metaKey: true,
+          }));
+        }
+        input.value = "";
+      };
+
+      panel.querySelector(".blue-window-home__send")?.addEventListener("click", submitComposer);
+      panel.querySelector(".blue-window-home__composer textarea")?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+          event.preventDefault();
+          submitComposer();
+        }
+      });
+
+      panel.querySelectorAll("[data-suggestion-index]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const index = Number(button.getAttribute("data-suggestion-index"));
+          const originals = [...home.querySelectorAll('.group\\/home-suggestions button')]
+            .filter((candidate) => !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`));
+          if (originals[index]) originals[index].click();
+          else focusComposer();
+        });
+      });
+
+      panel.querySelectorAll("[data-task-target]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = button.getAttribute("data-task-target") || "";
+          const original = [...document.querySelectorAll("button, a")].find((candidate) =>
+            !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`) &&
+            (candidate.textContent || "").includes(target));
+          if (original instanceof HTMLElement) original.click();
+        });
+      });
+
+      panel.querySelector("[data-project-target]")?.addEventListener("click", () => {
+        const original = [...document.querySelectorAll("button")].find((candidate) =>
+          !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`) &&
+          (candidate.textContent || "").includes("codex-themes"));
+        if (original instanceof HTMLElement) original.click();
+      });
+    }
+
+    const mascot = panel.querySelector(".blue-window-home__mascot");
+    if (mascot?.getAttribute("src") !== artUrl) mascot?.setAttribute("src", artUrl);
+
+    const originalSuggestions = [...home.querySelectorAll('.group\\/home-suggestions button')]
+      .filter((candidate) => !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`));
+    const sidebar = document.querySelector("aside.app-shell-left-panel");
+    const fallbackIcons = [...(sidebar?.querySelectorAll("svg") || [])];
+    panel.querySelectorAll("[data-suggestion-index]").forEach((button) => {
+      const iconSlot = button.querySelector(".blue-window-home__action-icon");
+      const index = Number(button.getAttribute("data-suggestion-index"));
+      const sourceIcon = originalSuggestions[index]?.querySelector("svg") ??
+        fallbackIcons[(index + 1) % Math.max(fallbackIcons.length, 1)];
+      if (iconSlot && sourceIcon && !iconSlot.querySelector("svg")) {
+        iconSlot.appendChild(sourceIcon.cloneNode(true));
+      }
+    });
+
+    const projectText = [...(sidebar?.querySelectorAll("*") || [])].find((candidate) =>
+      candidate.children.length === 0 && (candidate.textContent || "").trim() === "codex-themes");
+    const projectTextRect = projectText?.getBoundingClientRect();
+    const projectRow = projectText?.closest('button, a, [role="button"]');
+    const projectRowIcons = projectTextRect
+      ? [...(projectRow?.querySelectorAll("svg") || [])]
+          .filter((icon) => icon.getBoundingClientRect().right <= projectTextRect.left + 4)
+          .sort((a, b) => b.getBoundingClientRect().right - a.getBoundingClientRect().right)
+      : [];
+    const projectLineIcons = projectTextRect
+      ? fallbackIcons.filter((icon) => {
+          const rect = icon.getBoundingClientRect();
+          const iconCenter = rect.top + rect.height / 2;
+          const textCenter = projectTextRect.top + projectTextRect.height / 2;
+          return Math.abs(iconCenter - textCenter) <= 12;
+        }).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left)
+      : [];
+    const selectedProjectIcon = projectRowIcons[0] ?? projectLineIcons[0] ?? sidebar?.querySelector(
+      '[aria-current="page"] svg, [class~="bg-token-list-hover-background"] svg',
+    );
+    const contextSourceIcon = selectedProjectIcon ??
+      projectText?.closest("button")?.querySelector("svg") ??
+      projectText?.parentElement?.querySelector("svg") ??
+      [...document.querySelectorAll("button, a")].find((candidate) =>
+        !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`) &&
+        (candidate.textContent || "").includes("codex-themes"))?.querySelector("svg") ??
+      fallbackIcons[0];
+    const contextSlot = panel.querySelector(".blue-window-home__context-icon");
+    if (contextSlot && contextSourceIcon && !contextSlot.querySelector("svg")) {
+      contextSlot.appendChild(contextSourceIcon.cloneNode(true));
+    }
+    panel.querySelectorAll(".blue-window-home__recent-icon").forEach((slot) => {
+      if (contextSourceIcon && !slot.querySelector("svg")) slot.appendChild(contextSourceIcon.cloneNode(true));
+    });
+
+    const nativeSendIcon = findNativeSend()?.querySelector("svg");
+    const sendIconSlot = panel.querySelector(".blue-window-home__send-icon");
+    if (sendIconSlot && nativeSendIcon && !sendIconSlot.querySelector("svg")) {
+      sendIconSlot.appendChild(nativeSendIcon.cloneNode(true));
+      panel.querySelector(".blue-window-home__send")?.classList.add("has-icon");
+    }
+  };
+
   const existingStyle = document.getElementById(STYLE_ID);
   if (existingStyle) {
     existingStyle.textContent = cssText;
@@ -389,6 +614,7 @@
     }
     if (home) home.classList.add("dream-skin-home");
     ensureMoonlitWelcome(home);
+    ensureBlueWindowHome(home);
 
     if (!shellMain || !document.body) return;
     shellMain.classList.toggle("dream-skin-home-shell", Boolean(home));
@@ -515,6 +741,7 @@
     document.querySelectorAll(".dream-skin-home").forEach((node) => node.classList.remove("dream-skin-home"));
     document.querySelectorAll(".dream-skin-home-shell").forEach((node) => node.classList.remove("dream-skin-home-shell"));
     document.getElementById(MOONLIT_WELCOME_ID)?.remove();
+    document.getElementById(BLUE_WINDOW_HOME_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     document.getElementById(CHROME_ID)?.remove();
     const state = window[STATE_KEY];

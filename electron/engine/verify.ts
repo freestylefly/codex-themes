@@ -83,12 +83,17 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
       document.querySelector('.group\\\\/home-suggestions');
     const homeRoute = homeSignal?.closest('[role="main"]') ?? null;
     const home = document.querySelector('[role="main"].dream-skin-home');
-    const suggestions = home?.querySelector('.group\\\\/home-suggestions') ?? null;
+    const blueWindowHome = home?.querySelector('#codex-dream-skin-blue-window-home') ?? null;
+    const suggestions = blueWindowHome?.querySelector('.blue-window-home__quick-actions') ??
+      home?.querySelector('.group\\\\/home-suggestions') ?? null;
     const cardBoxes = suggestions ? [...suggestions.querySelectorAll('button')].map(box) : [];
     const visibleCards = cardBoxes.filter((item) => item?.visible);
-    const hero = box(home?.firstElementChild?.firstElementChild?.firstElementChild);
-    const projectButton = box(home?.querySelector('.group\\\\/project-selector > button'));
-    const composer = box(document.querySelector('.composer-surface-chrome'));
+    const hero = box(blueWindowHome?.querySelector('.blue-window-home__hero')) ??
+      box(home?.firstElementChild?.firstElementChild?.firstElementChild);
+    const projectButton = box(blueWindowHome?.querySelector('[data-project-target]')) ??
+      box(home?.querySelector('.group\\\\/project-selector > button'));
+    const composer = box(blueWindowHome?.querySelector('.blue-window-home__composer')) ??
+      box(document.querySelector('.composer-surface-chrome'));
     const sidebar = box(document.querySelector('aside.app-shell-left-panel'));
     const chrome = document.getElementById('codex-dream-skin-chrome');
     const result = {

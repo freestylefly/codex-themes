@@ -49,7 +49,6 @@
 ## Final result
 
 final result: passed
-
 ---
 
 # 官网首页 Hero「流光沉浸」Design QA
@@ -827,5 +826,56 @@ final result: passed
 - [P3] 现有部分早期内置主题的 `preview.png` 主要是纹理底图；后续可为布局卡片补充更有信息量的真实界面预览资产。
 
 ## Final result
+
+final result: passed
+
+---
+
+# Blue Window Home Portal Design QA
+
+**Comparison target**
+
+- Source visual truth: `/Users/canghe/.codex/generated_images/019f6d53-2b44-7703-8395-9bdf833bf567/exec-8237f33b-a7d0-4ab1-9ec4-45b36c87304e.png`
+- Rendered implementation: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/blue-window-home.png`
+- Full-view comparison: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/blue-window-comparison.png`
+- Focused center comparison: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/blue-window-center-comparison.png`
+- State: Codex home/new-task screen with `blue-window-messenger` active.
+- CSS viewport: `945 × 633`.
+- Source pixels: `1537 × 1023`; aspect-fitted to `945 × 629` and centered on a `945 × 633` comparison canvas.
+- Implementation pixels: `1890 × 1266` at device scale factor 2; downsampled to `945 × 633` for comparison.
+
+**Findings**
+
+- No actionable P0, P1, or P2 differences remain.
+- Fonts and typography: the Tahoma/Segoe UI/Microsoft YaHei stack preserves the reference's compact XP-era hierarchy. Welcome copy, section labels, row copy, metadata, and input placeholder remain readable at the tested viewport.
+- Spacing and layout rhythm: the three-column shell, hero, four-action strip, recent-work list, project context, and composer align with the source composition. Persistent controls remain inside the viewport with no horizontal document overflow.
+- Colors and visual tokens: blue title bars, ice-blue borders, white panels, green online indicators, and orange level badge track the source palette and maintain readable contrast.
+- Image quality and asset fidelity: the production implementation uses the existing high-resolution Blue Window mascot, wallpaper, and friend artwork. The mascot pose is the shipped standing brand asset rather than the generated waving pose; this is an intentional P3 asset constraint and does not change the hierarchy.
+- Copy and content: welcome copy, four quick actions, recent work, project context, and composer placeholder match the selected design direction. The project label was restored during the final fidelity pass.
+- Icons: production uses SVG icons cloned from Codex's own active icon set so the theme remains compatible with the host app and avoids bitmap placeholders. Shapes are simpler than the generated concept's illustrated icons; this is acceptable P3 polish.
+- Interactions: the primary CTA and a quick-action card both focused the real composer successfully. Native submission remains proxied to the host Codex send action. No renderer exceptions were observed during application and interaction checks.
+
+**Comparison history**
+
+1. Initial capture showed excessive blank space above the hero and a large text send button. The home portal was extended into the native header gap, and the send control now reuses the native Codex send SVG.
+2. A subsequent capture showed empty action icon wells after the host's generic suggestions unmounted. The portal now clones stable SVGs from the active Codex sidebar as a compatibility fallback.
+3. Recent-work and project chips initially inherited a disclosure chevron. Icon selection was narrowed to the project row's leading icon, producing the intended folder symbol.
+4. The focused comparison exposed a missing “选择项目” label. The project context received the missing hierarchy without displacing the composer.
+5. Final capture verified visible hero, four visible action cards, project control, composer, sidebar, no horizontal overflow, working focus interactions, and zero runtime exceptions.
+
+**Implementation Checklist**
+
+- [x] Welcome hero uses real Blue Window artwork.
+- [x] Four quick actions remain interactive.
+- [x] Recent work and project context follow the selected layout.
+- [x] Composer proxies Codex's native input and send behavior.
+- [x] Task/conversation pages retain the existing retro messenger layout.
+- [x] Theme-store preview and preset version are updated.
+- [x] Type checks, tests, production build, live injection verification, interaction checks, and screenshot comparison pass.
+
+**Follow-up Polish**
+
+- P3: produce an official transparent waving pose for Codex 小蓝 if the brand asset set is expanded later.
+- P3: add dedicated illustrated quick-action assets only if they can remain stable across Codex host updates.
 
 final result: passed

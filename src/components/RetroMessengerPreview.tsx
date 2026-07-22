@@ -1,20 +1,28 @@
 import {
+  ArrowRight,
   Bell,
   Bot,
   Boxes,
   CalendarDays,
   ChevronDown,
   ChevronUp,
+  Code2,
   Copy,
+  FileCode2,
   Folder,
   GitPullRequest,
+  GitBranch,
   Globe2,
   Image,
+  Laptop,
   Mail,
   MessageCircle,
   Paperclip,
+  PackagePlus,
   Plus,
+  ScanSearch,
   Search,
+  SearchCode,
   Send,
   Share2,
   ShieldCheck,
@@ -25,10 +33,11 @@ import {
   ThumbsUp,
   UserRound,
   Users,
+  Wrench,
   Zap,
 } from "lucide-react";
-import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { useMemo, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { NormalizedTheme } from "../../electron/shared/types";
 
 interface RetroMessengerPreviewProps {
@@ -162,29 +171,17 @@ export function RetroMessengerPreview({
             </label>
           </aside>
 
-          <main className="retro-preview-main">
-            <header className="retro-preview-thread-title">
-              <MessageCircle size={14} />
-              <b>{title}</b>
-            </header>
+          <main className={`retro-preview-main${page === "home" ? " retro-preview-main--home" : ""}`}>
+            {page === "home" ? (
+              <RetroHomePortal heroUrl={heroUrl} wallpaperStyle={wallpaperStyle} />
+            ) : (
+              <>
+                <header className="retro-preview-thread-title">
+                  <MessageCircle size={14} />
+                  <b>{title}</b>
+                </header>
 
-            <div className="retro-preview-document">
-              {page === "home" ? (
-                <>
-                  <p>欢迎回来，今天想让 Codex 帮你完成什么？</p>
-                  <ul>
-                    <li>分析并理解当前代码库。</li>
-                    <li>构建功能，验证运行结果。</li>
-                    <li>查看改动，整理下一步计划。</li>
-                  </ul>
-                  <p>最近工作：</p>
-                  <CodePanel title="project">
-                    <span>codex-themes / blue-window-messenger</span>
-                    <span>主题预览、资源和复古布局已就绪。</span>
-                  </CodePanel>
-                </>
-              ) : (
-                <>
+                <div className="retro-preview-document">
                   <p>结构确认没问题：</p>
                   <ul className="retro-preview-checks">
                     <li><code>redeem_codes</code>、<code>push_tokens</code> 与 migration 一致。</li>
@@ -209,40 +206,40 @@ export function RetroMessengerPreview({
                   </CodePanel>
                   <p>这不会影响现有业务数据。</p>
                   {sentMessage && <p className="retro-preview-sent">你：{sentMessage}</p>}
-                </>
-              )}
 
-              <div className="retro-preview-reactions">
-                <ThumbsUp size={11} />
-                <ThumbsDown size={11} />
-                <Share2 size={11} />
-                <span>分享</span>
-                <small>今天 22:48</small>
-              </div>
-            </div>
+                  <div className="retro-preview-reactions">
+                    <ThumbsUp size={11} />
+                    <ThumbsDown size={11} />
+                    <Share2 size={11} />
+                    <span>分享</span>
+                    <small>今天 22:48</small>
+                  </div>
+                </div>
 
-            <div className="retro-preview-composer-tools">
-              <button type="button"><Smile size={13} />表情</button>
-              <button type="button"><Image size={13} />图片</button>
-              <button type="button"><Paperclip size={13} />附加</button>
-              <Zap size={13} className="retro-preview-composer-zap" />
-            </div>
-            <div className="retro-preview-composer">
-              <textarea
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                placeholder={page === "home" ? "给 Codex 派个任务…" : "要求后续变更"}
-                aria-label="消息"
-              />
-              <div className="retro-preview-composer-footer">
-                <span><Smile size={13} /></span>
-                <span className="retro-preview-model"><Zap size={11} /> 5.6 Sol 高 <ChevronDown size={11} /></span>
-                <button type="button" onClick={sendDraft} disabled={!draft.trim()}>
-                  发送(S)
-                  <Send size={11} />
-                </button>
-              </div>
-            </div>
+                <div className="retro-preview-composer-tools">
+                  <button type="button"><Smile size={13} />表情</button>
+                  <button type="button"><Image size={13} />图片</button>
+                  <button type="button"><Paperclip size={13} />附加</button>
+                  <Zap size={13} className="retro-preview-composer-zap" />
+                </div>
+                <div className="retro-preview-composer">
+                  <textarea
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    placeholder="要求后续变更"
+                    aria-label="消息"
+                  />
+                  <div className="retro-preview-composer-footer">
+                    <span><Smile size={13} /></span>
+                    <span className="retro-preview-model"><Zap size={11} /> 5.6 Sol 高 <ChevronDown size={11} /></span>
+                    <button type="button" onClick={sendDraft} disabled={!draft.trim()}>
+                      发送(S)
+                      <Send size={11} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </main>
 
           <aside className="retro-preview-side">
@@ -297,6 +294,124 @@ export function RetroMessengerPreview({
           <span>22:48</span>
         </footer>
       </div>
+    </div>
+  );
+}
+
+const QUICK_START_ITEMS = [
+  [SearchCode, "探索并理解代码", "分析项目结构与关键逻辑"],
+  [PackagePlus, "构建新功能", "把想法写成可运行代码"],
+  [ScanSearch, "审查代码", "发现风险并给出修改建议"],
+  [Wrench, "修复问题", "定位问题并完成验证"],
+] as const;
+
+const RECENT_ITEMS = [
+  [Folder, "主题配置优化", "刚刚"],
+  [FileCode2, "sidebar-enhancement.ts", "2 小时前"],
+  [Code2, "README.md", "昨天"],
+] as const;
+
+function RetroHomePortal({
+  heroUrl,
+  wallpaperStyle,
+}: {
+  heroUrl?: string | null;
+  wallpaperStyle?: CSSProperties;
+}) {
+  const [draft, setDraft] = useState("");
+  const [activeRecent, setActiveRecent] = useState(0);
+  const [sent, setSent] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const startWith = (prompt: string) => {
+    setDraft(prompt);
+    setSent(false);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const submit = () => {
+    if (!draft.trim()) {
+      inputRef.current?.focus();
+      return;
+    }
+    setDraft("");
+    setSent(true);
+  };
+
+  return (
+    <div className="retro-home-portal">
+      <section className="retro-home-hero" style={wallpaperStyle}>
+        {heroUrl ? <img src={heroUrl} alt="Codex 小蓝" /> : <Bot size={90} />}
+        <div>
+          <h2>欢迎回来，苍何</h2>
+          <p>今天想和 Codex 一起做什么？</p>
+          <button type="button" onClick={() => inputRef.current?.focus()}>
+            <Plus size={16} />新建任务<span><ArrowRight size={16} /></span>
+          </button>
+        </div>
+      </section>
+
+      <section className="retro-home-section retro-home-quick">
+        <h3>快速开始</h3>
+        <div>
+          {QUICK_START_ITEMS.map(([Icon, label, prompt]) => (
+            <button type="button" key={label} onClick={() => startWith(prompt)}>
+              <span><Icon size={22} /></span>
+              <b>{label}</b>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="retro-home-section retro-home-recent">
+        <h3>继续工作</h3>
+        <div>
+          {RECENT_ITEMS.map(([Icon, label, time], index) => (
+            <button
+              type="button"
+              key={label}
+              className={activeRecent === index ? "is-active" : ""}
+              onClick={() => setActiveRecent(index)}
+            >
+              <Icon size={15} />
+              <b>codex-themes</b>
+              <i>/</i>
+              <span>{label}</span>
+              <GitBranch size={12} />
+              <em>main</em>
+              <small>{time}</small>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="retro-home-bottom">
+        <div className="retro-home-context">
+          <button type="button"><Folder size={14} />codex-themes</button>
+          <span><Laptop size={14} />本地</span>
+          <span><GitBranch size={14} />main</span>
+          {sent && <small>任务已发送</small>}
+        </div>
+        <div className="retro-home-composer">
+          <textarea
+            ref={inputRef}
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setSent(false);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) submit();
+            }}
+            placeholder="告诉 Codex 你想完成什么…"
+            aria-label="新任务"
+          />
+          <button type="button" onClick={submit} disabled={!draft.trim()}>
+            <Send size={16} />
+            <span>发送</span>
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
