@@ -9,13 +9,22 @@ import { themes } from "../lib/themes";
 
 const { locale } = Astro.props as { locale: Locale };
 const t = copy[locale];
-const heroThemeIds = ["mirror-lake-ribbon", "moonlit-immortal", "neon-star-hunter"];
+const heroThemeIds = [
+  "moonlit-immortal",
+  "mirror-lake-ribbon",
+  "starcap-teemo",
+  "shanhai-nexus",
+  "neon-star-hunter",
+  "mecha-cat-studio",
+  "potion-workshop",
+  "focus-capybara",
+];
 const heroThemes = heroThemeIds.map((id) => {
   const theme = themes.find((item) => item.id === id);
   if (!theme) throw new Error(`Missing home hero theme: ${id}`);
   return localizeTheme(theme, locale);
 });
-const featured = themes.slice(0, 6);
+const featured = themes.slice(0, 12);
 const description =
   locale === "zh"
     ? "从官方主题到本地 AI 生成，一键应用，也能随时恢复。"
@@ -29,12 +38,15 @@ const description =
         <Image
           class="home-theme-backdrop-image"
           data-backdrop-index={index}
-          src={theme.preview}
+          data-active={index === 0 ? "true" : "false"}
+          data-backdrop-kind={theme.hasBackdropArtwork ? "artwork" : "preview"}
+          src={theme.backdrop}
           alt=""
-          widths={[420, 680]}
-          sizes="(max-width: 820px) 58vw, 24vw"
+          widths={[960, 1440, 1920]}
+          sizes="100vw"
           format="webp"
           loading={index === 0 ? "eager" : "lazy"}
+          style={`object-position: ${theme.backdropFocus.x * 100}% ${theme.backdropFocus.y * 100}%`}
         />
       ))}
     </div>
@@ -69,7 +81,10 @@ const description =
               type="button"
               data-carousel-card
               data-theme-index={index}
-              data-depth={index}
+              data-depth={index < 3 ? index : "hidden"}
+              aria-hidden={index < 3 ? "false" : "true"}
+              aria-pressed={index === 0 ? "true" : "false"}
+              tabindex={index < 3 ? 0 : -1}
               aria-label={`${locale === "zh" ? "预览" : "Preview"} ${theme.name}`}
             >
               <Image
@@ -116,7 +131,7 @@ const description =
           </div>
           <div class="home-rail-meta" aria-live="polite">
             <strong data-carousel-name>{heroThemes[0].name.replace(/\s+[A-Z][\s\S]*$/, "")}</strong>
-            <span data-carousel-count>01 / 03</span>
+            <span data-carousel-count>01 / {String(heroThemes.length).padStart(2, "0")}</span>
             <div class="home-rail-progress" aria-hidden="true"><i data-carousel-progress></i></div>
           </div>
         </div>
@@ -228,8 +243,12 @@ const description =
 
   <script>
     document.querySelectorAll<HTMLElement>("[data-home-carousel]").forEach((carousel) => {
+      if (carousel.dataset.carouselReady === "true") return;
+      carousel.dataset.carouselReady = "true";
+
       const cards = Array.from(carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-card]"));
       const thumbs = Array.from(carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-thumb]"));
+      const backdrops = Array.from(carousel.querySelectorAll<HTMLElement>("[data-backdrop-index]"));
       const stage = carousel.querySelector<HTMLElement>(".home-theme-stage");
       const name = carousel.querySelector<HTMLElement>("[data-carousel-name]");
       const count = carousel.querySelector<HTMLElement>("[data-carousel-count]");
@@ -241,15 +260,30 @@ const description =
       const select = (next: number) => {
         selected = (next + cards.length) % cards.length;
         cards.forEach((card, index) => {
-          card.dataset.depth = String((index - selected + cards.length) % cards.length);
+          const depth = (index - selected + cards.length) % cards.length;
+          const visible = depth < 3;
+          card.dataset.depth = visible ? String(depth) : "hidden";
           card.setAttribute("aria-pressed", String(index === selected));
+          card.setAttribute("aria-hidden", String(!visible));
+          card.tabIndex = visible ? 0 : -1;
         });
         thumbs.forEach((thumb, index) => {
           thumb.setAttribute("aria-checked", String(index === selected));
         });
+        backdrops.forEach((backdrop, index) => {
+          backdrop.dataset.active = String(index === selected);
+        });
         if (name) name.textContent = thumbs[selected]?.dataset.themeName ?? "";
         if (count) count.textContent = `${String(selected + 1).padStart(2, "0")} / ${String(cards.length).padStart(2, "0")}`;
         if (progress) progress.style.transform = `scaleX(${(selected + 1) / cards.length})`;
+        const activeThumb = thumbs[selected];
+        const thumbnailRail = activeThumb?.parentElement;
+        if (activeThumb && thumbnailRail) {
+          thumbnailRail.scrollTo({
+            left: activeThumb.offsetLeft - (thumbnailRail.clientWidth - activeThumb.clientWidth) / 2,
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          });
+        }
       };
 
       const stopAutoplay = () => {

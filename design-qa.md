@@ -52,6 +52,60 @@ final result: passed
 
 ---
 
+# 官网首页 Hero「流光沉浸」Design QA
+
+## Source visual truth
+
+- 用户选定方案 1：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/home-hero-direction-1.png`。
+- 目标结构：黑金官网首屏、左侧三行高对比标题、主题主图铺满首屏、右侧三层主题卡组、缩略图轨道与主题进度。
+- 目标行为：背景与当前轮播主题同步；主题有独立 `hero.png`／`wallpaper.png` 时使用无 UI 高清主图，否则使用经过弱化处理的真实预览图。
+
+## Implementation evidence
+
+- 桌面最终截图：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/home-hero-implementation-final.png`。
+- 移动端最终截图：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/home-hero-mobile-final.png`。
+- 最终全图并排对照：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/home-hero-qa-final.png`。
+- 标题、操作与轮播焦点对照：`/Users/canghe/responsibility/canghe/codex-themes/.cowork-temp/home-hero-qa-focus.png`。
+- 桌面测试视口：1440 × 1000 CSS px，截图栅格 1440 × 964 px；移动端测试视口：390 × 844 CSS px，截图栅格 390 × 823 px。
+- 状态：首屏、自动播放、手动下一张、主题主图联动、移动端单列。
+
+## Findings
+
+- No actionable P0/P1/P2 visual findings remain.
+- Fonts and typography：沿用官网现有无衬线字体与暖白／蜂蜜金层级；标题保持三行、无孤字和裁切，辅助文案、CTA 与安全说明的字重和对比清晰。
+- Spacing and layout rhythm：桌面端左侧标题上移到参考稿的视觉高度，右侧主卡和缩略图保持原有三层景深；主题名与 `01 / 08` 完整留在首屏内。390px 下改为标题、操作、卡组的纵向顺序，无水平溢出。
+- Colors and visual tokens：背景采用深蓝月夜、暖黑遮罩和金色操作色；左侧使用由密到疏的黑色遮罩形成稳定文字安全区，右侧保留足够图像亮度和卡片边界。
+- Image quality and asset fidelity：背景优先复用主题包真实无 UI 主图，并通过 Astro 输出响应式 WebP；没有将带控件的主题预览硬铺成背景。没有独立主图的主题使用真实预览图回退，并增加轻度模糊与压暗以避免背景文字干扰。
+- Copy and content：主标题、说明、CTA、安全说明、主题名与计数均保持真实可编辑文本；中英文路由继续共用同一组件。
+- Icons and controls：继续使用项目现有 Lucide 图标；前后按钮、卡片、缩略图和 CTA 保持原生按钮／链接语义。
+- Accessibility：缩略图保持 radio group 与 `aria-checked`，当前卡片、当前背景和计数只存在一个选中状态；减少动态效果偏好下不启动自动播放。
+
+## Interaction and runtime verification
+
+- 手动点击“下一个主题”后，计数从 `01 / 08` 更新为 `02 / 08`，主题名切换为“七秀镜湖”，选中缩略图与背景图同步更新。
+- 自动播放会更新当前主题和背景；指针停留、键盘焦点进入、页面隐藏时继续沿用现有暂停逻辑。
+- 轮播初始化增加幂等标记，避免开发热更新重复注册监听器或计时器。
+- 桌面端与移动端均只有一个活动背景、一个选中缩略图和三张可见景深卡片。
+- 浏览器控制台无 error／warning；页面无横向溢出。
+- TypeScript/Astro 类型检查、网站生产构建和 `git diff --check` 通过。
+
+## Comparison history
+
+1. 第一轮把主题主图接入全屏背景并同步轮播，但并排对照发现左侧图像过暗、标题整体偏低、底部主题计数接近首屏裁切边缘（P2）。
+2. 放宽左侧遮罩、提高主图亮度和饱和度，将标题按参考图上移，并缩短主题舞台高度，让缩略图、主题名与计数完整进入首屏。
+3. 第二轮桌面截图确认三行标题、主操作和右侧卡组与参考稿层级一致；390px 截图确认文字安全区、CTA、卡组与主题背景均正常，无横向溢出。
+4. 最终并排与焦点对照确认核心视觉方向一致。参考图中的左下人物位置是生成稿构图，实装保留官方主题主图的原始人物位置并让其进入右侧卡组之后，属于保证主题资产真实性的有意差异。
+
+## Follow-up polish
+
+- [P3] 后续可为目前只有 `preview.png` 的主题补齐独立无 UI `hero.png`，使所有轮播背景都达到“曜月谪仙／山海灵境”同等级的沉浸感。
+
+## Final result
+
+final result: passed
+
+---
+
 # 官网 Banner「主题背景＋右侧轮播」Design QA
 
 ## Source visual truth

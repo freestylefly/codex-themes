@@ -8,6 +8,9 @@ interface ThemeManifest {
   version: string;
   tags?: string[];
   layout: string;
+  wallpaper?: string;
+  wallpaperFocusX?: number;
+  wallpaperFocusY?: number;
 }
 
 export interface WebTheme {
@@ -19,6 +22,9 @@ export interface WebTheme {
   tags: string[];
   layout: string;
   preview: ImageMetadata;
+  backdrop: ImageMetadata;
+  backdropFocus: { x: number; y: number };
+  hasBackdropArtwork: boolean;
   deepLink: string;
 }
 
@@ -32,6 +38,16 @@ const previewModules = import.meta.glob<{ default: ImageMetadata }>(
   { eager: true },
 );
 
+const heroModules = import.meta.glob<{ default: ImageMetadata }>(
+  "../../../assets/presets/*/hero.png",
+  { eager: true },
+);
+
+const wallpaperModules = import.meta.glob<{ default: ImageMetadata }>(
+  "../../../assets/presets/*/wallpaper.png",
+  { eager: true },
+);
+
 function themeIdFromPath(file: string): string | null {
   return file.match(/\/assets\/presets\/([^/]+)\//)?.[1] ?? null;
 }
@@ -42,6 +58,14 @@ const previewById = new Map(
     .filter((entry): entry is [string, ImageMetadata] => Boolean(entry[0])),
 );
 
+const backdropByPath = new Map(
+  Object.entries({ ...heroModules, ...wallpaperModules }).map(([file, module]) => {
+    const id = themeIdFromPath(file);
+    const filename = file.split("/").at(-1);
+    return [`${id}/${filename}`, module.default] as const;
+  }),
+);
+
 export const themes: WebTheme[] = Object.entries(manifestModules)
   .map(([file, module]) => {
     const folderId = themeIdFromPath(file);
@@ -50,6 +74,8 @@ export const themes: WebTheme[] = Object.entries(manifestModules)
     if (!folderId || manifest.id !== folderId || !preview) {
       throw new Error(`Invalid web theme source: ${file}`);
     }
+    const backdropFilename = manifest.wallpaper ?? "hero.png";
+    const backdropArtwork = backdropByPath.get(`${folderId}/${backdropFilename}`);
     return {
       id: manifest.id,
       name: manifest.name,
@@ -59,6 +85,12 @@ export const themes: WebTheme[] = Object.entries(manifestModules)
       tags: manifest.tags ?? [],
       layout: manifest.layout,
       preview,
+      backdrop: backdropArtwork ?? preview,
+      backdropFocus: {
+        x: manifest.wallpaperFocusX ?? 0.5,
+        y: manifest.wallpaperFocusY ?? 0.5,
+      },
+      hasBackdropArtwork: Boolean(backdropArtwork),
       deepLink: `codexthemes://theme/${encodeURIComponent(manifest.id)}`,
     };
   })
