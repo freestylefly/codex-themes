@@ -4,6 +4,7 @@
   "id": "ink-gold",
   "version": "2.0.0",
   "minEngineVersion": "2.0.0",
+  "galleryVisible": false,
   "name": "墨金舞台 Ink Gold",
   "description": "聚光灯下的黑金时刻。",
   "tagline": "聚光灯下的黑金时刻。",

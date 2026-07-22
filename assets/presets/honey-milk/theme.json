@@ -4,6 +4,7 @@
   "id": "honey-milk",
   "version": "2.0.0",
   "minEngineVersion": "2.0.0",
+  "galleryVisible": false,
   "name": "蜂蜜牛奶 Honey Milk",
   "description": "搅拌后还留一圈琥珀色。",
   "tagline": "搅拌后还留一圈琥珀色。",

@@ -133,6 +133,37 @@ describe("ThemeStore package inspection", () => {
     return file;
   }
 
+  it("omits bundled presets marked hidden while keeping visible presets", async () => {
+    const presetsRoot = path.join(root, "presets");
+    const visibleDir = path.join(presetsRoot, "visible-preset");
+    const hiddenDir = path.join(presetsRoot, "hidden-preset");
+    await fs.mkdir(visibleDir, { recursive: true });
+    await fs.mkdir(hiddenDir, { recursive: true });
+
+    const baseManifest = JSON.parse(themeJson) as Record<string, unknown>;
+    await Promise.all([
+      fs.writeFile(path.join(visibleDir, "theme.json"), JSON.stringify({
+        ...baseManifest,
+        uuid: "550e8400-e29b-41d4-a716-446655440001",
+        id: "visible-preset",
+        name: "Visible Preset",
+      })),
+      fs.writeFile(path.join(visibleDir, "hero.png"), heroPng),
+      fs.writeFile(path.join(hiddenDir, "theme.json"), JSON.stringify({
+        ...baseManifest,
+        uuid: "550e8400-e29b-41d4-a716-446655440002",
+        id: "hidden-preset",
+        name: "Hidden Preset",
+        galleryVisible: false,
+      })),
+      fs.writeFile(path.join(hiddenDir, "hero.png"), heroPng),
+    ]);
+
+    const listedIds = (await store.listThemes()).map((theme) => theme.id);
+    assert.ok(listedIds.includes("visible-preset"));
+    assert.ok(!listedIds.includes("hidden-preset"));
+  });
+
   it("accepts a well-formed package and cleans up on discard", async () => {
     const zipPath = makeZip({ "theme.json": themeJson, "hero.png": heroPng });
     const inspected = await store.inspectThemePackage(zipPath);

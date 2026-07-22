@@ -4,6 +4,7 @@
   "id": "cherry-frost",
   "version": "2.0.0",
   "minEngineVersion": "2.0.0",
+  "galleryVisible": false,
   "name": "樱桃霜糖 Cherry Frost",
   "description": "红白科幻，冷冽的甜。",
   "tagline": "红白科幻，冷冽的甜。",

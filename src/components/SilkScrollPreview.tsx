@@ -178,7 +178,7 @@ function HomeChapters() {
           <span>引擎 · 预览 · 官网</span>
         </div>
         <div className="silk-scroll-preview__metrics">
-          <span><b>20</b> 内置主题</span>
+          <span><b>10</b> 精选主题</span>
           <span><b>3</b> 自适应状态</span>
         </div>
       </section>

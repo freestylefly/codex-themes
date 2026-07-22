@@ -47,6 +47,24 @@ function summary(
 }
 
 describe("layout catalog", () => {
+  it("marks every palette-only bundled preset as hidden from galleries", () => {
+    const presetsRoot = path.resolve("assets", "presets");
+    for (const id of fs.readdirSync(presetsRoot)) {
+      const manifestPath = path.join(presetsRoot, id, "theme.json");
+      if (!fs.existsSync(manifestPath)) continue;
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as {
+        hero?: string;
+        galleryVisible?: boolean;
+      };
+      const isPaletteOnly = manifest.hero === "background.png";
+      assert.equal(
+        manifest.galleryVisible !== false,
+        !isPaletteOnly,
+        `${id} gallery visibility should match whether it has real artwork`,
+      );
+    }
+  });
+
   it("covers every LayoutKind exactly once and in canonical order", () => {
     const ids = LAYOUT_CATALOG.map((item) => item.id);
     assert.deepEqual(ids, [...LAYOUT_KINDS]);

@@ -4,6 +4,7 @@
   "id": "vanilla-sky",
   "version": "2.0.0",
   "minEngineVersion": "2.0.0",
+  "galleryVisible": false,
   "name": "香草天空 Vanilla Sky",
   "description": "云很轻，阳光是温的。",
   "tagline": "云很轻，阳光是温的。",

@@ -4,6 +4,7 @@
   "id": "clear-cyan",
   "version": "2.0.0",
   "minEngineVersion": "2.0.0",
+  "galleryVisible": false,
   "name": "清透青空 Clear Cyan",
   "description": "像清晨窗户上的一层薄雾。",
   "tagline": "像清晨窗户上的一层薄雾。",

@@ -101,6 +101,8 @@ export interface ThemeConfigV2 {
   version: string;
   /** Minimum Codex Themes engine version required. */
   minEngineVersion: string;
+  /** Whether a bundled preset appears in the app and website galleries. */
+  galleryVisible?: boolean;
   name: string;
   description: string;
   tagline: string;
@@ -316,11 +318,16 @@ export interface ApplyResult {
   error?: string;
 }
 
-/** Safe action passed from the public web deep link to the renderer. */
-export interface OpenThemeAction {
-  type: "open-theme";
-  themeId: string;
-}
+/** Safe action passed from a public website deep link to the renderer. */
+export type OpenThemeAction =
+  | {
+      type: "open-theme";
+      themeId: string;
+    }
+  | {
+      type: "open-workspace";
+      workspace: "editor" | "ai-studio";
+    };
 
 /** ---------------------------------------------------------------------- */
 /** Image / palette extraction                                            */

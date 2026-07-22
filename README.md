@@ -5,7 +5,8 @@ macOS 桌面应用:不修改 OpenAI Codex 桌面端安装包,通过本机 CDP(Ch
 注入引擎移植自 MIT 许可的 [Codex-Dream-Skin](https://github.com/Fei-Away/Codex-Dream-Skin)(见 [NOTICE.md](./NOTICE.md)),设计方案见 [DESIGN.md](./DESIGN.md)。
 
 官网:[theme.codexguide.ai](https://theme.codexguide.ai) · 浏览主题、下载应用，并通过
-`codexthemes://theme/<theme-id>` 直接在桌面应用中定位主题。
+`codexthemes://theme/<theme-id>` 直接定位主题，通过 `codexthemes://create/custom`
+打开自定义编辑器，或通过 `codexthemes://create/ai` 连接本地 Codex 生成主题。
 
 ## 功能
 
