@@ -22,6 +22,8 @@ export interface CommerceServiceOptions {
   authClient: AuthClient;
   store: ThemeStore;
   purchasedThemesRoot: string;
+  /** Called with the Alipay checkout URL after an order is created. */
+  onOpenCheckoutUrl(url: string): void;
 }
 
 export class CommerceService extends EventEmitter {
@@ -29,6 +31,7 @@ export class CommerceService extends EventEmitter {
   private authClient: AuthClient;
   private store: ThemeStore;
   private purchasedThemesRoot: string;
+  private onOpenCheckoutUrl: (url: string) => void;
 
   constructor(opts: CommerceServiceOptions) {
     super();
@@ -36,6 +39,7 @@ export class CommerceService extends EventEmitter {
     this.authClient = opts.authClient;
     this.store = opts.store;
     this.purchasedThemesRoot = opts.purchasedThemesRoot;
+    this.onOpenCheckoutUrl = opts.onOpenCheckoutUrl;
   }
 
   private async request(input: string | URL | Request, init?: RequestInit): Promise<Response> {
@@ -62,7 +66,11 @@ export class CommerceService extends EventEmitter {
       const body = await response.text();
       throw new Error(`创建订单失败 (${response.status}): ${body}`);
     }
-    return (await response.json()) as PurchaseOrder;
+    const order = (await response.json()) as PurchaseOrder;
+    if (order.checkoutUrl) {
+      this.onOpenCheckoutUrl(order.checkoutUrl);
+    }
+    return order;
   }
 
   async getOrder(orderId: string): Promise<PurchaseOrder> {

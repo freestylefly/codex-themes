@@ -478,7 +478,7 @@ export const useApp = create<AppStore>((set, get) => ({
     }
     set({ purchasingThemeId: themeId });
     try {
-      const order = await api.commerceCreateOrder(themeId, crypto.randomUUID());
+      const order = await api.commerceCreateOrder(themeId);
       set({ pendingOrderId: order.id });
       // The main process already opened the Alipay cashier when the order was created on the server.
       // Poll until paid or until the payment deep link wakes us up.

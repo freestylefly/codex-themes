@@ -82,8 +82,7 @@ const api: CodexThemesApi = {
   authSignOut: () => ipcRenderer.invoke("auth:signOut"),
 
   commerceListCatalog: () => ipcRenderer.invoke("commerce:listCatalog"),
-  commerceCreateOrder: (themeId: string, idempotencyKey: string) =>
-    ipcRenderer.invoke("commerce:createOrder", themeId, idempotencyKey),
+  commerceCreateOrder: (themeId: string) => ipcRenderer.invoke("commerce:createOrder", themeId),
   commerceGetOrder: (orderId: string) => ipcRenderer.invoke("commerce:getOrder", orderId),
   commerceReconcileOrder: (orderId: string) =>
     ipcRenderer.invoke("commerce:reconcileOrder", orderId),

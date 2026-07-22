@@ -294,6 +294,8 @@ export interface PurchaseOrder {
   createdAt: string;
   /** ISO timestamp when the order was paid, if applicable. */
   paidAt: string | null;
+  /** Alipay cashier URL returned by the server; client opens it in system browser. */
+  checkoutUrl?: string;
 }
 
 export interface ThemeEntitlement {
@@ -712,7 +714,7 @@ export interface CodexThemesApi {
   authSignOut(): Promise<{ ok: boolean; error?: string }>;
 
   commerceListCatalog(): Promise<ThemeProduct[]>;
-  commerceCreateOrder(themeId: string, idempotencyKey: string): Promise<PurchaseOrder>;
+  commerceCreateOrder(themeId: string): Promise<PurchaseOrder>;
   commerceGetOrder(orderId: string): Promise<PurchaseOrder>;
   commerceReconcileOrder(orderId: string): Promise<PurchaseOrder>;
   commerceListEntitlements(): Promise<ThemeEntitlement[]>;

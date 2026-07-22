@@ -252,6 +252,7 @@ app.whenReady().then(async () => {
       authClient,
       store,
       purchasedThemesRoot: paths.purchasedThemesRoot,
+      onOpenCheckoutUrl: (url) => shell.openExternal(url),
     });
     await authClient.init().catch((err) => {
       console.error("Auth init failed:", (err as Error).message);

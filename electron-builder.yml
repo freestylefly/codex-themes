@@ -6,6 +6,8 @@ directories:
 files:
   - dist/**
   - package.json
+  - "!**/.env*"
+  - "!**/*.enc"
 extraResources:
   - from: assets/inject
     to: assets/inject
