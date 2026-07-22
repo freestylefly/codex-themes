@@ -17,6 +17,7 @@
   "wallpaper": "hero.png",
   "stamp": "stamp.png",
   "preview": "preview.png",
+  "priceCents": 990,
   "light": {
     "background": "#dcecff",
     "panel": "#edf6ff",
