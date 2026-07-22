@@ -35,6 +35,7 @@ export function ThemeCard({
   const isPaid = Boolean(theme.product);
   const isInstalled = Boolean(theme.local);
   const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;
+  const catalogOnly = theme.catalogOnly && !isOwned;
 
   const onDelete = async () => {
     if (!theme.local) return;
@@ -63,7 +64,7 @@ export function ThemeCard({
       );
     }
 
-    if (isPaid && !isOwned) {
+    if (isPaid || catalogOnly) {
       return (
         <button
           className="btn btn-primary"

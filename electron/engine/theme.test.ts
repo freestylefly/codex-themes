@@ -258,25 +258,20 @@ describe("loadTheme", () => {
     assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
   });
 
-  it("loads the Moonlit Immortal preset with its bright full-canvas assets", async () => {
+  it("loads the Moonlit Immortal catalog-only placeholder", async () => {
     const built = await buildPayload(
       "./assets/inject",
       "./assets/presets/moonlit-immortal",
     );
     assert.equal(built.theme.id, "moonlit-immortal");
     assert.equal(built.theme.layout, "full-canvas");
-    assert.equal(built.theme.resources.hero, "hero.png");
-    assert.equal(built.theme.resources.wallpaper, "hero.png");
-    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.catalogOnly, true);
     assert.equal(built.theme.version, "1.3.1");
     assert.equal(built.theme.light.background, "#dcecff");
     assert.equal(built.theme.dark.background, "#061a3d");
     assert.ok(built.payload.includes("data-dream-theme"));
-    assert.ok(built.payload.includes("codex-dream-skin-moonlit-welcome"));
     assert.doesNotThrow(() => new Function(built.payload));
     assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
-    assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));
-    assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
   });
 
   it("loads the Starcap Teemo preset with its light and dark forest palettes", async () => {

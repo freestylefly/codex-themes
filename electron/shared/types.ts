@@ -157,6 +157,9 @@ export interface ThemeConfigV2 {
   projectLabel: string;
   statusText: string;
   quote: string;
+
+  /** If true, the package is only a preview placeholder; the full theme must be purchased and downloaded. */
+  catalogOnly?: boolean;
 }
 
 /** Raw theme config loaded from disk: v1 legacy or v2 structured. */
@@ -236,6 +239,8 @@ export interface NormalizedTheme {
   appearance: NormalizedAppearance;
   effects: NormalizedEffects;
   copy: NormalizedCopy;
+  /** If true, the package is only a preview placeholder; the full theme must be purchased and downloaded. */
+  catalogOnly?: boolean;
 }
 
 /** ---------------------------------------------------------------------- */
@@ -338,6 +343,8 @@ export interface ThemeSummary {
   /** theme-image:// URL usable as <img src> in the renderer. */
   previewUrl: string;
   colors: ThemePalette;
+  /** If true, the package is only a preview placeholder; the full theme must be purchased and downloaded. */
+  catalogOnly?: boolean;
 }
 
 /** ---------------------------------------------------------------------- */

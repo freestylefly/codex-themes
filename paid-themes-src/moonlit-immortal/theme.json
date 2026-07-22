@@ -13,10 +13,11 @@
     "沉浸",
     "幻想"
   ],
-  "hero": "preview.png",
+  "hero": "hero.png",
+  "wallpaper": "hero.png",
+  "stamp": "stamp.png",
   "preview": "preview.png",
   "priceCents": 990,
-  "catalogOnly": true,
   "light": {
     "background": "#dcecff",
     "panel": "#edf6ff",

@@ -324,6 +324,7 @@ function normalizeV2(raw: ThemeConfigV2, warnings: string[]): NormalizedTheme {
       statusText: pickString(raw.statusText, "THEME ONLINE", 80),
       quote: pickString(raw.quote, "MAKE SOMETHING WONDERFUL", 80),
     },
+    catalogOnly: raw.catalogOnly === true,
   };
 }
 

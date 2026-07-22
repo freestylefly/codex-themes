@@ -870,6 +870,7 @@ function themeSummaryFromLoaded(
     dir,
     previewUrl: `theme-image://${encodeURIComponent(theme.id)}/${encodeURIComponent(previewResource)}`,
     colors: theme.light,
+    catalogOnly: theme.catalogOnly,
   };
 }
 

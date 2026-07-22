@@ -22,6 +22,7 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: Th
   const isPaid = Boolean(theme.product);
   const isInstalled = Boolean(theme.local);
   const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;
+  const catalogOnly = theme.catalogOnly && !isOwned;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -71,6 +72,9 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: Th
             {isPaid && !isOwned && theme.product && (
               <span className="badge badge-paid">{formatPrice(theme.product.priceCents)}</span>
             )}
+            {catalogOnly && !theme.product && (
+              <span className="badge badge-paid">付费</span>
+            )}
           </div>
         </div>
 
@@ -87,6 +91,14 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: Th
             }}>
               <ShoppingCart size={14} strokeWidth={2.5} />
               {theme.product ? `${formatPrice(theme.product.priceCents)} 购买并使用` : "购买"}
+            </button>
+          ) : catalogOnly ? (
+            <button type="button" className="btn btn-primary" onClick={() => {
+              onClose();
+              onPurchase?.();
+            }}>
+              <ShoppingCart size={14} strokeWidth={2.5} />
+              购买
             </button>
           ) : isOwned && !isInstalled ? (
             <button type="button" className="btn btn-primary" onClick={() => {
