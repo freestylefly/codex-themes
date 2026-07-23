@@ -30,25 +30,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Read private asset path.
   const { data: asset, error: assetError } = await supabase
-    .schema("private")
-    .from("theme_assets")
-    .select("storage_path, sha256")
-    .eq("theme_id", themeId)
+    .rpc("get_theme_asset", { p_theme_id: themeId })
     .single();
 
   if (assetError || !asset) {
     return res.status(404).json({ error: "Theme package not found" });
   }
+  const assetRecord = asset as { storage_path: string; sha256: string };
 
   // Create a short-lived signed URL (5 minutes).
   const { data: signed, error: signedError } = await supabase.storage
     .from("paid-themes")
-    .createSignedUrl(asset.storage_path, 5 * 60);
+    .createSignedUrl(assetRecord.storage_path, 5 * 60);
 
   if (signedError || !signed) {
     console.error("signed url error:", signedError);
     return res.status(500).json({ error: "Failed to create download URL" });
   }
 
-  return res.status(200).json({ signedUrl: signed.signedUrl, sha256: asset.sha256 });
+  return res.status(200).json({ signedUrl: signed.signedUrl, sha256: assetRecord.sha256 });
 }

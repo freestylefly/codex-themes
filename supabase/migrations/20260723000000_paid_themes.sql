@@ -19,7 +19,7 @@ comment on table public.profiles is 'Publicly readable user profile linked to au
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
-security definer set search_path = public
+security definer set search_path = ''
 as $$
 begin
   insert into public.profiles (id, email, avatar_url, provider)
@@ -37,6 +37,9 @@ begin
   return new;
 end;
 $$;
+
+-- Trigger-only function: never expose it as a callable Data API RPC.
+revoke all on function public.handle_new_user() from public, anon, authenticated;
 
 create trigger on_auth_user_created
   after insert on auth.users
@@ -128,6 +131,11 @@ create table private.theme_assets (
 
 comment on table private.theme_assets is 'Internal Storage path and checksum for paid theme packages.';
 
+-- Private package bucket. Only the server-side secret/service role accesses it.
+insert into storage.buckets (id, name, public)
+values ('paid-themes', 'paid-themes', false)
+on conflict (id) do update set public = false;
+
 -- ---------------------------------------------------------------------------
 -- Row Level Security
 -- ---------------------------------------------------------------------------
@@ -141,49 +149,69 @@ alter table private.theme_assets enable row level security;
 -- Profiles: users can read their own row.
 create policy "Profiles are viewable by owner"
   on public.profiles for select
-  using (auth.uid() = id);
+  to authenticated
+  using ((select auth.uid()) = id);
 
 -- Theme products: anyone can read published products.
 create policy "Published products are publicly readable"
   on public.theme_products for select
+  to anon, authenticated
   using (published = true);
 
 -- Orders: users can read their own orders only.
 create policy "Orders are viewable by owner"
   on public.orders for select
-  using (auth.uid() = user_id);
+  to authenticated
+  using ((select auth.uid()) = user_id);
 
 -- Entitlements: users can read their own entitlements only.
 create policy "Entitlements are viewable by owner"
   on public.entitlements for select
-  using (auth.uid() = user_id);
+  to authenticated
+  using ((select auth.uid()) = user_id);
 
 -- Payment events: no direct client access; service role bypasses RLS.
 create policy "Payment events are not client readable"
   on public.payment_events for select
+  to anon, authenticated
   using (false);
 
 -- Private theme assets: no direct client access; service role bypasses RLS.
 create policy "Theme assets are not client readable"
   on private.theme_assets for select
+  to anon, authenticated
   using (false);
 
 -- All client-side writes are blocked; service role performs order/entitlement writes.
 create policy "Client cannot insert orders"
   on public.orders for insert
+  to anon, authenticated
   with check (false);
 
 create policy "Client cannot update orders"
   on public.orders for update
+  to anon, authenticated
   using (false);
 
 create policy "Client cannot insert entitlements"
   on public.entitlements for insert
+  to anon, authenticated
   with check (false);
 
 create policy "Client cannot update entitlements"
   on public.entitlements for update
+  to anon, authenticated
   using (false);
+
+-- New Supabase projects can disable automatic Data API grants. Grant only the
+-- operations each public role needs; privileged writes stay server-only.
+grant usage on schema public to anon, authenticated, service_role;
+grant select on public.theme_products to anon, authenticated;
+grant select on public.profiles, public.orders, public.entitlements to authenticated;
+grant all privileges on public.profiles, public.theme_products, public.orders,
+  public.entitlements, public.payment_events to service_role;
+grant usage on schema private to service_role;
+grant all privileges on private.theme_assets to service_role;
 
 -- ---------------------------------------------------------------------------
 -- Indexes
@@ -206,7 +234,7 @@ create or replace function public.fulfill_order(
 )
 returns public.orders
 language plpgsql
-security definer set search_path = public
+security definer set search_path = ''
 as $$
 declare
   v_order public.orders;
@@ -215,6 +243,14 @@ begin
   from public.orders
   where id = p_order_id
   for update;
+
+  if v_order.id is null then
+    raise exception 'Order not found';
+  end if;
+
+  if v_order.user_id <> p_user_id or v_order.theme_id <> p_theme_id then
+    raise exception 'Order ownership or theme mismatch';
+  end if;
 
   if v_order.status = 'paid' then
     return v_order;
@@ -238,3 +274,48 @@ begin
   return v_order;
 end;
 $$;
+
+-- This privileged RPC is callable only by the backend service role.
+revoke all on function public.fulfill_order(uuid, uuid, text, text, timestamptz)
+  from public, anon, authenticated;
+grant execute on function public.fulfill_order(uuid, uuid, text, text, timestamptz)
+  to service_role;
+
+-- Keep the private schema out of the Data API exposed-schemas list. The
+-- backend reaches the asset registry only through these service-role RPCs.
+create or replace function public.upsert_theme_asset(
+  p_theme_id text,
+  p_storage_path text,
+  p_sha256 text
+)
+returns void
+language sql
+security definer set search_path = ''
+as $$
+  insert into private.theme_assets (theme_id, storage_path, sha256)
+  values (p_theme_id, p_storage_path, p_sha256)
+  on conflict (theme_id) do update set
+    storage_path = excluded.storage_path,
+    sha256 = excluded.sha256,
+    updated_at = now();
+$$;
+
+create or replace function public.get_theme_asset(p_theme_id text)
+returns table (storage_path text, sha256 text)
+language sql
+security definer set search_path = ''
+stable
+as $$
+  select assets.storage_path, assets.sha256
+  from private.theme_assets as assets
+  where assets.theme_id = p_theme_id;
+$$;
+
+revoke all on function public.upsert_theme_asset(text, text, text)
+  from public, anon, authenticated;
+revoke all on function public.get_theme_asset(text)
+  from public, anon, authenticated;
+grant execute on function public.upsert_theme_asset(text, text, text)
+  to service_role;
+grant execute on function public.get_theme_asset(text)
+  to service_role;

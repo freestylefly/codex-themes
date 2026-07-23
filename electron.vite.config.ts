@@ -1,4 +1,4 @@
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { defineConfig, externalizeDepsPlugin, loadEnv } from "electron-vite";
 import react from "@vitejs/plugin-react";
 import path, { resolve } from "node:path";
 import fs from "node:fs";
@@ -9,10 +9,10 @@ import type { Plugin } from "vite";
  * (service role, Alipay private key) are intentionally absent; only the public
  * Supabase URL + anon key and the commerce API base URL are available.
  */
-function mainEnvPlugin(): Plugin {
+function mainEnvPlugin(env: Record<string, string>): Plugin {
   const vars: Record<string, string> = {};
   for (const key of ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_COMMERCE_API_URL"]) {
-    const value = process.env[key];
+    const value = process.env[key] ?? env[key];
     if (value) vars[`process.env.${key}`] = JSON.stringify(value);
   }
   return {
@@ -48,33 +48,37 @@ function copyInjectAssets(): Plugin {
   };
 }
 
-export default defineConfig({
-  main: {
-    plugins: [externalizeDepsPlugin(), copyInjectAssets(), mainEnvPlugin()],
-    build: {
-      outDir: "dist/main",
-      rollupOptions: {
-        input: { index: resolve(__dirname, "electron/main.ts") },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, __dirname);
+
+  return {
+    main: {
+      plugins: [externalizeDepsPlugin(), copyInjectAssets(), mainEnvPlugin(env)],
+      build: {
+        outDir: "dist/main",
+        rollupOptions: {
+          input: { index: resolve(__dirname, "electron/main.ts") },
+        },
       },
     },
-  },
-  preload: {
-    plugins: [externalizeDepsPlugin()],
-    build: {
-      outDir: "dist/preload",
-      rollupOptions: {
-        input: { index: resolve(__dirname, "electron/preload.ts") },
+    preload: {
+      plugins: [externalizeDepsPlugin()],
+      build: {
+        outDir: "dist/preload",
+        rollupOptions: {
+          input: { index: resolve(__dirname, "electron/preload.ts") },
+        },
       },
     },
-  },
-  renderer: {
-    root: "src",
-    build: {
-      outDir: "dist/renderer",
-      rollupOptions: {
-        input: { index: resolve(__dirname, "src/index.html") },
+    renderer: {
+      root: "src",
+      build: {
+        outDir: "dist/renderer",
+        rollupOptions: {
+          input: { index: resolve(__dirname, "src/index.html") },
+        },
       },
+      plugins: [react()],
     },
-    plugins: [react()],
-  },
+  };
 });

@@ -93,10 +93,10 @@ async function main() {
   if (uploadError) throw new Error(`Failed to upload package: ${uploadError.message}`);
 
   // Register private asset record.
-  const { error: assetError } = await supabase.schema("private").from("theme_assets").upsert({
-    theme_id: themeId,
-    storage_path: storagePath,
-    sha256,
+  const { error: assetError } = await supabase.rpc("upsert_theme_asset", {
+    p_theme_id: themeId,
+    p_storage_path: storagePath,
+    p_sha256: sha256,
   });
   if (assetError) throw new Error(`Failed to register asset: ${assetError.message}`);
 
