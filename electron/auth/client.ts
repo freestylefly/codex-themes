@@ -30,6 +30,13 @@ function envOrThrow(name: string): string {
   return value;
 }
 
+function providerFromSession(session: Session): AuthProvider {
+  const provider = session.user.app_metadata?.provider;
+  if (provider === "google") return "google";
+  if (provider === "github") return "github";
+  return "email";
+}
+
 export function createSupabaseClient(): SupabaseClient {
   return createClient(envOrThrow("SUPABASE_URL"), envOrThrow("SUPABASE_ANON_KEY"), {
     auth: {
@@ -42,7 +49,6 @@ export function createSupabaseClient(): SupabaseClient {
 }
 
 function toAuthUser(session: Session): AuthUserSummary {
-  const provider = session.user.app_metadata?.provider ?? "email";
   const metadata = session.user.user_metadata ?? {};
   const displayNameCandidates = [
     metadata.full_name,
@@ -77,7 +83,7 @@ function toAuthUser(session: Session): AuthUserSummary {
     email: session.user.email ?? "",
     displayName,
     avatarUrl,
-    provider: provider === "github" ? "github" : "email",
+    provider: providerFromSession(session),
     createdAt: session.user.created_at,
   };
 }
@@ -100,6 +106,8 @@ export class AuthClient extends EventEmitter {
   private tokenStore: AuthTokenStore;
   private onOpenExternalUrl: (url: string) => void;
   private onAuthUrlHandled?: () => void;
+  private supabaseUrl: string;
+  private supabaseAnonKey: string;
   private currentSession: Session | null = null;
   private currentState: AuthState = toAuthState("loading", null);
   private refreshTimer: NodeJS.Timeout | null = null;
@@ -114,6 +122,8 @@ export class AuthClient extends EventEmitter {
         flowType: "pkce",
       },
     });
+    this.supabaseUrl = opts.supabaseUrl;
+    this.supabaseAnonKey = opts.supabaseAnonKey;
     this.tokenStore = opts.tokenStore;
     this.onOpenExternalUrl = opts.onOpenExternalUrl;
     this.onAuthUrlHandled = opts.onAuthUrlHandled;
@@ -156,29 +166,40 @@ export class AuthClient extends EventEmitter {
     return this.currentSession?.access_token ?? null;
   }
 
-  async sendEmailOtp(email: string): Promise<{ ok: boolean; error?: string }> {
-    const { error } = await this.client.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: { shouldCreateUser: true },
-    });
-    if (error) return { ok: false, error: formatAuthError(error) };
-    return { ok: true };
-  }
-
-  async verifyEmailOtp(email: string, token: string): Promise<{ ok: boolean; error?: string }> {
-    const { data, error } = await this.client.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: token.trim(),
-      type: "email",
-    });
-    if (error || !data.session) return { ok: false, error: formatAuthError(error) };
-    await this.applySession(data.session, "email");
-    return { ok: true };
-  }
-
   async startGitHubSignIn(): Promise<{ ok: boolean; error?: string; url?: string }> {
+    return this.startOAuthSignIn("github");
+  }
+
+  async startGoogleSignIn(): Promise<{ ok: boolean; error?: string; url?: string }> {
+    return this.startOAuthSignIn("google");
+  }
+
+  private async startOAuthSignIn(
+    provider: "github" | "google",
+  ): Promise<{ ok: boolean; error?: string; url?: string }> {
+    const providerName = provider === "google" ? "Google" : "GitHub";
+    try {
+      const response = await fetch(`${this.supabaseUrl}/auth/v1/settings`, {
+        headers: { apikey: this.supabaseAnonKey },
+      });
+      if (response.ok) {
+        const settings = await response.json() as {
+          external?: Partial<Record<"github" | "google", boolean>>;
+        };
+        if (!settings.external?.[provider]) {
+          return {
+            ok: false,
+            error: `${providerName} 登录尚未在认证服务中启用。`,
+          };
+        }
+      }
+    } catch {
+      // A temporary settings lookup failure should not block a configured
+      // provider; the OAuth endpoint remains the source of truth.
+    }
+
     const { data, error } = await this.client.auth.signInWithOAuth({
-      provider: "github",
+      provider,
       options: {
         skipBrowserRedirect: true,
         redirectTo: "codexthemes://auth/callback",
@@ -200,7 +221,7 @@ export class AuthClient extends EventEmitter {
         this.setState({ ...this.currentState, status: "error", error: formatAuthError(error) });
         return;
       }
-      await this.applySession(data.session, "github");
+      await this.applySession(data.session, providerFromSession(data.session));
     } finally {
       this.onAuthUrlHandled?.();
     }
@@ -208,11 +229,22 @@ export class AuthClient extends EventEmitter {
 
   async signOut(): Promise<{ ok: boolean; error?: string }> {
     this.clearRefreshTimer();
-    const { error } = await this.client.auth.signOut();
-    this.currentSession = null;
-    await this.tokenStore.clear();
-    this.setState(toAuthState("unauthenticated", null));
-    if (error) return { ok: false, error: formatAuthError(error) };
+    try {
+      // A desktop "退出登录" should only end this installation's session.
+      // Supabase defaults to `global`, which unnecessarily signs out every
+      // device and makes the local action depend on a broader remote revoke.
+      await this.client.auth.signOut({ scope: "local" });
+    } catch {
+      // Remote revocation is best-effort; local session removal below is the
+      // authoritative result for this desktop installation.
+    } finally {
+      // Local logout must still complete if the network/revocation request
+      // fails. The access token is no longer available to this app, and the
+      // server-issued token will expire normally.
+      this.currentSession = null;
+      await this.tokenStore.clear().catch(() => {});
+      this.setState(toAuthState("unauthenticated", null));
+    }
     return { ok: true };
   }
 
@@ -225,7 +257,7 @@ export class AuthClient extends EventEmitter {
       this.setState(toAuthState("unauthenticated", null));
       return;
     }
-    const provider = this.currentState.user?.provider ?? "email";
+    const provider = this.currentState.user?.provider ?? providerFromSession(data.session);
     await this.applySession(data.session, provider);
   }
 

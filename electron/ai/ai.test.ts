@@ -11,6 +11,7 @@
 
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
+import { EventEmitter } from "node:events";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -19,7 +20,11 @@ import { synthesizeTheme } from "./synthesizer";
 import { analyzeImage } from "./image-analysis";
 import { RECIPE_JSON_SCHEMA } from "./recipe-schema";
 import { CodexAppServerClient } from "../codex-cli/app-server";
-import type { ThemeGenerationRecipe, ThemeGenerationRequest } from "../shared/types";
+import { AiThemeJobService } from "./job-service";
+import type { AppPaths } from "../paths";
+import type { CodexCliStatusService } from "../codex-cli/status";
+import type { ThemeStore } from "../themes/store";
+import type { ThemeDraftInput, ThemeGenerationRecipe, ThemeGenerationRequest, ThemeSummary } from "../shared/types";
 
 function makeRecipe(): ThemeGenerationRecipe {
   return {
@@ -338,5 +343,290 @@ describe("CodexAppServerClient", () => {
     const seen = await req;
     assert.equal(seen.method, "approval/ask");
     await client.disconnect();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Durable multi-turn AI creation service.
+
+class FakeAppServerClient {
+  requests: Array<{ method: string; params: Record<string, unknown> }> = [];
+
+  async request(method: string, params: Record<string, unknown> = {}): Promise<unknown> {
+    this.requests.push({ method, params });
+    if (method === "thread/start") return { thread: { id: "thread-ai-test" } };
+    if (method === "thread/resume") return { thread: { id: params.threadId } };
+    return { ok: true };
+  }
+
+  respondToServerRequest(): void {}
+  rejectServerRequest(): void {}
+}
+
+class FakeCliService extends EventEmitter {
+  readonly client = new FakeAppServerClient();
+
+  async getConnectedClient(): Promise<FakeAppServerClient> {
+    return this.client;
+  }
+
+  getStatus(): { appServerRunning: boolean } {
+    return { appServerRunning: true };
+  }
+}
+
+class FakeThemeStore {
+  savedDrafts: ThemeDraftInput[] = [];
+  updatedIds: string[] = [];
+
+  async saveThemeDraft(draft: ThemeDraftInput): Promise<ThemeSummary> {
+    this.savedDrafts.push(draft);
+    return {
+      id: "custom-ai-test",
+      uuid: "uuid-ai-test",
+      name: draft.name,
+      dir: "/tmp/custom-ai-test",
+      source: "custom",
+      valid: true,
+    } as ThemeSummary;
+  }
+
+  async updateTheme(id: string, draft: ThemeDraftInput): Promise<ThemeSummary> {
+    this.updatedIds.push(id);
+    this.savedDrafts.push(draft);
+    return {
+      id,
+      uuid: "uuid-ai-test",
+      name: draft.name,
+      dir: `/tmp/${id}`,
+      source: "custom",
+      valid: true,
+    } as ThemeSummary;
+  }
+}
+
+async function waitUntil(check: () => boolean | Promise<boolean>, timeoutMs = 2_500): Promise<void> {
+  const started = Date.now();
+  while (!(await check())) {
+    if (Date.now() - started > timeoutMs) throw new Error("Timed out waiting for AI job state");
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+}
+
+describe("AiThemeJobService multi-turn flow", () => {
+  let root: string;
+  let service: AiThemeJobService;
+  let cli: FakeCliService;
+  let store: FakeThemeStore;
+  let images: string[];
+
+  before(async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), "ai-job-service-test-"));
+    const jobsRoot = path.join(root, "jobs");
+    const skillsRoot = path.join(root, "skills");
+    await fs.mkdir(skillsRoot, { recursive: true });
+    images = [];
+    for (let index = 0; index < 6; index += 1) {
+      const imagePath = path.join(root, `candidate-${index + 1}.png`);
+      await fs.writeFile(imagePath, Buffer.alloc(512, index + 1));
+      images.push(imagePath);
+    }
+    cli = new FakeCliService();
+    store = new FakeThemeStore();
+    service = new AiThemeJobService(
+      { aiJobsRoot: jobsRoot, skillsRoot } as AppPaths,
+      cli as unknown as CodexCliStatusService,
+      store as unknown as ThemeStore,
+    );
+    await service.init();
+  });
+
+  after(async () => {
+    await service.shutdown();
+    await fs.rm(root, { recursive: true, force: true });
+  });
+
+  async function completeImageTurn(jobId: string, imagePath: string, itemId: string): Promise<void> {
+    const job = await service.getJob(jobId);
+    cli.emit("notification", "turn/started", {
+      threadId: job.threadId,
+      turn: { id: `turn-${itemId}` },
+    });
+    cli.emit("notification", "item/completed", {
+      threadId: job.threadId,
+      item: { id: itemId, type: "imageGeneration", savedPath: imagePath },
+    });
+    cli.emit("notification", "turn/completed", { threadId: job.threadId });
+  }
+
+  async function completeRecipeTurn(jobId: string, recipe: ThemeGenerationRecipe, suffix: string): Promise<void> {
+    const job = await service.getJob(jobId);
+    cli.emit("notification", "item/completed", {
+      threadId: job.threadId,
+      item: {
+        id: `recipe-${suffix}`,
+        type: "agentMessage",
+        text: JSON.stringify({
+          message: `已完成第 ${suffix} 次主题调整。`,
+          changeSummary: [`调整 ${suffix}`],
+          recipe,
+        }),
+      },
+    });
+    cli.emit("notification", "turn/completed", { threadId: job.threadId });
+  }
+
+  it("generates exactly three slots before selection and keeps revisions out of the theme library", async () => {
+    const job = await service.createJob({
+      prompt: "雨夜未来城市",
+      mode: "generate-image",
+      appearance: "dark",
+      candidateCount: 3,
+    });
+    await service.startJob(job.jobId);
+    assert.equal(cli.client.requests.filter((request) => request.method === "turn/start").length, 1);
+
+    const beforeStaleImage = await service.getJob(job.jobId);
+    cli.emit("notification", "item/completed", {
+      threadId: beforeStaleImage.threadId,
+      turnId: "turn-from-an-older-operation",
+      item: { id: "stale-img", type: "imageGeneration", savedPath: images[5] },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    assert.equal((await service.getJob(job.jobId)).candidateBatches[0].candidates.length, 0);
+
+    await completeImageTurn(job.jobId, images[0], "img-1");
+    await waitUntil(async () => cli.client.requests.filter((request) => request.method === "turn/start").length === 2);
+    let current = await service.getJob(job.jobId);
+    assert.equal(current.stage, "generating-images");
+    assert.equal(current.candidateBatches[0].candidates.length, 1);
+
+    await completeImageTurn(job.jobId, images[1], "img-2");
+    await waitUntil(async () => cli.client.requests.filter((request) => request.method === "turn/start").length === 3);
+    current = await service.getJob(job.jobId);
+    assert.equal(current.stage, "generating-images");
+    assert.equal(current.candidateBatches[0].candidates.length, 2);
+
+    await completeImageTurn(job.jobId, images[2], "img-3");
+    await waitUntil(async () => (await service.getJob(job.jobId)).stage === "awaiting-selection");
+    current = await service.getJob(job.jobId);
+    assert.equal(current.candidateBatches[0].candidates.length, 3);
+    assert.equal(current.candidateBatches[0].status, "awaiting-selection");
+    assert.deepEqual(current.candidateBatches[0].candidates.map((candidate) => candidate.slot), [1, 2, 3]);
+
+    const selected = current.candidateBatches[0].candidates[1];
+    await service.selectCandidate(job.jobId, current.candidateBatches[0].batchId, selected.candidateId);
+    const recipeTurnJob = await service.getJob(job.jobId);
+    cli.emit("notification", "turn/started", {
+      threadId: recipeTurnJob.threadId,
+      turn: { id: "turn-recipe-current" },
+    });
+    cli.emit("notification", "item/completed", {
+      threadId: recipeTurnJob.threadId,
+      turnId: "turn-recipe-stale",
+      item: {
+        id: "recipe-stale",
+        type: "agentMessage",
+        text: JSON.stringify({
+          message: "这是迟到的旧结果。",
+          changeSummary: ["不应采用"],
+          recipe: { ...makeRecipe(), name: "STALE" },
+        }),
+      },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    assert.equal((await service.getJob(job.jobId)).revisions.length, 0);
+    cli.emit("notification", "item/completed", {
+      threadId: recipeTurnJob.threadId,
+      turnId: "turn-recipe-current",
+      item: {
+        id: "recipe-1",
+        type: "agentMessage",
+        text: JSON.stringify({
+          message: "已完成第 1 次主题调整。",
+          changeSummary: ["调整 1"],
+          recipe: makeRecipe(),
+        }),
+      },
+    });
+    cli.emit("notification", "turn/completed", {
+      threadId: recipeTurnJob.threadId,
+      turnId: "turn-recipe-current",
+    });
+    await waitUntil(async () => (await service.getJob(job.jobId)).revisions.length === 1);
+    current = await service.getJob(job.jobId);
+    assert.equal(current.stage, "preview-ready");
+    assert.equal(current.currentRevisionId, current.revisions[0].revisionId);
+    assert.equal(current.revisions[0].candidateId, selected.candidateId);
+    assert.equal(store.savedDrafts.length, 0, "preview revisions must not write to the theme library");
+  });
+
+  it("keeps the selected image during theme-only chat and updates the same theme on later adoption", async () => {
+    const [summary] = await service.listJobs();
+    const before = await service.getJob(summary.jobId);
+    const originalRevision = before.revisions[0];
+    const originalCandidate = before.candidateBatches[0].candidates.find(
+      (candidate) => candidate.candidateId === originalRevision.candidateId,
+    );
+    assert.ok(originalCandidate?.sha256);
+
+    await service.sendMessage(before.jobId, {
+      text: "把对话页背景再深一点，减少玻璃透明度",
+      mode: "theme-only",
+    });
+    const refinedRecipe = makeRecipe();
+    refinedRecipe.wallpaper.opacity = 0.12;
+    refinedRecipe.appearance.glass = false;
+    await completeRecipeTurn(before.jobId, refinedRecipe, "2");
+    await waitUntil(async () => (await service.getJob(before.jobId)).revisions.length === 2);
+
+    const after = await service.getJob(before.jobId);
+    assert.equal(after.revisions[1].parentRevisionId, originalRevision.revisionId);
+    assert.equal(after.revisions[1].candidateId, originalRevision.candidateId);
+    const afterCandidate = after.candidateBatches[0].candidates.find(
+      (candidate) => candidate.candidateId === after.revisions[1].candidateId,
+    );
+    assert.equal(afterCandidate?.sha256, originalCandidate.sha256);
+
+    const firstAdopt = await service.adoptRevision(before.jobId, after.revisions[1].revisionId);
+    assert.equal(firstAdopt.id, "custom-ai-test");
+    assert.equal(store.savedDrafts.length, 1);
+    await service.setCurrentRevision(before.jobId, originalRevision.revisionId);
+    await service.adoptRevision(before.jobId, originalRevision.revisionId);
+    assert.deepEqual(store.updatedIds, ["custom-ai-test"]);
+    const adopted = await service.getJob(before.jobId);
+    assert.equal(adopted.adoptedThemeId, "custom-ai-test");
+    assert.equal(adopted.adoptedRevisionId, originalRevision.revisionId);
+    assert.equal(adopted.stage, "preview-ready");
+  });
+
+  it("creates a new candidate batch without deleting the previous batch", async () => {
+    const [summary] = await service.listJobs();
+    const before = await service.getJob(summary.jobId);
+    await service.sendMessage(before.jobId, {
+      text: "重新生成一组更安静的夜景",
+      mode: "regenerate-image",
+    });
+    let current = await service.getJob(before.jobId);
+    assert.equal(current.candidateBatches.length, 2);
+    assert.equal(current.candidateBatches[0].candidates.length, 3);
+
+    await completeImageTurn(before.jobId, images[3], "regen-1");
+    await waitUntil(async () => {
+      const job = await service.getJob(before.jobId);
+      return job.candidateBatches[1].candidates.length === 1 && job.operation?.currentSlot === 2;
+    });
+    await completeImageTurn(before.jobId, images[4], "regen-2");
+    await waitUntil(async () => {
+      const job = await service.getJob(before.jobId);
+      return job.candidateBatches[1].candidates.length === 2 && job.operation?.currentSlot === 3;
+    });
+    await completeImageTurn(before.jobId, images[5], "regen-3");
+    await waitUntil(async () => (await service.getJob(before.jobId)).stage === "awaiting-selection");
+
+    current = await service.getJob(before.jobId);
+    assert.equal(current.candidateBatches[0].candidates.length, 3);
+    assert.equal(current.candidateBatches[1].candidates.length, 3);
+    assert.notEqual(current.candidateBatches[0].batchId, current.candidateBatches[1].batchId);
   });
 });

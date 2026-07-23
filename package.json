@@ -1,6 +1,6 @@
 {
   "name": "codex-themes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Desktop theme manager for the OpenAI Codex desktop app (CDP injection, no patching)",
   "type": "module",
   "main": "dist/main/index.js",
@@ -30,6 +30,7 @@
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "recharts": "3.10.0",
     "sharp": "0.35.3",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"

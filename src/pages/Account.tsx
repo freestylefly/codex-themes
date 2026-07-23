@@ -6,7 +6,6 @@ import {
   Loader2,
   LockKeyhole,
   LogOut,
-  Mail,
   Pencil,
   RefreshCw,
   RotateCcw,
@@ -88,6 +87,28 @@ function LedgerIcon({ entryType }: { entryType: string }) {
   return <ShieldCheck size={18} />;
 }
 
+function GoogleMark() {
+  return (
+    <svg className="auth-google-mark" viewBox="0 0 18 18" aria-hidden="true">
+      <path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.2-.2-1.8H9v3.4h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.8 2.7-6.5Z" />
+      <path fill="#34A853" d="M9 18c2.4 0 4.5-.8 5.9-2.2L12 13.5c-.8.5-1.8.9-3 .9a5.2 5.2 0 0 1-4.9-3.6h-3v2.3A9 9 0 0 0 9 18Z" />
+      <path fill="#FBBC05" d="M4.1 10.8A5.4 5.4 0 0 1 4 9c0-.6.1-1.2.3-1.8V4.9h-3A9 9 0 0 0 0 9c0 1.5.4 2.9 1.1 4.1l3-2.3Z" />
+      <path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3L15 2.3A8.7 8.7 0 0 0 9 0a9 9 0 0 0-7.9 4.9l3 2.3A5.2 5.2 0 0 1 9 3.6Z" />
+    </svg>
+  );
+}
+
+function GitHubMark() {
+  return (
+    <svg className="auth-github-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 .7a11.5 11.5 0 0 0-3.64 22.4c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.57-.29-5.27-1.28-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.16 1.18A10.9 10.9 0 0 1 12 6.1c.98 0 1.95.13 2.87.39 2.19-1.49 3.15-1.18 3.15-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.71 5.39-5.29 5.68.42.36.78 1.06.78 2.14v3.27c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"
+      />
+    </svg>
+  );
+}
+
 export function Account() {
   const auth = useApp((s) => s.auth);
   const entitlements = useApp((s) => s.entitlements);
@@ -97,20 +118,18 @@ export function Account() {
   const pointLedger = useApp((s) => s.pointLedger);
   const pointOrder = useApp((s) => s.pointOrder);
   const submissions = useApp((s) => s.submissions);
-  const sendEmailOtp = useApp((s) => s.sendEmailOtp);
-  const verifyEmailOtp = useApp((s) => s.verifyEmailOtp);
   const signInGitHub = useApp((s) => s.signInGitHub);
+  const signInGoogle = useApp((s) => s.signInGoogle);
   const signOut = useApp((s) => s.signOut);
   const refreshAccountData = useApp((s) => s.refreshAccountData);
   const updateProfile = useApp((s) => s.updateProfile);
   const uploadAvatar = useApp((s) => s.uploadAvatar);
   const buyPointPack = useApp((s) => s.buyPointPack);
 
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [loginProvider, setLoginProvider] = useState<"github" | "google" | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
+  const [signOutBusy, setSignOutBusy] = useState(false);
   const [handle, setHandle] = useState("");
   const [displayName, setDisplayName] = useState("");
   const profileSectionRef = useRef<HTMLElement>(null);
@@ -169,6 +188,16 @@ export function Account() {
       }
     };
 
+    const handleSignOut = async () => {
+      if (signOutBusy) return;
+      setSignOutBusy(true);
+      try {
+        await signOut();
+      } finally {
+        setSignOutBusy(false);
+      }
+    };
+
     return (
       <div className="page account-page">
         <section className="account-creator-hero">
@@ -210,6 +239,14 @@ export function Account() {
                     title="刷新账号数据"
                   >
                     <RefreshCw size={14} />
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-danger account-sign-out"
+                    onClick={() => void handleSignOut()}
+                    disabled={signOutBusy}
+                  >
+                    {signOutBusy ? <Loader2 size={14} className="spin" /> : <LogOut size={14} />}
+                    退出登录
                   </button>
                 </div>
               </div>
@@ -321,13 +358,6 @@ export function Account() {
                 <h3>最近积分动态</h3>
                 <p>充值、解锁和创作奖励都会记录在这里。</p>
               </div>
-              <button
-                className="btn btn-ghost btn-icon btn-danger"
-                onClick={() => void signOut()}
-                title="退出登录"
-              >
-                <LogOut size={15} />
-              </button>
             </div>
             <div className="account-ledger-list">
               {recentLedger.length === 0 && (
@@ -364,23 +394,14 @@ export function Account() {
     );
   }
 
-  const handleSendOtp = async () => {
-    if (!email.includes("@")) return;
-    setBusy(true);
-    const result = await sendEmailOtp(email);
-    setBusy(false);
-    if (result.ok) setOtpSent(true);
-  };
-  const handleVerifyOtp = async () => {
-    if (otp.length < 6) return;
-    setBusy(true);
-    await verifyEmailOtp(email, otp);
-    setBusy(false);
-  };
-  const handleGitHub = async () => {
-    setBusy(true);
-    await signInGitHub();
-    setBusy(false);
+  const handleOAuth = async (provider: "github" | "google") => {
+    setLoginProvider(provider);
+    try {
+      if (provider === "github") await signInGitHub();
+      else await signInGoogle();
+    } finally {
+      setLoginProvider(null);
+    }
   };
 
   return (
@@ -391,28 +412,27 @@ export function Account() {
           <p className="page-sub">登录后可解锁广场主题、购买积分并发布自己的作品。</p>
         </div>
       </div>
-      <div className="settings-group">
-        <div className="settings-group-title">邮箱验证码登录</div>
-        <div className="account-form">
-          <div className="account-field"><Mail size={15} /><input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={busy} /></div>
-          {!otpSent ? (
-            <button className="btn btn-primary" disabled={busy || !email.includes("@")} onClick={() => void handleSendOtp()}>
-              {busy && <Loader2 size={13} className="spin" />}发送验证码
-            </button>
-          ) : (
-            <>
-              <div className="account-field"><input type="text" inputMode="numeric" maxLength={6} placeholder="六位验证码" value={otp} onChange={(e) => setOtp(e.target.value)} disabled={busy} /></div>
-              <button className="btn btn-primary" disabled={busy || otp.length < 6} onClick={() => void handleVerifyOtp()}>
-                {busy && <Loader2 size={13} className="spin" />}登录
-              </button>
-              <button className="btn btn-ghost" disabled={busy} onClick={() => void handleSendOtp()}>重新发送</button>
-            </>
-          )}
+      <div className="settings-group account-oauth-panel">
+        <div className="settings-group-title">选择登录方式</div>
+        <p className="account-oauth-copy">使用可信的第三方账号安全登录，不再发送邮箱验证码。</p>
+        <div className="account-oauth-actions">
+          <button
+            className="btn btn-secondary account-oauth-button"
+            disabled={loginProvider !== null}
+            onClick={() => void handleOAuth("github")}
+          >
+            {loginProvider === "github" ? <Loader2 size={17} className="spin" /> : <GitHubMark />}
+            使用 GitHub 登录
+          </button>
+          <button
+            className="btn btn-secondary account-oauth-button account-oauth-button--google"
+            disabled={loginProvider !== null}
+            onClick={() => void handleOAuth("google")}
+          >
+            {loginProvider === "google" ? <Loader2 size={17} className="spin" /> : <GoogleMark />}
+            使用 Google 登录
+          </button>
         </div>
-      </div>
-      <div className="settings-group">
-        <div className="settings-group-title">或使用</div>
-        <button className="btn btn-secondary" disabled={busy} onClick={() => void handleGitHub()}>GitHub 登录</button>
       </div>
       {auth.error && <div className="settings-group"><div className="note-block note-error">{auth.error}</div></div>}
     </div>

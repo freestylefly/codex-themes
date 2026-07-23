@@ -115,3 +115,23 @@ export const RECIPE_JSON_SCHEMA = {
     },
   },
 } as const;
+
+/**
+ * Multi-turn replies keep the machine-readable recipe and the user-facing
+ * conversation copy in one strictly validated result.
+ */
+export const AI_THEME_RESULT_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["message", "changeSummary", "recipe"],
+  properties: {
+    message: { type: "string", minLength: 1, maxLength: 500 },
+    changeSummary: {
+      type: "array",
+      minItems: 1,
+      maxItems: 6,
+      items: { type: "string", minLength: 1, maxLength: 120 },
+    },
+    recipe: RECIPE_JSON_SCHEMA,
+  },
+} as const;

@@ -49,6 +49,112 @@
 ## Final result
 
 final result: passed
+
+---
+
+# AI 主题连续创作与多候选 Design QA
+
+## Comparison target
+
+- Source visual truth: `/Users/canghe/.codex/generated_images/019f8e03-7663-7d43-941f-9b4008b07bf4/call_mAUST5Ch0EQ6ubq5q4MPFLSP.png`.
+- Live implementation: Electron AI studio with the real `静海穹顶` smoke-test session.
+- Desktop viewport: `945 × 715`; narrow viewport: `760 × 715`.
+- Target state: large real Codex preview, three complete image candidates, immutable v1/v2/v3 timeline, continuous conversation, adopted revision, and an enabled post-apply composer.
+
+## Findings
+
+No actionable P0, P1, or P2 visual or interaction differences remain.
+
+- Layout: the live desktop keeps the selected design's preview-first composition, candidate strip and revision timeline on the left, and durable conversation panel on the right. The smaller live viewport reduces card widths without displacing the primary actions.
+- Responsive behavior: the application minimum width is now `760px`. Below `900px`, the conversation becomes a labelled bottom drawer with a dimmed backdrop and explicit collapse action; the preview, candidates, and versions remain independently scrollable.
+- Images: the smoke test generated exactly three real image assets. Each card uses the generated preview URL and retains its independent slot and SHA-256; no placeholder or duplicated visual is presented as a completed candidate.
+- Versions: v1, v2, and v3 remain selectable in a horizontal timeline. Restoring v1 changes only the active preview, and the later revisions remain visible.
+- Conversation: user instructions, AI summaries, running progress, revision labels, retry/stop surfaces, and the two adjustment modes share one persistent thread.
+- Controls: settings open above the narrow drawer, the candidate count is visibly set to three, and adopt/apply actions retain the existing warm-gold action hierarchy.
+- Accessibility: tabs, candidate toggles, revision buttons, composer modes, drawer controls, and dialogs expose readable names and native control semantics. Hidden narrow-screen drawer content is removed from keyboard focus with CSS visibility.
+
+## Interaction and runtime verification
+
+1. Started a real `3`-candidate session. Completion advanced through `1/3`, `2/3`, and `3/3`; the job remained `generating-images` after the first two images and entered `awaiting-selection` only after all three existed.
+2. Selected candidate 2 and generated v1.
+3. Sent two consecutive `仅调整主题` messages. They created v2 and v3 while the selected candidate SHA-256 stayed `bd089af4d967b8e02a40ec520fb2cdcc7c45d135e72cab43de9d11acbded7a11`.
+4. Restored v1 without deleting v2/v3, adopted it as the local theme `静海穹顶`, and applied it successfully.
+5. Confirmed the global current-theme status updated to `静海穹顶` and the same conversation composer remained enabled after application.
+6. Restart migration was exercised against two legacy completed sessions; each was normalized to one candidate batch and one immutable revision.
+7. Final automated verification: TypeScript/Astro checks passed with zero diagnostics, all `167` tests passed, Electron production build passed, and `git diff --check` passed.
+
+## Comparison history
+
+1. The selected reference established a large preview, three-image candidate row, revision strip, and right-side continuous conversation.
+2. Initial implementation matched the desktop hierarchy, but live QA exposed an unreachable narrow breakpoint because Electron enforced a `920px` minimum width.
+3. Lowered the supported minimum to `760px` and replaced the stacked narrow conversation with a real bottom drawer.
+4. Narrow QA exposed the settings modal behind the open drawer. Opening settings now closes the drawer first, preserving the modal's visual and pointer hierarchy.
+5. Desktop QA exposed a mobile collapse icon through a selector-specificity conflict. The close control is now visible only inside the narrow drawer.
+6. Final side-by-side review confirms the selected composition, real three-candidate state, conversation density, action hierarchy, and responsive behavior.
+
+final result: passed
+
+---
+
+# 创作者中心「作品库＋常驻详情」Design QA
+
+## Comparison target
+
+- Source visual truth: `/Users/canghe/.codex/generated_images/019f8e03-7663-7d43-941f-9b4008b07bf4/call_8Bu69fg4zjHYjaF7exWmrMZw.png`
+- Rendered implementation: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/creator-center-implementation-01.png`
+- Full-view comparison: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/creator-center-comparison-01.png`
+- Focused inspector comparison: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/creator-center-inspector-comparison-01.png`
+- CSS viewport/state: full-screen Electron window at `1147 × 716`, authenticated creator with six real local works, first work selected, all-work filter, dark theme.
+- Source pixels: `1487 × 1058`.
+- Implementation pixels: `1147 × 716`.
+- Density normalization: the source was top-aligned and cover-cropped to `1147 × 716`; the implementation is a native `1147 × 716` Computer Use capture treated as 1× desktop density. Both were placed in one side-by-side comparison input.
+- State normalization note: the source intentionally illustrates three marketplace works with approved/review/rejected states and populated analytics. The implementation uses the signed-in account's six real, not-yet-submitted local works and therefore shows draft status and zero analytics.
+
+## Findings
+
+No actionable P0, P1, or P2 visual or interaction differences remain.
+
+- Fonts and typography: the existing SF Pro Text / PingFang SC system stack, warm-white headings, muted metadata, compact status text, numeric metrics, truncation, and optical weights preserve the selected mock's hierarchy at the smaller live viewport.
+- Spacing and layout rhythm: the implementation keeps the selected direction's two-column work library and persistent inspector at desktop width. Header, filter/search toolbar, two-card grid, large preview, review path, metrics, chart, and version history follow the mock's order and grouping. The smaller 716px-tall display scrolls lower history content without hiding persistent primary controls.
+- Colors and visual tokens: the application keeps its warm-ink background, honey-gold selection/action state, restrained borders, green/warn/red semantic statuses, and low-elevation panels. Tokens remain aligned with the selected visual and the rest of the Electron client.
+- Image quality and asset fidelity: cards and the inspector use each real local theme's generated `previewUrl`; previews are sharp, correctly cropped, and open into a contain-fitted full-screen view. No placeholder artwork, CSS drawing, or fabricated production metric is used.
+- Copy and content: work status, review stages, timestamps, reviewer reason, unique users, creator rewards, recent use, price, version history, and the deduplication note use marketplace terminology from the implemented product rules. Empty-filter copy was made specific rather than falsely claiming the account has no works.
+- Icons: visible controls use the project's Lucide family with consistent stroke weight and sizing. Card selection, search, review steps, metrics, publish, overflow actions, and preview controls remain optically aligned.
+- States and interactions: work-card selection updates the inspector; status tabs and search narrow both the library and detail state; an empty result offers “查看全部作品”; large preview opens and closes; the publish form opens as a modal with the selected real preview and keeps submission disabled until rights confirmation.
+- Accessibility: the filters use tab semantics, search has an accessible label and clear action, work cards are native buttons, dialogs are modal-labelled, preview images have descriptive alt text, and disabled/pending actions remain explicit.
+
+## Comparison history
+
+1. Desktop preflight at `1147 × 716` exposed fixed grid minimums of `430px + 480px` inside a padded `911px` main region, producing horizontal document overflow (P2).
+2. Reduced the desktop tracks to `minmax(360px, .96fr)` and `minmax(380px, 1.04fr)`. The post-fix implementation capture shows both columns fully contained, the inspector's right edge visible, and no horizontal scrollbar.
+3. Interaction testing found that a zero-result status filter left the previously selected work visible in the inspector, creating a contradictory state (P2 behavior).
+4. Scoped selection to `filteredWorks` and added a specific empty inspector state with a working “查看全部作品” recovery action.
+5. The final full-view and focused comparisons confirm the selected portfolio-grid/detail-inspector composition, typography, token mapping, real preview treatment, and core interaction states. Remaining data differences are intentional live-data constraints, not design drift.
+6. Follow-up testing at the Electron minimum width (`920 × 620`) showed the old `1050px` breakpoint moving the entire inspector below the work library (P2 responsive behavior).
+7. Replaced that stack with compact two-column tracks, a one-column work-card rail, and narrower page gaps. Added a manually collapsible `236px → 72px` app sidebar that defaults to compact mode in narrow windows and persists the user's choice. The `920 × 648` proof capture at `tmp/design-qa/creator-center-responsive-920.png` keeps the work library and inspector side by side with no horizontal overflow.
+
+## Verification
+
+- Primary work selection and inspector update: passed.
+- Status filters, empty state, recovery action, search, and clear search: passed.
+- Large preview open/close: passed.
+- Publish modal open/close and selected-preview binding: passed.
+- Rights-gated submit button: passed; no submission was sent during visual QA.
+- Responsive minimum window: passed at `920 × 648`; work library and inspector remain side by side, with the local work cards using a compact single-column rail.
+- Sidebar responsiveness: passed in both expanded and collapsed states; the toggle is keyboard-labelled, collapsed navigation retains accessible names/tooltips, and the preference persists locally.
+- Full-screen desktop: passed; two columns remain visible without horizontal overflow.
+- Renderer/runtime check: no new renderer exception appeared during this creator-center pass. Existing production-host 404s are expected until the already implemented marketplace endpoints are deployed.
+- Supabase relationship check: the two opposing foreign keys were confirmed in the live schema, and the creator query now explicitly uses `theme_submissions_theme_id_fkey` to avoid PostgREST ambiguity.
+- TypeScript and Astro checks: passed with zero errors or warnings.
+- Automated tests: 163 passed.
+- Electron production build and `git diff --check`: passed.
+
+## Follow-up polish
+
+- [P3] After the creator metrics endpoint is deployed and the account has an approved submission, capture one populated state to verify four-digit reward values, reviewer notes, and a non-zero 30-day trend against the same inspector layout.
+- [P3] The selected concept shows three curated marketplace states above the fold; the implementation deliberately preserves all six real local works and lets the page scroll rather than hiding or inventing data.
+
+final result: passed
 ---
 
 # 官网首页 Hero「流光沉浸」Design QA

@@ -38,7 +38,15 @@ import { SettingsStore } from "./settings";
 import { ThemeStore } from "./themes/store";
 import { CodexCliStatusService } from "./codex-cli/status";
 import { AiThemeJobService } from "./ai/job-service";
-import type { AiThemeJob, AiThemeJobSummary, CodexApprovalDecision, ThemeGenerationRequest } from "./shared/types";
+import type {
+  AiThemeApplyResult,
+  AiThemeJob,
+  AiThemeJobSummary,
+  AiThemeMessageInput,
+  CodexApprovalDecision,
+  ThemeGenerationRequest,
+  ThemeSummary,
+} from "./shared/types";
 
 interface PersistedState {
   activeThemeId: string | null;
@@ -60,6 +68,38 @@ const EMPTY_PERSISTED: PersistedState = {
   cdpPort: null,
   appliedAt: null,
 };
+
+/**
+ * Keep local filesystem paths and Codex thread/turn identifiers in the main
+ * process. Renderer consumers only need stable UI ids and preview URLs.
+ */
+function aiJobForRenderer(job: AiThemeJob): AiThemeJob {
+  const sanitizeCandidate = (candidate: AiThemeJob["candidates"][number]) => ({
+    ...candidate,
+    imagePath: "",
+    itemId: undefined,
+  });
+  return {
+    ...job,
+    request: {
+      ...job.request,
+      referenceImagePath: undefined,
+    },
+    threadId: null,
+    savedThemeDir: null,
+    candidates: job.candidates.map(sanitizeCandidate),
+    candidateBatches: job.candidateBatches.map((batch) => ({
+      ...batch,
+      candidates: batch.candidates.map(sanitizeCandidate),
+    })),
+    operation: job.operation
+      ? {
+          ...job.operation,
+          turnId: null,
+        }
+      : null,
+  };
+}
 
 export class ThemeController extends EventEmitter {
   private install: CodexInstall | null = null;
@@ -85,7 +125,8 @@ export class ThemeController extends EventEmitter {
     this.cliService.on("changed", () => this.emitState());
     this.jobService = new AiThemeJobService(paths, this.cliService, store);
     this.jobService.on("log", (level, message) => this.log(level, message));
-    this.jobService.on("jobChanged", (job) => this.emit("aiJobChanged", job));
+    this.jobService.on("jobChanged", (job: AiThemeJob) =>
+      this.emit("aiJobChanged", aiJobForRenderer(job)));
     this.jobService.on("approvalRequested", (req) => this.emit("codexApprovalRequested", req));
   }
 
@@ -152,16 +193,46 @@ export class ThemeController extends EventEmitter {
 
   // --------------------------------------------------------------- AI jobs
 
-  createAiThemeJob(input: ThemeGenerationRequest): Promise<AiThemeJob> {
-    return this.jobService.createJob(input);
+  async createAiThemeJob(input: ThemeGenerationRequest): Promise<AiThemeJob> {
+    return aiJobForRenderer(await this.jobService.createJob(input));
   }
 
   startAiThemeJob(jobId: string): Promise<void> {
     return this.jobService.startJob(jobId);
   }
 
-  selectAiThemeCandidate(jobId: string, candidateId: string): Promise<void> {
-    return this.jobService.selectCandidate(jobId, candidateId);
+  selectAiThemeCandidate(jobId: string, batchId: string, candidateId: string): Promise<void> {
+    return this.jobService.selectCandidate(jobId, batchId, candidateId);
+  }
+
+  sendAiThemeMessage(jobId: string, input: AiThemeMessageInput): Promise<void> {
+    return this.jobService.sendMessage(jobId, input);
+  }
+
+  async setCurrentAiThemeRevision(jobId: string, revisionId: string): Promise<AiThemeJob> {
+    return aiJobForRenderer(await this.jobService.setCurrentRevision(jobId, revisionId));
+  }
+
+  adoptAiThemeRevision(jobId: string, revisionId: string): Promise<ThemeSummary> {
+    return this.jobService.adoptRevision(jobId, revisionId);
+  }
+
+  async applyAiThemeRevision(
+    jobId: string,
+    revisionId: string,
+    opts: { confirmRestart?: boolean } = {},
+  ): Promise<AiThemeApplyResult> {
+    const theme = await this.jobService.adoptRevision(jobId, revisionId);
+    const apply = await this.applyTheme(theme.id, opts);
+    return { theme, apply };
+  }
+
+  cancelAiThemeOperation(jobId: string, operationId: string): Promise<void> {
+    return this.jobService.cancelOperation(jobId, operationId);
+  }
+
+  retryAiThemeOperation(jobId: string, operationId: string): Promise<void> {
+    return this.jobService.retryOperation(jobId, operationId);
   }
 
   refineAiThemeJob(jobId: string, instruction: string, regenerateImage: boolean): Promise<void> {
@@ -176,12 +247,15 @@ export class ThemeController extends EventEmitter {
     return this.jobService.retryJob(jobId);
   }
 
-  getAiThemeJob(jobId: string): Promise<AiThemeJob> {
-    return this.jobService.getJob(jobId);
+  async getAiThemeJob(jobId: string): Promise<AiThemeJob> {
+    return aiJobForRenderer(await this.jobService.getJob(jobId));
   }
 
-  listAiThemeJobs(): Promise<AiThemeJobSummary[]> {
-    return this.jobService.listJobs();
+  async listAiThemeJobs(): Promise<AiThemeJobSummary[]> {
+    return (await this.jobService.listJobs()).map((job) => ({
+      ...job,
+      savedThemeDir: null,
+    }));
   }
 
   deleteAiThemeJob(jobId: string): Promise<void> {

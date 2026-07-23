@@ -249,7 +249,7 @@ export interface NormalizedTheme {
 
 export type ThemeSource = "preset" | "custom" | "imported" | "purchased";
 
-export type AuthProvider = "email" | "github";
+export type AuthProvider = "email" | "github" | "google";
 
 export interface AuthUserSummary {
   id: string;
@@ -399,6 +399,28 @@ export interface ThemeSubmission {
   reviewReason: string | null;
   createdAt: string;
   author?: PublicCreatorProfile | null;
+  /** Current marketplace state for the stable community theme. */
+  product?: {
+    version: string;
+    published: boolean;
+    downloadsEnabled: boolean;
+    unlockCount: number;
+    pricePoints: number;
+    priceCents: number;
+    publishedAt: string | null;
+    previewUrl: string | null;
+  } | null;
+  /** Creator-facing aggregate data. Values are scoped to this theme. */
+  metrics?: {
+    uniqueUsers: number;
+    totalRewardPoints: number;
+    recentUnlocks: number;
+    recentRewardPoints: number;
+    dailyUnlocks: Array<{
+      date: string;
+      count: number;
+    }>;
+  };
 }
 
 export interface SubmitThemeInput {
@@ -671,6 +693,7 @@ export type AiThemeJobStage =
   | "generating-recipe"
   | "synthesizing"
   | "preview-ready"
+  | "adopting"
   | "saving"
   | "completed"
   | "failed"
@@ -727,12 +750,88 @@ export interface ThemeGenerationRecipe {
 
 export interface AiThemeCandidate {
   candidateId: string;
+  /** Candidate batch that owns this image. Missing only on legacy jobs. */
+  batchId?: string;
+  /** One-based requested slot inside the batch. */
+  slot?: number;
   /** Absolute path to the generated image in the job directory. */
   imagePath: string;
   /** picked-image:// URL for renderer preview. */
   previewUrl: string;
   /** Codex item id that produced this image, for tracing. */
   itemId?: string;
+  /** SHA-256 of the image bytes, used to prove recipe-only turns kept the art. */
+  sha256?: string;
+}
+
+export type AiThemeMessageMode = "theme-only" | "regenerate-image";
+export type AiThemeMessageStatus = "pending" | "running" | "completed" | "failed" | "cancelled";
+
+export interface AiThemeMessageInput {
+  text: string;
+  mode: AiThemeMessageMode;
+}
+
+export interface AiThemeMessage {
+  messageId: string;
+  role: "user" | "assistant" | "system";
+  text: string;
+  createdAt: string;
+  status: AiThemeMessageStatus;
+  mode?: AiThemeMessageMode;
+  operationId?: string;
+  revisionId?: string;
+  changeSummary?: string[];
+}
+
+export interface AiThemeCandidateBatch {
+  batchId: string;
+  requestedCount: 1 | 2 | 3;
+  createdAt: string;
+  sourceMessageId: string | null;
+  baseRevisionId: string | null;
+  instruction: string;
+  status: "generating" | "awaiting-selection" | "completed" | "partial" | "cancelled";
+  candidates: AiThemeCandidate[];
+  selectedCandidateId: string | null;
+  currentSlot: number | null;
+  /** Initial attempt is 1; each slot can reach 3 after two automatic retries. */
+  attemptsBySlot: Record<string, number>;
+  error: string | null;
+}
+
+export interface AiThemeRevision {
+  revisionId: string;
+  number: number;
+  createdAt: string;
+  parentRevisionId: string | null;
+  sourceMessageId: string | null;
+  candidateId: string;
+  recipe: ThemeGenerationRecipe;
+  assistantMessage: string;
+  changeSummary: string[];
+}
+
+export interface AiThemeOperation {
+  operationId: string;
+  type: "initial-images" | "image-regeneration" | "recipe" | "adopt" | "apply";
+  status: "running" | "completed" | "failed" | "cancelled";
+  stage: AiThemeJobStage;
+  startedAt: string;
+  completedAt: string | null;
+  sourceMessageId: string | null;
+  batchId: string | null;
+  baseRevisionId: string | null;
+  candidateId: string | null;
+  currentSlot: number | null;
+  turnId: string | null;
+  error: string | null;
+}
+
+export interface AiThemeStructuredResult {
+  message: string;
+  changeSummary: string[];
+  recipe: ThemeGenerationRecipe;
 }
 
 export interface AiThemeJob {
@@ -748,6 +847,14 @@ export interface AiThemeJob {
   recipe: ThemeGenerationRecipe | null;
   /** Absolute path to the saved theme directory, once completed. */
   savedThemeDir: string | null;
+  /** Durable multi-turn conversation state. */
+  messages: AiThemeMessage[];
+  candidateBatches: AiThemeCandidateBatch[];
+  revisions: AiThemeRevision[];
+  currentRevisionId: string | null;
+  adoptedRevisionId: string | null;
+  adoptedThemeId: string | null;
+  operation: AiThemeOperation | null;
   /** Human-readable streaming progress line from the model. */
   progressMessage?: string;
   /** Type of the App Server item currently being processed. */
@@ -763,6 +870,13 @@ export interface AiThemeJobSummary {
   selectedCandidateId: string | null;
   savedThemeDir: string | null;
   error: string | null;
+  currentRevisionNumber?: number | null;
+  revisionCount?: number;
+}
+
+export interface AiThemeApplyResult {
+  theme: ThemeSummary;
+  apply: ApplyResult;
 }
 
 export interface CodexApprovalRequest {
@@ -867,7 +981,17 @@ export interface CodexThemesApi {
 
   createAiThemeJob(input: ThemeGenerationRequest): Promise<AiThemeJob>;
   startAiThemeJob(jobId: string): Promise<void>;
-  selectAiThemeCandidate(jobId: string, candidateId: string): Promise<void>;
+  selectAiThemeCandidate(jobId: string, batchId: string, candidateId: string): Promise<void>;
+  sendAiThemeMessage(jobId: string, input: AiThemeMessageInput): Promise<void>;
+  setCurrentAiThemeRevision(jobId: string, revisionId: string): Promise<AiThemeJob>;
+  adoptAiThemeRevision(jobId: string, revisionId: string): Promise<ThemeSummary>;
+  applyAiThemeRevision(
+    jobId: string,
+    revisionId: string,
+    opts?: { confirmRestart?: boolean },
+  ): Promise<AiThemeApplyResult>;
+  cancelAiThemeOperation(jobId: string, operationId: string): Promise<void>;
+  retryAiThemeOperation(jobId: string, operationId: string): Promise<void>;
   refineAiThemeJob(jobId: string, instruction: string, regenerateImage: boolean): Promise<void>;
   cancelAiThemeJob(jobId: string): Promise<void>;
   retryAiThemeJob(jobId: string): Promise<void>;
@@ -881,9 +1005,8 @@ export interface CodexThemesApi {
   /** ---------------------------------------------------------------------- */
 
   authGetState(): Promise<AuthState>;
-  authSendEmailOtp(email: string): Promise<{ ok: boolean; error?: string }>;
-  authVerifyEmailOtp(email: string, token: string): Promise<{ ok: boolean; error?: string }>;
   authSignInGitHub(): Promise<{ ok: boolean; error?: string; url?: string }>;
+  authSignInGoogle(): Promise<{ ok: boolean; error?: string; url?: string }>;
   authSignOut(): Promise<{ ok: boolean; error?: string }>;
 
   commerceListCatalog(): Promise<ThemeProduct[]>;
@@ -905,6 +1028,7 @@ export interface CodexThemesApi {
   commerceReconcilePointOrder(orderId: string): Promise<PointOrder>;
   commerceListSubmissions(): Promise<ThemeSubmission[]>;
   commerceSubmitTheme(input: SubmitThemeInput): Promise<ThemeSubmission>;
+  commerceRetrySubmission(submissionId: string): Promise<ThemeSubmission>;
   commerceWithdrawSubmission(submissionId: string): Promise<ThemeSubmission>;
   commerceUnpublishOwnTheme(themeId: string, reason: string): Promise<{ ok: boolean }>;
   commerceAdminListSubmissions(status?: ThemeSubmissionStatus): Promise<ThemeSubmission[]>;

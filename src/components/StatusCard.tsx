@@ -1,6 +1,6 @@
 import { useApp } from "../store";
 
-/** Sidebar footer: live mirror of Codex + theme state. */
+/** Titlebar mirror of the active theme and Codex connection state. */
 export function StatusCard() {
   const state = useApp((s) => s.state);
   if (!state) return null;
@@ -17,17 +17,20 @@ export function StatusCard() {
         : { dot: "", text: "未运行" };
 
   return (
-    <div className="status-card">
-      <div className="status-row">
+    <div className="status-card" aria-label="当前主题和 Codex 状态">
+      <div className="status-row" title={`当前主题 · ${themeRow.text}`}>
         <span className={`dot ${themeRow.dot}`} />
+        <span className="status-prefix">当前主题</span>
         <span className="grow" title={themeRow.text}>
           {themeRow.text}
         </span>
-        {state.watcherActive && <span style={{ color: "var(--text-faint)", fontSize: 10.5 }}>守护中</span>}
+        {state.watcherActive && <span className="status-watcher">守护中</span>}
       </div>
-      <div className="status-row">
+      <span className="status-divider" aria-hidden="true" />
+      <div className="status-row" title={`Codex · ${codexRow.text}`}>
         <span className={`dot ${codexRow.dot}`} />
-        <span className="grow">Codex · {codexRow.text}</span>
+        <span className="status-prefix">Codex</span>
+        <span className="grow">{codexRow.text}</span>
       </div>
     </div>
   );

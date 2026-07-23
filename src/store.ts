@@ -20,6 +20,7 @@ import type {
   PointPack,
   PointWallet,
   RendererSettings,
+  AiThemeMessageInput,
   ThemeEntitlement,
   ThemeGenerationRequest,
   ThemeProduct,
@@ -86,9 +87,16 @@ interface AppStore {
   updateSettings(patch: Partial<RendererSettings>): Promise<void>;
 
   refreshAiJobs(): Promise<void>;
+  newAiConversation(): void;
   createAiJob(input: ThemeGenerationRequest): Promise<AiThemeJob>;
   startAiJob(jobId: string): Promise<void>;
-  selectAiCandidate(jobId: string, candidateId: string): Promise<void>;
+  selectAiCandidate(jobId: string, batchId: string, candidateId: string): Promise<void>;
+  sendAiMessage(jobId: string, input: AiThemeMessageInput): Promise<void>;
+  setAiRevision(jobId: string, revisionId: string): Promise<void>;
+  adoptAiRevision(jobId: string, revisionId: string): Promise<void>;
+  applyAiRevision(jobId: string, revisionId: string): Promise<void>;
+  cancelAiOperation(jobId: string, operationId: string): Promise<void>;
+  retryAiOperation(jobId: string, operationId: string): Promise<void>;
   refineAiJob(jobId: string, instruction: string, regenerateImage: boolean): Promise<void>;
   cancelAiJob(jobId: string): Promise<void>;
   retryAiJob(jobId: string): Promise<void>;
@@ -101,9 +109,8 @@ interface AppStore {
 
   /** Auth */
   refreshAuth(): Promise<void>;
-  sendEmailOtp(email: string): Promise<{ ok: boolean; error?: string }>;
-  verifyEmailOtp(email: string, token: string): Promise<{ ok: boolean; error?: string }>;
   signInGitHub(): Promise<{ ok: boolean; error?: string; url?: string }>;
+  signInGoogle(): Promise<{ ok: boolean; error?: string; url?: string }>;
   signOut(): Promise<void>;
   refreshAccountData(): Promise<void>;
   updateProfile(input: { handle: string; displayName: string }): Promise<void>;
@@ -126,6 +133,7 @@ interface AppStore {
     rightsAccepted: true;
     themeId?: string;
   }): Promise<void>;
+  retrySubmission(submissionId: string): Promise<void>;
   withdrawSubmission(submissionId: string): Promise<void>;
   unpublishOwnTheme(themeId: string, reason: string): Promise<void>;
   refreshAdmin(status?: ThemeSubmissionStatus): Promise<void>;
@@ -157,6 +165,9 @@ function toAiJobSummary(job: AiThemeJob): AiThemeJobSummary {
     selectedCandidateId: job.selectedCandidateId,
     savedThemeDir: job.savedThemeDir,
     error: job.error,
+    currentRevisionNumber:
+      job.revisions.find((revision) => revision.revisionId === job.currentRevisionId)?.number ?? null,
+    revisionCount: job.revisions.length,
   };
 }
 
@@ -222,6 +233,9 @@ export const useApp = create<AppStore>((set, get) => ({
                 selectedCandidateId: job.selectedCandidateId,
                 savedThemeDir: job.savedThemeDir,
                 error: job.error,
+                currentRevisionNumber:
+                  job.revisions.find((revision) => revision.revisionId === job.currentRevisionId)?.number ?? null,
+                revisionCount: job.revisions.length,
               }
             : j,
         ),
@@ -429,6 +443,10 @@ export const useApp = create<AppStore>((set, get) => ({
     set({ aiJobs: await api.listAiThemeJobs() });
   },
 
+  newAiConversation() {
+    set({ activeAiJob: null });
+  },
+
   async createAiJob(input) {
     const job = await api.createAiThemeJob(input);
     set((s) => ({ aiJobs: [toAiJobSummary(job), ...s.aiJobs], activeAiJob: job }));
@@ -444,13 +462,72 @@ export const useApp = create<AppStore>((set, get) => ({
     }));
   },
 
-  async selectAiCandidate(jobId, candidateId) {
-    await api.selectAiThemeCandidate(jobId, candidateId);
+  async selectAiCandidate(jobId, batchId, candidateId) {
+    await api.selectAiThemeCandidate(jobId, batchId, candidateId);
     const job = await api.getAiThemeJob(jobId);
     set((s) => ({
       aiJobs: s.aiJobs.map((j) => (j.jobId === jobId ? toAiJobSummary(job) : j)),
       activeAiJob: s.activeAiJob?.jobId === jobId ? job : s.activeAiJob,
     }));
+  },
+
+  async sendAiMessage(jobId, input) {
+    await api.sendAiThemeMessage(jobId, input);
+  },
+
+  async setAiRevision(jobId, revisionId) {
+    const job = await api.setCurrentAiThemeRevision(jobId, revisionId);
+    set((s) => ({
+      aiJobs: s.aiJobs.map((item) => (item.jobId === jobId ? toAiJobSummary(job) : item)),
+      activeAiJob: s.activeAiJob?.jobId === jobId ? job : s.activeAiJob,
+    }));
+  },
+
+  async adoptAiRevision(jobId, revisionId) {
+    const theme = await api.adoptAiThemeRevision(jobId, revisionId);
+    await get().refreshThemes();
+    const job = await api.getAiThemeJob(jobId);
+    set((s) => ({
+      aiJobs: s.aiJobs.map((item) => (item.jobId === jobId ? toAiJobSummary(job) : item)),
+      activeAiJob: s.activeAiJob?.jobId === jobId ? job : s.activeAiJob,
+    }));
+    get().toast("ok", `已采用当前版本并保存为「${theme.name}」。`);
+  },
+
+  async applyAiRevision(jobId, revisionId) {
+    if (get().applyingId) return;
+    set({ applyingId: `ai:${jobId}` });
+    try {
+      const result = await api.applyAiThemeRevision(jobId, revisionId);
+      await get().refreshThemes();
+      const job = await api.getAiThemeJob(jobId);
+      set((s) => ({
+        aiJobs: s.aiJobs.map((item) => (item.jobId === jobId ? toAiJobSummary(job) : item)),
+        activeAiJob: s.activeAiJob?.jobId === jobId ? job : s.activeAiJob,
+      }));
+      if (result.apply.needsRestart) {
+        set({ pendingRestartThemeId: result.theme.id });
+        return;
+      }
+      reportApplyResult(result.apply.status, result.apply.notes, result.apply.error, get().toast);
+    } catch (error) {
+      get().toast("err", `保存并应用失败:${(error as Error).message}`);
+    } finally {
+      set({ applyingId: null });
+    }
+  },
+
+  async cancelAiOperation(jobId, operationId) {
+    await api.cancelAiThemeOperation(jobId, operationId);
+    const job = await api.getAiThemeJob(jobId);
+    set((s) => ({
+      aiJobs: s.aiJobs.map((item) => (item.jobId === jobId ? toAiJobSummary(job) : item)),
+      activeAiJob: s.activeAiJob?.jobId === jobId ? job : s.activeAiJob,
+    }));
+  },
+
+  async retryAiOperation(jobId, operationId) {
+    await api.retryAiThemeOperation(jobId, operationId);
   },
 
   async refineAiJob(jobId, instruction, regenerateImage) {
@@ -508,29 +585,15 @@ export const useApp = create<AppStore>((set, get) => ({
     set({ auth: await api.authGetState() });
   },
 
-  async sendEmailOtp(email) {
-    const result = await api.authSendEmailOtp(email);
-    if (!result.ok) get().toast("err", result.error ?? "发送验证码失败");
-    return result;
-  },
-
-  async verifyEmailOtp(email, token) {
-    const result = await api.authVerifyEmailOtp(email, token);
-    if (result.ok) {
-      await get().refreshAuth();
-      await get().refreshCatalog();
-      await get().refreshEntitlements();
-      await get().refreshAccountData();
-      get().toast("ok", "登录成功。");
-    } else {
-      get().toast("err", result.error ?? "验证码无效");
-    }
-    return result;
-  },
-
   async signInGitHub() {
     const result = await api.authSignInGitHub();
     if (!result.ok) get().toast("err", result.error ?? "GitHub 登录失败");
+    return result;
+  },
+
+  async signInGoogle() {
+    const result = await api.authSignInGoogle();
+    if (!result.ok) get().toast("err", result.error ?? "Google 登录失败");
     return result;
   },
 
@@ -765,6 +828,21 @@ export const useApp = create<AppStore>((set, get) => ({
       get().toast("ok", "作品已安全上传，正在等待管理员审核。");
     } catch (error) {
       get().toast("err", `投稿失败：${(error as Error).message}`);
+      await get().refreshSubmissions();
+    }
+  },
+
+  async retrySubmission(submissionId) {
+    try {
+      const submission = await api.commerceRetrySubmission(submissionId);
+      set((state) => ({
+        submissions: state.submissions.map((item) =>
+          item.id === submission.id ? submission : item),
+      }));
+      get().toast("ok", "自动校验已完成，作品已进入人工审核。");
+    } catch (error) {
+      get().toast("err", `重新校验失败：${(error as Error).message}`);
+      await get().refreshSubmissions();
     }
   },
 

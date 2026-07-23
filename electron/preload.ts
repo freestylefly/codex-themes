@@ -63,8 +63,19 @@ const api: CodexThemesApi = {
 
   createAiThemeJob: (input: ThemeGenerationRequest) => ipcRenderer.invoke("ai:createJob", input),
   startAiThemeJob: (jobId: string) => ipcRenderer.invoke("ai:startJob", jobId),
-  selectAiThemeCandidate: (jobId: string, candidateId: string) =>
-    ipcRenderer.invoke("ai:selectCandidate", jobId, candidateId),
+  selectAiThemeCandidate: (jobId: string, batchId: string, candidateId: string) =>
+    ipcRenderer.invoke("ai:selectCandidate", jobId, batchId, candidateId),
+  sendAiThemeMessage: (jobId, input) => ipcRenderer.invoke("ai:sendMessage", jobId, input),
+  setCurrentAiThemeRevision: (jobId, revisionId) =>
+    ipcRenderer.invoke("ai:setRevision", jobId, revisionId),
+  adoptAiThemeRevision: (jobId, revisionId) =>
+    ipcRenderer.invoke("ai:adoptRevision", jobId, revisionId),
+  applyAiThemeRevision: (jobId, revisionId, opts) =>
+    ipcRenderer.invoke("ai:applyRevision", jobId, revisionId, opts),
+  cancelAiThemeOperation: (jobId, operationId) =>
+    ipcRenderer.invoke("ai:cancelOperation", jobId, operationId),
+  retryAiThemeOperation: (jobId, operationId) =>
+    ipcRenderer.invoke("ai:retryOperation", jobId, operationId),
   refineAiThemeJob: (jobId: string, instruction: string, regenerateImage: boolean) =>
     ipcRenderer.invoke("ai:refineJob", jobId, instruction, regenerateImage),
   cancelAiThemeJob: (jobId: string) => ipcRenderer.invoke("ai:cancelJob", jobId),
@@ -76,10 +87,8 @@ const api: CodexThemesApi = {
     ipcRenderer.invoke("ai:respondApproval", requestId, decision),
 
   authGetState: () => ipcRenderer.invoke("auth:getState"),
-  authSendEmailOtp: (email: string) => ipcRenderer.invoke("auth:sendEmailOtp", email),
-  authVerifyEmailOtp: (email: string, token: string) =>
-    ipcRenderer.invoke("auth:verifyEmailOtp", email, token),
   authSignInGitHub: () => ipcRenderer.invoke("auth:signInGitHub"),
+  authSignInGoogle: () => ipcRenderer.invoke("auth:signInGoogle"),
   authSignOut: () => ipcRenderer.invoke("auth:signOut"),
 
   commerceListCatalog: () => ipcRenderer.invoke("commerce:listCatalog"),
@@ -105,6 +114,8 @@ const api: CodexThemesApi = {
     ipcRenderer.invoke("commerce:reconcilePointOrder", orderId),
   commerceListSubmissions: () => ipcRenderer.invoke("commerce:listSubmissions"),
   commerceSubmitTheme: (input) => ipcRenderer.invoke("commerce:submitTheme", input),
+  commerceRetrySubmission: (submissionId: string) =>
+    ipcRenderer.invoke("commerce:retrySubmission", submissionId),
   commerceWithdrawSubmission: (submissionId: string) =>
     ipcRenderer.invoke("commerce:withdrawSubmission", submissionId),
   commerceUnpublishOwnTheme: (themeId: string, reason: string) =>

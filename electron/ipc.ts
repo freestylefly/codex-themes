@@ -9,6 +9,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type {
+  AiThemeMessageInput,
   CustomThemeInput,
   InspectedThemePackage,
   OpenThemeAction,
@@ -51,7 +52,15 @@ interface IpcContext {
 
 function send(getWindow: () => BrowserWindow | null, channel: string, payload: unknown) {
   const win = getWindow();
-  if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
+  if (!win || win.isDestroyed() || win.webContents.isDestroyed()) return;
+  try {
+    // Renderer reloads dispose the old WebFrameMain before BrowserWindow itself
+    // is destroyed. Notifications are best-effort and the renderer refreshes
+    // state on mount, so dropping that narrow-race event is safe.
+    win.webContents.send(channel, payload);
+  } catch {
+    // Avoid an uncaught `write EIO` / disposed-frame exception during reload.
+  }
 }
 
 export function registerIpc(ctx: IpcContext): void {
@@ -269,7 +278,23 @@ export function registerIpc(ctx: IpcContext): void {
 
   ipcMain.handle("ai:createJob", (_event, input: ThemeGenerationRequest) => controller.createAiThemeJob(input));
   ipcMain.handle("ai:startJob", (_event, jobId: string) => controller.startAiThemeJob(jobId));
-  ipcMain.handle("ai:selectCandidate", (_event, jobId: string, candidateId: string) => controller.selectAiThemeCandidate(jobId, candidateId));
+  ipcMain.handle("ai:selectCandidate", (_event, jobId: string, batchId: string, candidateId: string) =>
+    controller.selectAiThemeCandidate(jobId, batchId, candidateId));
+  ipcMain.handle("ai:sendMessage", (_event, jobId: string, input: AiThemeMessageInput) =>
+    controller.sendAiThemeMessage(jobId, input));
+  ipcMain.handle("ai:setRevision", (_event, jobId: string, revisionId: string) =>
+    controller.setCurrentAiThemeRevision(jobId, revisionId));
+  ipcMain.handle("ai:adoptRevision", (_event, jobId: string, revisionId: string) =>
+    controller.adoptAiThemeRevision(jobId, revisionId));
+  ipcMain.handle(
+    "ai:applyRevision",
+    (_event, jobId: string, revisionId: string, opts?: { confirmRestart?: boolean }) =>
+      controller.applyAiThemeRevision(jobId, revisionId, opts),
+  );
+  ipcMain.handle("ai:cancelOperation", (_event, jobId: string, operationId: string) =>
+    controller.cancelAiThemeOperation(jobId, operationId));
+  ipcMain.handle("ai:retryOperation", (_event, jobId: string, operationId: string) =>
+    controller.retryAiThemeOperation(jobId, operationId));
   ipcMain.handle("ai:refineJob", (_event, jobId: string, instruction: string, regenerateImage: boolean) => controller.refineAiThemeJob(jobId, instruction, regenerateImage));
   ipcMain.handle("ai:cancelJob", (_event, jobId: string) => controller.cancelAiThemeJob(jobId));
   ipcMain.handle("ai:retryJob", (_event, jobId: string) => controller.retryAiThemeJob(jobId));
@@ -279,11 +304,8 @@ export function registerIpc(ctx: IpcContext): void {
   ipcMain.handle("ai:respondApproval", (_event, requestId: string, decision: "accept" | "decline" | "cancel") => controller.respondToCodexApproval(requestId, decision));
 
   ipcMain.handle("auth:getState", () => authClient?.getState() ?? { status: "unauthenticated", user: null, entitlementCount: 0, error: null });
-  ipcMain.handle("auth:sendEmailOtp", (_event, email: string) => authClient?.sendEmailOtp(email) ?? { ok: false, error: "认证服务未启用。" });
-  ipcMain.handle("auth:verifyEmailOtp", (_event, email: string, token: string) =>
-    authClient?.verifyEmailOtp(email, token) ?? { ok: false, error: "认证服务未启用。" },
-  );
   ipcMain.handle("auth:signInGitHub", () => authClient?.startGitHubSignIn() ?? { ok: false, error: "认证服务未启用。" });
+  ipcMain.handle("auth:signInGoogle", () => authClient?.startGoogleSignIn() ?? { ok: false, error: "认证服务未启用。" });
   ipcMain.handle("auth:signOut", () => authClient?.signOut() ?? { ok: false, error: "认证服务未启用。" });
 
   ipcMain.handle("commerce:listCatalog", () => commerceService?.listCatalog() ?? []);
@@ -358,6 +380,10 @@ export function registerIpc(ctx: IpcContext): void {
   ipcMain.handle("commerce:listSubmissions", () => commerceService?.listSubmissions() ?? []);
   ipcMain.handle("commerce:submitTheme", (_event, input: SubmitThemeInput) =>
     commerceService?.submitTheme(input) ?? Promise.reject(new Error("Commerce service not enabled.")),
+  );
+  ipcMain.handle("commerce:retrySubmission", (_event, submissionId: string) =>
+    commerceService?.retrySubmission(submissionId)
+    ?? Promise.reject(new Error("Commerce service not enabled.")),
   );
   ipcMain.handle("commerce:withdrawSubmission", (_event, submissionId: string) =>
     commerceService?.withdrawSubmission(submissionId) ?? Promise.reject(new Error("Commerce service not enabled.")),

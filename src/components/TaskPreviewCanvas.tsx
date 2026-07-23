@@ -4,12 +4,15 @@ import { compileTheme } from "../../electron/engine/compiler";
 import { RetroMessengerPreview } from "./RetroMessengerPreview";
 import { SilkScrollPreview } from "./SilkScrollPreview";
 import { MoonlitImmortalPreview } from "./MoonlitImmortalPreview";
+import { CodexPreviewHeader, CodexPreviewSidebar } from "./CodexPreviewChrome";
 
 export interface TaskPreviewCanvasProps {
   theme: NormalizedTheme;
   heroUrl?: string | null;
   wallpaperUrl?: string | null;
   stampUrl?: string | null;
+  /** Render at the real Codex desktop canvas scale instead of a compact card. */
+  fidelity?: "compact" | "app";
 }
 
 /**
@@ -17,7 +20,7 @@ export interface TaskPreviewCanvasProps {
  * the injected skin uses — lets users judge how a theme looks during an
  * actual conversation before applying it.
  */
-export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: TaskPreviewCanvasProps) {
+export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl, fidelity = "compact" }: TaskPreviewCanvasProps) {
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [compact, setCompact] = useState(false);
 
@@ -45,7 +48,7 @@ export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Ta
   } as React.CSSProperties;
 
   return (
-    <div className="preview-frame">
+    <div className={`preview-frame preview-frame--${fidelity}`}>
       <div className="preview-frame-bar">
         <span className="tl-dot" style={{ background: "#ff5f57" }} />
         <span className="tl-dot" style={{ background: "#febc2e" }} />
@@ -68,48 +71,20 @@ export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Ta
         data-dream-theme={theme.id}
         style={wrapperStyle}
       >
-        {heroUrl && (
-          <div className="mock-bg" style={{ backgroundImage: `url("${heroUrl}")` }} />
-        )}
         <div
           className="mock-tint"
           style={{
-            background: `linear-gradient(112deg, rgba(${hexToRgb(c.background).join(",")},0.96) 30%, rgba(${hexToRgb(c.background).join(",")},0.62) 60%, rgba(${hexToRgb(c.highlight).join(",")},0.22) 100%)`,
+            background: `radial-gradient(circle at 82% 4%, rgba(${hexToRgb(c.accentAlt).join(",")},0.12), transparent 36%), linear-gradient(180deg, ${c.panel} 0%, ${c.background} 100%)`,
           }}
         />
         <div className="mock-inner">
-          <div
-            className="mock-rail"
-            style={{
-              background: c.panel,
-              borderColor: `rgba(${hexToRgb(c.text).join(",")},0.07)`,
-              justifyContent: "flex-start",
-              gap: 10,
-              paddingTop: 14,
-            }}
-          >
-            <div className="mock-rail-item" style={{ color: c.muted, fontSize: 11 }}>
-              ◀ 返回
-            </div>
+          <CodexPreviewSidebar colors={c} page="task" />
+          <section className="mock-app-surface">
+            <CodexPreviewHeader colors={c} page="task" />
             <div
-              className="mock-rail-item"
-              style={{
-                background: `rgba(${hexToRgb(c.accent).join(",")},0.12)`,
-                color: c.accent,
-                borderRadius: 6,
-              }}
+              className={`mock-main mock-task-main mock-task-main--${theme.layout}`}
+              style={{ padding: compact ? 14 : 22, gap: 14 }}
             >
-              当前任务
-            </div>
-            <div className="mock-rail-item" style={{ color: c.muted }}>
-              历史
-            </div>
-          </div>
-
-          <div
-            className={`mock-main mock-task-main mock-task-main--${theme.layout}`}
-            style={{ padding: compact ? 14 : 22, gap: 14 }}
-          >
             <div
               className="mock-thread-header"
               style={{
@@ -238,7 +213,8 @@ export function TaskPreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl }: Ta
                 ▲
               </span>
             </div>
-          </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>

@@ -43,7 +43,11 @@ function requireResource(
   const value = raw[key];
   if (value == null && !required) return null;
   const name = requiredString(value, key);
-  const expected = new RegExp(`^${key}\\.(?:png|jpe?g|webp)$`, "i");
+  // Legacy schema-v1 themes are normalized to v2 before export, but retain
+  // their original `background.*` artwork filename as the v2 hero reference.
+  // It is already part of the package whitelist, so accept it only for hero.
+  const slotName = key === "hero" ? "(?:hero|background)" : key;
+  const expected = new RegExp(`^${slotName}\\.(?:png|jpe?g|webp)$`, "i");
   if (
     isUnsafeEntryPath(name)
     || !expected.test(name)

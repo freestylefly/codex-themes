@@ -13,8 +13,8 @@ import type {
   ThemeConfigV1,
   ThemeConfigV2,
   ThemePalette,
-} from "../shared/types";
-import { deriveShellColors, hexToHsl, hslToHex } from "../shared/tone";
+} from "../shared/types.js";
+import { deriveShellColors, hexToHsl, hslToHex } from "../shared/tone.js";
 
 const DEFAULT_V1_LAYOUT: LayoutKind = "dream-banner";
 

@@ -45,6 +45,23 @@ test("server canonicalizes a valid community theme package", async () => {
   assert.equal(manifest.catalogOnly, undefined);
 });
 
+test("server accepts a normalized legacy theme whose hero keeps background filename", async () => {
+  const result = await validateAndCanonicalizeThemePackage(
+    validPackage((theme, zip) => {
+      theme.hero = "background.png";
+      zip.addFile("background.png", zip.readFile("hero.png")!);
+      zip.deleteFile("hero.png");
+    }),
+    "community-legacy",
+    "1.0.0",
+  );
+  const manifest = JSON.parse(
+    new AdmZip(result.packageBuffer).readAsText("theme.json"),
+  ) as Record<string, unknown>;
+  assert.equal(manifest.hero, "background.png");
+  assert.equal(manifest.preview, "preview.webp");
+});
+
 test("server rejects a missing declared resource", async () => {
   await assert.rejects(
     validateAndCanonicalizeThemePackage(

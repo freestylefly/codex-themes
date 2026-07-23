@@ -41,6 +41,10 @@ interface SubmissionUpload {
   upload: { bucket: string; path: string; token: string };
 }
 
+const API_REQUEST_TIMEOUT_MS = 30_000;
+const FINALIZE_REQUEST_TIMEOUT_MS = 75_000;
+const STORAGE_UPLOAD_TIMEOUT_MS = 120_000;
+
 export class CommerceService extends EventEmitter {
   private apiBaseUrl: string;
   private authClient: AuthClient;
@@ -58,19 +62,66 @@ export class CommerceService extends EventEmitter {
     this.onOpenCheckoutUrl = opts.onOpenCheckoutUrl;
     this.storageClient = createClient(opts.supabaseUrl, opts.supabaseAnonKey, {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+      global: {
+        fetch: (input, init) =>
+          this.fetchWithTimeout(
+            input,
+            init,
+            STORAGE_UPLOAD_TIMEOUT_MS,
+            "主题包上传超时，请检查网络后重试。",
+          ),
+      },
     });
   }
 
-  private async request(input: string | URL | Request, init?: RequestInit): Promise<Response> {
+  private async fetchWithTimeout(
+    input: string | URL | Request,
+    init: RequestInit | undefined,
+    timeoutMs: number,
+    timeoutMessage: string,
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const upstreamSignal = init?.signal;
+    const relayAbort = () => controller.abort(upstreamSignal?.reason);
+    if (upstreamSignal?.aborted) relayAbort();
+    else upstreamSignal?.addEventListener("abort", relayAbort, { once: true });
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(input, { ...init, signal: controller.signal });
+    } catch (error) {
+      if (controller.signal.aborted && !upstreamSignal?.aborted) {
+        throw new Error(timeoutMessage);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+      upstreamSignal?.removeEventListener("abort", relayAbort);
+    }
+  }
+
+  private async request(
+    input: string | URL | Request,
+    init?: RequestInit,
+    timeoutMs = API_REQUEST_TIMEOUT_MS,
+  ): Promise<Response> {
     const token = await this.authClient.getAccessToken();
     const headers = new Headers(init?.headers);
     if (token) headers.set("Authorization", `Bearer ${token}`);
     if (!headers.has("Content-Type") && init?.body) headers.set("Content-Type", "application/json");
-    return fetch(input, { ...init, headers });
+    return this.fetchWithTimeout(
+      input,
+      { ...init, headers },
+      timeoutMs,
+      "服务器响应超时，请稍后重试。",
+    );
   }
 
-  private async json<T>(pathname: string, init?: RequestInit): Promise<T> {
-    const response = await this.request(`${this.apiBaseUrl}${pathname}`, init);
+  private async json<T>(
+    pathname: string,
+    init?: RequestInit,
+    timeoutMs = API_REQUEST_TIMEOUT_MS,
+  ): Promise<T> {
+    const response = await this.request(`${this.apiBaseUrl}${pathname}`, init, timeoutMs);
     if (!response.ok) {
       let message = `请求失败 (${response.status})`;
       try {
@@ -78,6 +129,9 @@ export class CommerceService extends EventEmitter {
         if (body.error) message = body.error;
       } catch {
         // Preserve the status-only message for non-JSON upstream failures.
+      }
+      if (response.headers.get("x-vercel-error") === "FUNCTION_INVOCATION_FAILED") {
+        message = "自动校验服务启动失败，请稍后重新校验。";
       }
       throw new Error(message);
     }
@@ -232,14 +286,31 @@ export class CommerceService extends EventEmitter {
         });
       if (upload.error) throw new Error(`上传主题包失败：${upload.error.message}`);
 
-      return this.json<ThemeSubmission>(
-        `/api/v1/submissions/${encodeURIComponent(created.submission.id)}/finalize`,
-        { method: "POST" },
-      );
+      try {
+        return await this.json<ThemeSubmission>(
+          `/api/v1/submissions/${encodeURIComponent(created.submission.id)}/finalize`,
+          { method: "POST" },
+          FINALIZE_REQUEST_TIMEOUT_MS,
+        );
+      } catch (error) {
+        await this.json<ThemeSubmission>(
+          `/api/v1/submissions/${encodeURIComponent(created.submission.id)}/fail`,
+          { method: "POST" },
+        ).catch(() => {});
+        throw error;
+      }
     } finally {
       if (inspectionDir) await this.store.discardInspection(inspectionDir).catch(() => {});
       await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
     }
+  }
+
+  async retrySubmission(submissionId: string): Promise<ThemeSubmission> {
+    return this.json<ThemeSubmission>(
+      `/api/v1/submissions/${encodeURIComponent(submissionId)}/finalize`,
+      { method: "POST" },
+      FINALIZE_REQUEST_TIMEOUT_MS,
+    );
   }
 
   async withdrawSubmission(submissionId: string): Promise<ThemeSubmission> {

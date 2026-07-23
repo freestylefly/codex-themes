@@ -8,6 +8,7 @@
 import { safeStorage } from "electron";
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { AuthProvider } from "../shared/types";
 
 export interface StoredTokens {
   accessToken: string;
@@ -15,7 +16,7 @@ export interface StoredTokens {
   /** ISO timestamp when the access token expires. */
   expiresAt: string | null;
   /** Provider used to sign in. */
-  provider: "email" | "github";
+  provider: AuthProvider;
 }
 
 export class AuthTokenStore {
@@ -49,7 +50,12 @@ export class AuthTokenStore {
           accessToken: parsed.accessToken,
           refreshToken: parsed.refreshToken,
           expiresAt: typeof parsed.expiresAt === "string" ? parsed.expiresAt : null,
-          provider: parsed.provider === "github" ? "github" : "email",
+          provider:
+            parsed.provider === "google"
+              ? "google"
+              : parsed.provider === "github"
+                ? "github"
+                : "email",
         };
       }
     } catch {

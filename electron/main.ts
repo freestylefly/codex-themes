@@ -111,7 +111,7 @@ function createWindow(paths: AppPaths): void {
   mainWindow = new BrowserWindow({
     width: 1120,
     height: 760,
-    minWidth: 920,
+    minWidth: 760,
     minHeight: 620,
     title: "Codex Themes",
     titleBarStyle: "hiddenInset",

@@ -129,7 +129,7 @@ export class CodexAppServerClient extends EventEmitter {
 
   private async handshake(): Promise<void> {
     const result = await this.request("initialize", {
-      clientInfo: { name: "codex-themes", version: process.env.npm_package_version ?? "0.1.0" },
+      clientInfo: { name: "codex-themes", version: process.env.npm_package_version ?? "0.2.0" },
     }, 10_000);
     this.emit("log", "info", `App Server initialized: ${JSON.stringify(result)}`);
     this.notify("initialized", {});
