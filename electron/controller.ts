@@ -21,12 +21,17 @@ import { PREFERRED_CDP_PORT, SKIN_VERSION } from "./engine/constants";
 import { buildPayload } from "./engine/payload";
 import { removeFromSession, waitForVerifiedSession } from "./engine/verify";
 import { ThemeWatcher } from "./engine/watcher";
-import { connectCodexTargets } from "./engine/cdp";
+import {
+  connectCodexTargets,
+  detectDesktopAppMode,
+  waitForDesktopAppMode,
+} from "./engine/cdp";
 import {
   codexIsRunning,
   discoverCodexApp,
   launchCodexNormally,
   launchCodexWithCdp,
+  openCodexMode,
   selectAvailablePort,
   stopCodex,
   verifiedCdpEndpoint,
@@ -377,6 +382,19 @@ export class ThemeController extends EventEmitter {
       }
       this.cdpHealthy = true;
       this.codexRunning = true;
+
+      // The unified desktop app can reopen in ChatGPT / Work. A theme apply is
+      // an explicit request for the Codex surface, so select it before the
+      // watcher is allowed to inject anything.
+      const appMode = await detectDesktopAppMode(port).catch(() => "unknown" as const);
+      if (appMode === "chatgpt") {
+        this.log("info", "检测到 ChatGPT / Work 模式,正在自动切换到 Codex…");
+        await openCodexMode();
+        if (!(await waitForDesktopAppMode(port, "codex", 15_000))) {
+          throw new Error("无法自动切换到 Codex,请从左上角模式菜单手动选择 Codex 后重试。");
+        }
+        this.log("info", "已自动切换到 Codex,继续应用主题。");
+      }
 
       // 2) Build the payload and (re)start the watcher on this port.
       let themeName: string;

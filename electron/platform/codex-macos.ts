@@ -19,6 +19,8 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 export const CODEX_BUNDLE_ID = "com.openai.codex";
+/** Official desktop deep link that selects Codex and opens a local chat. */
+export const CODEX_NEW_THREAD_URL = "codex://threads/new";
 export const CODEX_APP_CANDIDATES = [
   "/Applications/ChatGPT.app",
   path.join(os.homedir(), "Applications/ChatGPT.app"),
@@ -242,6 +244,11 @@ export async function launchCodexWithCdp(install: CodexInstall, port: number): P
     );
     child.unref();
   }
+}
+
+/** Select the Codex surface in the already-running unified desktop app. */
+export async function openCodexMode(): Promise<void> {
+  await run("/usr/bin/open", ["-b", CODEX_BUNDLE_ID, CODEX_NEW_THREAD_URL]);
 }
 
 export async function launchCodexNormally(bundle: string): Promise<void> {

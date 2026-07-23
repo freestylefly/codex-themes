@@ -18,10 +18,18 @@ export interface CdpTarget {
   webSocketDebuggerUrl?: string;
 }
 
-export interface ProbeResult {
+export type DesktopAppMode = "codex" | "chatgpt" | "unknown";
+
+export interface RawProbeResult {
   title: string;
   href: string;
   markers: { shell: boolean; sidebar: boolean; composer: boolean; main: boolean };
+  modeButtonText: string;
+  modeButtonLabel: string;
+}
+
+export interface ProbeResult extends RawProbeResult {
+  appMode: DesktopAppMode;
   codex: boolean;
 }
 
@@ -161,12 +169,79 @@ export async function listAppTargets(port: number): Promise<CdpTarget[]> {
   }
 }
 
+/** Classify the unified desktop app without depending on the user's locale. */
+export function classifyDesktopAppMode(
+  probe: Pick<RawProbeResult, "title" | "modeButtonText" | "modeButtonLabel">,
+): DesktopAppMode {
+  const buttonText = probe.modeButtonText.trim().toLowerCase();
+  if (buttonText === "chatgpt") return "chatgpt";
+  if (buttonText === "codex") return "codex";
+
+  const buttonLabel = probe.modeButtonLabel.toLowerCase();
+  if (buttonLabel.includes("chatgpt")) return "chatgpt";
+  if (buttonLabel.includes("codex")) return "codex";
+
+  const title = probe.title.trim().toLowerCase();
+  if (title === "chatgpt" || title.startsWith("chatgpt ")) return "chatgpt";
+  if (title === "codex" || title.startsWith("codex ")) return "codex";
+  return "unknown";
+}
+
+export function finalizeProbeResult(raw: RawProbeResult): ProbeResult {
+  const appMode = classifyDesktopAppMode(raw);
+  const markers = raw.markers;
+  const shellMatches = markers.shell && markers.sidebar && (markers.composer || markers.main);
+  return {
+    ...raw,
+    appMode,
+    // Older Codex-only builds may not expose a mode switcher. Preserve those
+    // while explicitly rejecting the unified app's ChatGPT / Work surface.
+    codex: shellMatches && appMode !== "chatgpt",
+  };
+}
+
 export async function probeSession(session: CdpSession): Promise<ProbeResult> {
-  return session.evaluate<ProbeResult>(PROBE_EXPRESSION);
+  return finalizeProbeResult(await session.evaluate<RawProbeResult>(PROBE_EXPRESSION));
 }
 
 export async function connectTarget(target: CdpTarget, port: number): Promise<CdpSession> {
   return new CdpSession(target, port).open();
+}
+
+/** Read the active top-level mode from the unified ChatGPT desktop app. */
+export async function detectDesktopAppMode(port: number): Promise<DesktopAppMode> {
+  const modes: DesktopAppMode[] = [];
+  for (const target of await listAppTargets(port)) {
+    let session: CdpSession | undefined;
+    try {
+      session = await connectTarget(target, port);
+      modes.push((await probeSession(session)).appMode);
+    } catch {
+      // One renderer may disappear while another remains available.
+    } finally {
+      session?.close();
+    }
+  }
+  if (modes.includes("codex")) return "codex";
+  if (modes.includes("chatgpt")) return "chatgpt";
+  return "unknown";
+}
+
+export async function waitForDesktopAppMode(
+  port: number,
+  expected: Exclude<DesktopAppMode, "unknown">,
+  timeoutMs: number,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      if (await detectDesktopAppMode(port) === expected) return true;
+    } catch {
+      // The renderer may be navigating between top-level modes.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+  return false;
 }
 
 /**

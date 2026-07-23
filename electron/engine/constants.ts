@@ -28,6 +28,13 @@ export const CODEX_SHELL_MARKERS = {
 } as const;
 
 export const PROBE_EXPRESSION = `(() => {
+  const modeButton = [...document.querySelectorAll('button')].find((button) => {
+    const rect = button.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0 || rect.left > 360 || rect.top > 160) return false;
+    const text = (button.textContent || '').trim();
+    const label = button.getAttribute('aria-label') || '';
+    return text === 'Codex' || text === 'ChatGPT' || /(?:current mode|当前模式).*(?:Codex|ChatGPT)/i.test(label);
+  }) || null;
   const markers = {
     shell: Boolean(document.querySelector('${CODEX_SHELL_MARKERS.shell}')),
     sidebar: Boolean(document.querySelector('${CODEX_SHELL_MARKERS.sidebar}')),
@@ -38,6 +45,7 @@ export const PROBE_EXPRESSION = `(() => {
     title: document.title,
     href: location.href,
     markers,
-    codex: markers.shell && markers.sidebar && (markers.composer || markers.main),
+    modeButtonText: (modeButton?.textContent || '').trim(),
+    modeButtonLabel: modeButton?.getAttribute('aria-label') || '',
   };
 })()`;

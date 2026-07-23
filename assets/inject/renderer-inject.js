@@ -49,6 +49,31 @@
 
   const cssString = (value) => JSON.stringify(String(value ?? ""));
 
+  /**
+   * ChatGPT / Work and Codex now share one desktop shell. Brand names remain
+   * invariant across locales, so the top-left mode button is a safer boundary
+   * than the generic main/sidebar classes shared by every surface.
+   */
+  const detectProductMode = () => {
+    const modeButton = [...document.querySelectorAll("button")].find((button) => {
+      const rect = button.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0 || rect.left > 360 || rect.top > 160) return false;
+      const text = (button.textContent || "").trim();
+      const label = button.getAttribute("aria-label") || "";
+      return text === "Codex" || text === "ChatGPT" ||
+        /(?:current mode|当前模式).*(?:Codex|ChatGPT)/i.test(label);
+    });
+    const text = (modeButton?.textContent || "").trim().toLowerCase();
+    if (text === "chatgpt") return "chatgpt";
+    if (text === "codex") return "codex";
+    const label = (modeButton?.getAttribute("aria-label") || "").toLowerCase();
+    if (label.includes("chatgpt")) return "chatgpt";
+    if (label.includes("codex")) return "codex";
+    const title = (document.title || "").trim().toLowerCase();
+    if (title === "chatgpt" || title.startsWith("chatgpt ")) return "chatgpt";
+    return title === "codex" || title.startsWith("codex ") ? "codex" : "unknown";
+  };
+
   const parseRgb = (value) => {
     if (!value || value === "transparent") return null;
     const m = String(value).match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i);
@@ -563,6 +588,33 @@
     }
   };
 
+  /**
+   * Remove only the visual layer while keeping the observer and blob URLs
+   * alive. This lets a manual ChatGPT/Work -> Codex switch restore the theme
+   * without another restart, while never styling non-Codex conversations.
+   */
+  const clearVisuals = () => {
+    const root = document.documentElement;
+    root?.classList.remove("codex-dream-skin");
+    [...(root?.classList || [])].forEach((cls) => {
+      if (cls.startsWith("codex-dream-skin--")) root.classList.remove(cls);
+    });
+    root?.removeAttribute(SHELL_ATTR);
+    root?.removeAttribute("data-dream-layout");
+    root?.removeAttribute("data-dream-theme");
+    root?.removeAttribute("data-dream-wallpaper");
+    root?.style.removeProperty("--dream-skin-art");
+    root?.style.removeProperty("--dream-skin-wallpaper");
+    const vars = compileVariables("light");
+    for (const name of Object.keys(vars)) root?.style.removeProperty(name);
+    document.querySelectorAll(".dream-skin-home").forEach((node) => node.classList.remove("dream-skin-home"));
+    document.querySelectorAll(".dream-skin-home-shell").forEach((node) => node.classList.remove("dream-skin-home-shell"));
+    document.getElementById(MOONLIT_WELCOME_ID)?.remove();
+    document.getElementById(BLUE_WINDOW_HOME_ID)?.remove();
+    document.getElementById(STYLE_ID)?.remove();
+    document.getElementById(CHROME_ID)?.remove();
+  };
+
   const existingStyle = document.getElementById(STYLE_ID);
   if (existingStyle) {
     existingStyle.textContent = cssText;
@@ -573,6 +625,12 @@
     if (window[DISABLED_KEY]) return;
     const root = document.documentElement;
     if (!root) return;
+    const productMode = detectProductMode();
+    if (window[STATE_KEY]) window[STATE_KEY].productMode = productMode;
+    if (productMode === "chatgpt") {
+      clearVisuals();
+      return;
+    }
     const shell = detectShellMode();
     const layout = THEME.layout || "dream-banner";
     root.classList.add("codex-dream-skin");
@@ -726,24 +784,7 @@
 
   const cleanup = () => {
     window[DISABLED_KEY] = true;
-    document.documentElement?.classList.remove("codex-dream-skin");
-    document.documentElement?.classList.forEach((cls) => {
-      if (cls.startsWith("codex-dream-skin--")) document.documentElement.classList.remove(cls);
-    });
-    document.documentElement?.removeAttribute(SHELL_ATTR);
-    document.documentElement?.removeAttribute("data-dream-layout");
-    document.documentElement?.removeAttribute("data-dream-theme");
-    document.documentElement?.removeAttribute("data-dream-wallpaper");
-    document.documentElement?.style.removeProperty("--dream-skin-art");
-    document.documentElement?.style.removeProperty("--dream-skin-wallpaper");
-    const vars = compileVariables("light");
-    for (const name of Object.keys(vars)) document.documentElement?.style.removeProperty(name);
-    document.querySelectorAll(".dream-skin-home").forEach((node) => node.classList.remove("dream-skin-home"));
-    document.querySelectorAll(".dream-skin-home-shell").forEach((node) => node.classList.remove("dream-skin-home-shell"));
-    document.getElementById(MOONLIT_WELCOME_ID)?.remove();
-    document.getElementById(BLUE_WINDOW_HOME_ID)?.remove();
-    document.getElementById(STYLE_ID)?.remove();
-    document.getElementById(CHROME_ID)?.remove();
+    clearVisuals();
     const state = window[STATE_KEY];
     state?.observer?.disconnect();
     if (state?.timer) clearInterval(state.timer);
@@ -772,7 +813,8 @@
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ["class", "data-theme", "data-appearance", "data-color-mode", "style"],
+    characterData: true,
+    attributeFilter: ["class", "aria-label", "data-theme", "data-appearance", "data-color-mode", "style"],
   });
   const timer = setInterval(ensure, 4000);
   const resizeHandler = scheduleEnsure;
@@ -801,6 +843,8 @@
     version: VERSION,
     themeId: THEME.id || "custom",
     detectShellMode,
+    detectProductMode,
+    productMode: detectProductMode(),
   };
   ensure();
   return { installed: true, version: VERSION, themeId: THEME.id || "custom", shell: detectShellMode() };
