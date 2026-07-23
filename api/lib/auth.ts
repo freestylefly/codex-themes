@@ -21,7 +21,7 @@ export async function verifyUser(token: string): Promise<VerifiedUser | null> {
   const secret = process.env.SUPABASE_JWT_SECRET;
   if (!secret) {
     // When no JWT secret is configured, fall back to the Supabase Auth server.
-    const { data, error } = await import("./supabase").then((m) =>
+    const { data, error } = await import("./supabase.js").then((m) =>
       m.supabase.auth.getUser(token),
     );
     if (error || !data.user) return null;
