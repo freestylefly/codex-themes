@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHash, randomUUID } from "node:crypto";
-import { supabase } from "../../lib/supabase.js";
-import { getAuthToken, verifyUser } from "../../lib/auth.js";
-import { createAlipayOrder, createAlipayWapOrder, formatYuan } from "../../lib/alipay.js";
+import { supabase } from "../../../server/commerce-api/supabase.js";
+import { getAuthToken, verifyUser } from "../../../server/commerce-api/auth.js";
+import { createAlipayOrder, createAlipayWapOrder, formatYuan } from "../../../server/commerce-api/alipay.js";
 
 function sanitizeIdempotencyKey(raw: unknown): string {
   if (typeof raw === "string" && /^[a-zA-Z0-9_-]{1,64}$/.test(raw)) return raw;

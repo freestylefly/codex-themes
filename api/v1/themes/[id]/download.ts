@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { supabase } from "../../../lib/supabase.js";
-import { getAuthToken, verifyUser } from "../../../lib/auth.js";
+import { supabase } from "../../../../server/commerce-api/supabase.js";
+import { getAuthToken, verifyUser } from "../../../../server/commerce-api/auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {

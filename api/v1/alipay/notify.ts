@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { supabase } from "../../lib/supabase.js";
-import { verifyAlipayNotify } from "../../lib/alipay.js";
+import { supabase } from "../../../server/commerce-api/supabase.js";
+import { verifyAlipayNotify } from "../../../server/commerce-api/alipay.js";
 
 export const config = {
   api: {
