@@ -136,6 +136,11 @@ insert into storage.buckets (id, name, public)
 values ('paid-themes', 'paid-themes', false)
 on conflict (id) do update set public = false;
 
+-- Public catalog artwork. Paid theme packages stay in the private bucket above.
+insert into storage.buckets (id, name, public)
+values ('theme-previews', 'theme-previews', true)
+on conflict (id) do update set public = true;
+
 -- ---------------------------------------------------------------------------
 -- Row Level Security
 -- ---------------------------------------------------------------------------

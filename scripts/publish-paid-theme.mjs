@@ -34,6 +34,14 @@ function parseArgs(argv) {
   return args;
 }
 
+function imageContentType(fileName) {
+  const extension = path.extname(fileName).toLowerCase();
+  if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg";
+  if (extension === ".webp") return "image/webp";
+  if (extension === ".png") return "image/png";
+  throw new Error(`Unsupported preview image type: ${extension || "none"}`);
+}
+
 async function loadThemeJson(dir) {
   const raw = await fs.readFile(path.join(dir, "theme.json"), "utf8");
   return JSON.parse(raw);
@@ -60,7 +68,7 @@ async function main() {
   const dir = path.resolve(args.dir);
   const theme = await loadThemeJson(dir);
   const themeId = args.id ?? theme.id;
-  const priceCents = Number.isFinite(args.price) ? args.price : theme.price_cents ?? 1;
+  const priceCents = Number.isFinite(args.price) ? args.price : theme.priceCents ?? theme.price_cents ?? 1;
   const published = args.published ?? theme.published ?? false;
 
   const { buffer, sha256 } = await buildPackage(dir, themeId);
@@ -70,6 +78,36 @@ async function main() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+  let previewUrl = theme.preview_url;
+  if (!previewUrl) {
+    const previewFile = theme.preview ?? "preview.png";
+    const previewBytes = await fs.readFile(path.join(dir, previewFile));
+    const previewExtension = path.extname(previewFile).toLowerCase();
+    const previewPath = `${themeId}/preview${previewExtension}`;
+
+    const { error: bucketError } = await supabase.storage.getBucket("theme-previews");
+    if (bucketError) {
+      const { error: createBucketError } = await supabase.storage.createBucket("theme-previews", {
+        public: true,
+        fileSizeLimit: 10 * 1024 * 1024,
+        allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
+      });
+      if (createBucketError && !/already exists/i.test(createBucketError.message)) {
+        throw new Error(`Failed to create preview bucket: ${createBucketError.message}`);
+      }
+    }
+
+    const { error: previewError } = await supabase.storage
+      .from("theme-previews")
+      .upload(previewPath, previewBytes, {
+        contentType: imageContentType(previewFile),
+        cacheControl: "3600",
+        upsert: true,
+      });
+    if (previewError) throw new Error(`Failed to upload preview: ${previewError.message}`);
+    previewUrl = supabase.storage.from("theme-previews").getPublicUrl(previewPath).data.publicUrl;
+  }
+
   // Upsert product row.
   const { error: productError } = await supabase.from("theme_products").upsert({
     id: themeId,
@@ -78,7 +116,7 @@ async function main() {
     description: theme.description ?? "",
     version: theme.version,
     layout: theme.layout,
-    preview_url: theme.preview_url ?? `https://codex-themes.vercel.app/paid-themes/${themeId}/preview.png`,
+    preview_url: previewUrl,
     price_cents: priceCents,
     min_engine_version: theme.minEngineVersion ?? "1.0.0",
     published,
