@@ -13,6 +13,7 @@ export interface AuthCallbackAction {
 export interface PaymentResultAction {
   type: "payment-result";
   orderId: string;
+  orderKind: "theme" | "points";
 }
 
 export type DeepLinkAction = OpenThemeAction | AuthCallbackAction | PaymentResultAction;
@@ -61,8 +62,13 @@ function parseDeepLink(raw: string): DeepLinkAction | null {
     if (url.hostname === "payment") {
       if (url.pathname !== "/result") return null;
       const orderId = url.searchParams.get("orderId");
-      if (!orderId) return null;
-      return { type: "payment-result", orderId };
+      const pointOrderId = url.searchParams.get("pointOrderId");
+      if (Boolean(orderId) === Boolean(pointOrderId)) return null;
+      return {
+        type: "payment-result",
+        orderId: pointOrderId ?? orderId!,
+        orderKind: pointOrderId ? "points" : "theme",
+      };
     }
 
     if (url.hostname === "create") {

@@ -20,6 +20,7 @@ import { resolvePickedImage } from "./picked-images";
 import { initAutoUpdater } from "./updater";
 import { CODEX_THEMES_PROTOCOL, parseOpenThemeUrl, parseAuthCallbackUrl, parsePaymentResultUrl } from "./deep-links";
 import type { OpenThemeAction } from "./shared/types";
+import type { PaymentResultAction } from "./deep-links";
 import { AuthClient } from "./auth/client";
 import { AuthTokenStore } from "./auth/store";
 import { CommerceService } from "./commerce/service";
@@ -29,7 +30,7 @@ const pendingOpenFiles: string[] = [];
 const pendingOpenThemeUrls: string[] = [];
 const pendingOpenThemeActions: OpenThemeAction[] = [];
 const pendingAuthCallbacks: string[] = [];
-const pendingPaymentResults: string[] = [];
+const pendingPaymentResults: PaymentResultAction[] = [];
 
 function isCodexthemeFile(file: string): boolean {
   return path.extname(file).toLowerCase() === ".codextheme";
@@ -93,6 +94,18 @@ let controller: ThemeController;
 let themeStore: ThemeStore | null = null;
 let authClient: AuthClient | null = null;
 let commerceService: CommerceService | null = null;
+
+async function reconcilePayment(payment: PaymentResultAction): Promise<void> {
+  if (!commerceService) {
+    pendingPaymentResults.push(payment);
+    return;
+  }
+  if (payment.orderKind === "points") {
+    await commerceService.reconcilePointOrder(payment.orderId);
+  } else {
+    await commerceService.reconcileOrder(payment.orderId);
+  }
+}
 
 function createWindow(paths: AppPaths): void {
   mainWindow = new BrowserWindow({
@@ -184,8 +197,7 @@ app.on("open-url", (event, url) => {
   }
   const payment = parsePaymentResultUrl(url);
   if (payment) {
-    if (commerceService) void commerceService.reconcileOrder(payment.orderId);
-    else pendingPaymentResults.push(payment.orderId);
+    void reconcilePayment(payment);
     showWindow();
     return;
   }
@@ -206,8 +218,7 @@ app.on("second-instance", (_event, argv) => {
     }
     const payment = parsePaymentResultUrl(url);
     if (payment) {
-      if (commerceService) void commerceService.reconcileOrder(payment.orderId);
-      else pendingPaymentResults.push(payment.orderId);
+      void reconcilePayment(payment);
       return;
     }
     if (themeStore) void enqueueOpenThemeUrl(url);
@@ -249,6 +260,8 @@ app.whenReady().then(async () => {
     });
     commerceService = new CommerceService({
       apiBaseUrl: commerceApiUrl,
+      supabaseUrl,
+      supabaseAnonKey,
       authClient,
       store,
       purchasedThemesRoot: paths.purchasedThemesRoot,
@@ -333,8 +346,8 @@ app.whenReady().then(async () => {
 
   // Process payment deep links that arrived before the service was ready.
   while (pendingPaymentResults.length > 0) {
-    const orderId = pendingPaymentResults.shift();
-    if (orderId) await commerceService?.reconcileOrder(orderId);
+    const payment = pendingPaymentResults.shift();
+    if (payment) await reconcilePayment(payment);
   }
 
   const startupUrls = new Set([
@@ -348,7 +361,7 @@ app.whenReady().then(async () => {
     }
     const payment = parsePaymentResultUrl(raw);
     if (payment) {
-      await commerceService?.reconcileOrder(payment.orderId);
+      await reconcilePayment(payment);
       continue;
     }
     await enqueueOpenThemeUrl(raw);

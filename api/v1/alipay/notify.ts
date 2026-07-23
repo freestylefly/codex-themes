@@ -1,6 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { supabase } from "../../../server/commerce-api/supabase.js";
-import { verifyAlipayNotify } from "../../../server/commerce-api/alipay.js";
+import {
+  expectedSellerMatches,
+  formatYuan,
+  getAlipayRuntimeConfig,
+  isPaidTradeNotification,
+  normalizeYuan,
+  verifyAlipayParams,
+} from "../../../server/commerce-api/alipay.js";
 
 export const config = {
   api: {
@@ -13,12 +20,15 @@ async function readBody(req: VercelRequest): Promise<Record<string, unknown>> {
     let data = "";
     req.on("data", (chunk) => {
       data += chunk;
+      if (Buffer.byteLength(data, "utf8") > 128 * 1024) {
+        reject(new Error("Notification body is too large."));
+        req.destroy();
+      }
     });
     req.on("end", () => {
       try {
-        const parsed = new URLSearchParams(data);
         const result: Record<string, unknown> = {};
-        for (const [key, value] of parsed.entries()) {
+        for (const [key, value] of new URLSearchParams(data).entries()) {
           result[key] = value;
         }
         resolve(result);
@@ -26,98 +36,141 @@ async function readBody(req: VercelRequest): Promise<Record<string, unknown>> {
         reject(error);
       }
     });
+    req.on("error", reject);
   });
+}
+
+function text(body: Record<string, unknown>, key: string): string | null {
+  const value = body[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function sanitizeNotification(body: Record<string, unknown>): Record<string, unknown> {
+  const { sign: _sign, ...safeBody } = body;
+  return safeBody;
+}
+
+function respond(res: VercelResponse, status: number, value: "success" | "fail") {
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  return res.status(status).send(value);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return res.status(405).send("Method not allowed");
+    return respond(res, 405, "fail");
   }
 
-  const body = await readBody(req);
+  try {
+    const body = await readBody(req);
+    if (!verifyAlipayParams(body)) {
+      return respond(res, 400, "fail");
+    }
 
-  // Log the raw notification for audit.
-  await supabase.from("payment_events").insert({
-    event_type: "alipay_notify",
-    payload: body,
-  });
+    const appId = text(body, "app_id");
+    const notifyId = text(body, "notify_id");
+    const outTradeNo = text(body, "out_trade_no");
+    const tradeNo = text(body, "trade_no");
+    const tradeStatus = text(body, "trade_status");
+    const totalAmount = text(body, "total_amount");
+    const runtimeConfig = getAlipayRuntimeConfig();
 
-  if (!verifyAlipayNotify(body)) {
-    return res.status(400).send("fail");
+    if (
+      !appId
+      || appId !== runtimeConfig.appId
+      || !notifyId
+      || !outTradeNo
+      || !tradeNo
+      || !tradeStatus
+      || !totalAmount
+      || !expectedSellerMatches(body)
+    ) {
+      return respond(res, 400, "fail");
+    }
+
+    const paidNotification = isPaidTradeNotification(body);
+    if (outTradeNo.startsWith("ctp-")) {
+      const { data: pointOrder, error: pointOrderError } = await supabase
+        .from("point_orders")
+        .select("id, price_cents, status")
+        .eq("out_trade_no", outTradeNo)
+        .single();
+      if (
+        pointOrderError
+        || !pointOrder
+        || normalizeYuan(totalAmount) !== formatYuan(pointOrder.price_cents)
+      ) {
+        return respond(res, 400, "fail");
+      }
+
+      const { error: pointEventError } = await supabase.from("payment_events").upsert(
+        {
+          point_order_id: pointOrder.id,
+          notify_id: notifyId,
+          event_type: paidNotification ? "alipay_point_payment_notify" : "alipay_point_trade_notify",
+          payload: sanitizeNotification(body),
+        },
+        { onConflict: "notify_id", ignoreDuplicates: true },
+      );
+      if (pointEventError) return respond(res, 500, "fail");
+      if (!paidNotification || pointOrder.status === "paid") {
+        return respond(res, 200, "success");
+      }
+
+      const { error: fulfillPointError } = await supabase.rpc(
+        "fulfill_point_order_payment",
+        {
+          p_order_id: pointOrder.id,
+          p_paid_at: new Date().toISOString(),
+          p_alipay_trade_no: tradeNo,
+        },
+      );
+      return fulfillPointError
+        ? respond(res, 500, "fail")
+        : respond(res, 200, "success");
+    }
+
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select("id, user_id, theme_id, price_cents, status, theme_products(version)")
+      .eq("out_trade_no", outTradeNo)
+      .single();
+
+    if (orderError || !order || normalizeYuan(totalAmount) !== formatYuan(order.price_cents)) {
+      return respond(res, 400, "fail");
+    }
+
+    const { error: eventError } = await supabase.from("payment_events").upsert(
+      {
+        order_id: order.id,
+        notify_id: notifyId,
+        event_type: paidNotification ? "alipay_payment_notify" : "alipay_trade_notify",
+        payload: sanitizeNotification(body),
+      },
+      { onConflict: "notify_id", ignoreDuplicates: true },
+    );
+    if (eventError) {
+      return respond(res, 500, "fail");
+    }
+
+    if (!paidNotification || order.status === "paid") {
+      return respond(res, 200, "success");
+    }
+
+    const version = (order.theme_products as unknown as { version: string } | null)?.version ?? "1.0.0";
+    const { error: fulfillError } = await supabase.rpc("fulfill_order_payment", {
+      p_order_id: order.id,
+      p_user_id: order.user_id,
+      p_theme_id: order.theme_id,
+      p_version: version,
+      p_paid_at: new Date().toISOString(),
+      p_alipay_trade_no: tradeNo,
+    });
+    if (fulfillError) {
+      return respond(res, 500, "fail");
+    }
+
+    return respond(res, 200, "success");
+  } catch {
+    return respond(res, 500, "fail");
   }
-
-  const appId = body.app_id as string | undefined;
-  if (appId !== process.env.ALIPAY_APP_ID) {
-    return res.status(400).send("fail");
-  }
-
-  const outTradeNo = body.out_trade_no as string | undefined;
-  const tradeNo = body.trade_no as string | undefined;
-  const tradeStatus = body.trade_status as string | undefined;
-  const totalAmount = body.total_amount as string | undefined;
-  const sellerId = body.seller_id as string | undefined;
-
-  if (!outTradeNo || !tradeNo || !tradeStatus || !totalAmount) {
-    return res.status(400).send("fail");
-  }
-
-  if (!["TRADE_SUCCESS", "TRADE_FINISHED"].includes(tradeStatus)) {
-    return res.status(200).send("success");
-  }
-
-  // Look up the order and verify amount/seller.
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .select("id, user_id, theme_id, price_cents, status, theme_products(version)")
-    .eq("out_trade_no", outTradeNo)
-    .single();
-
-  if (orderError || !order) {
-    return res.status(200).send("success");
-  }
-
-  const expectedAmount = (order.price_cents / 100).toFixed(2);
-  if (totalAmount !== expectedAmount) {
-    return res.status(400).send("fail");
-  }
-  if (sellerId && sellerId !== process.env.ALIPAY_SELLER_ID) {
-    return res.status(400).send("fail");
-  }
-
-  if (order.status === "paid") {
-    return res.status(200).send("success");
-  }
-
-  // Idempotency: skip if a payment event already fulfilled this order.
-  const { data: existingEvent } = await supabase
-    .from("payment_events")
-    .select("id")
-    .eq("order_id", order.id)
-    .eq("event_type", "order_fulfilled")
-    .maybeSingle();
-  if (existingEvent) {
-    return res.status(200).send("success");
-  }
-
-  const version = (order.theme_products as unknown as { version: string } | null)?.version ?? "1.0.0";
-  const { error: fulfillError } = await supabase.rpc("fulfill_order", {
-    p_order_id: order.id,
-    p_user_id: order.user_id,
-    p_theme_id: order.theme_id,
-    p_version: version,
-    p_paid_at: new Date().toISOString(),
-  });
-
-  if (fulfillError) {
-    console.error("notify fulfill error:", fulfillError);
-    return res.status(500).send("fail");
-  }
-
-  await supabase.from("payment_events").insert({
-    order_id: order.id,
-    event_type: "order_fulfilled",
-    payload: { trade_no: tradeNo, trade_status: tradeStatus },
-  });
-
-  return res.status(200).send("success");
 }

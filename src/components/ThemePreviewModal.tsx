@@ -1,4 +1,4 @@
-import { Check, Loader2, Play, ShoppingCart, Download, X } from "lucide-react";
+import { Check, Coins, CreditCard, Loader2, Play, Download, X } from "lucide-react";
 import { useEffect } from "react";
 import type { CommerceThemeSummary } from "../../electron/shared/types";
 import { useApp } from "../store";
@@ -9,10 +9,11 @@ interface ThemePreviewModalProps {
   theme: CommerceThemeSummary;
   onClose(): void;
   onPurchase?(): void;
+  onAlipay?(): void;
   onDownload?(): void;
 }
 
-export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: ThemePreviewModalProps) {
+export function ThemePreviewModal({ theme, onClose, onPurchase, onAlipay, onDownload }: ThemePreviewModalProps) {
   const state = useApp((s) => s.state);
   const applyingId = useApp((s) => s.applyingId);
   const apply = useApp((s) => s.apply);
@@ -70,7 +71,9 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: Th
             {theme.version && <span className="badge badge-version">v{theme.version}</span>}
             {theme.readOnly && <span className="badge badge-readonly">只读</span>}
             {isPaid && !isOwned && theme.product && (
-              <span className="badge badge-paid">{formatPrice(theme.product.priceCents)}</span>
+              <span className="badge badge-paid">
+                {theme.product.pricePoints > 0 ? `${theme.product.pricePoints} 积分` : "免费"}
+              </span>
             )}
             {catalogOnly && !theme.product && (
               <span className="badge badge-paid">付费</span>
@@ -85,20 +88,31 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: Th
               <Check size={13} strokeWidth={2.5} />当前主题
             </span>
           ) : isPaid && !isOwned ? (
-            <button type="button" className="btn btn-primary" onClick={() => {
-              onClose();
-              onPurchase?.();
-            }}>
-              <ShoppingCart size={14} strokeWidth={2.5} />
-              {theme.product ? `${formatPrice(theme.product.priceCents)} 购买并使用` : "购买"}
-            </button>
+            <div className="marketplace-actions">
+              <button type="button" className="btn btn-primary" onClick={() => {
+                onClose();
+                onPurchase?.();
+              }}>
+                <Coins size={14} strokeWidth={2.5} />
+                {theme.product?.pricePoints ? `${theme.product.pricePoints} 积分解锁` : "免费解锁"}
+              </button>
+              {theme.product && theme.product.priceCents > 0 && (
+                <button type="button" className="btn btn-secondary" onClick={() => {
+                  onClose();
+                  onAlipay?.();
+                }}>
+                  <CreditCard size={14} />
+                  支付宝 ¥{(theme.product.priceCents / 100).toFixed(2)}
+                </button>
+              )}
+            </div>
           ) : catalogOnly ? (
             <button type="button" className="btn btn-primary" onClick={() => {
               onClose();
               onPurchase?.();
             }}>
-              <ShoppingCart size={14} strokeWidth={2.5} />
-              购买
+              <Coins size={14} strokeWidth={2.5} />
+              解锁
             </button>
           ) : isOwned && !isInstalled ? (
             <button type="button" className="btn btn-primary" onClick={() => {
@@ -124,8 +138,4 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onDownload }: Th
       </section>
     </div>
   );
-}
-
-function formatPrice(cents: number): string {
-  return `¥${(cents / 100).toFixed(2)}`;
 }

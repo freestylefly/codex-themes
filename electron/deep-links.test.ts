@@ -77,6 +77,15 @@ describe("parsePaymentResultUrl", () => {
     assert.deepEqual(parsePaymentResultUrl("codexthemes://payment/result?orderId=ord-123"), {
       type: "payment-result",
       orderId: "ord-123",
+      orderKind: "theme",
+    });
+  });
+
+  it("parses a point order payment result", () => {
+    assert.deepEqual(parsePaymentResultUrl("codexthemes://payment/result?pointOrderId=points-123"), {
+      type: "payment-result",
+      orderId: "points-123",
+      orderKind: "points",
     });
   });
 

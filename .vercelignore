@@ -10,3 +10,4 @@ web/dist/
 .DS_Store
 *.log
 tmp/
+.alipay-sandbox.json

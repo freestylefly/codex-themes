@@ -15,6 +15,7 @@ import type {
   LogLine,
   OpenThemeAction,
   PurchaseOrder,
+  PointOrder,
   RendererSettings,
   ThemeDraftInput,
   ThemeGenerationRequest,
@@ -87,8 +88,43 @@ const api: CodexThemesApi = {
   commerceReconcileOrder: (orderId: string) =>
     ipcRenderer.invoke("commerce:reconcileOrder", orderId),
   commerceListEntitlements: () => ipcRenderer.invoke("commerce:listEntitlements"),
+  commerceUnlockTheme: (themeId: string) => ipcRenderer.invoke("commerce:unlockTheme", themeId),
   commerceDownloadTheme: (themeId: string) =>
     ipcRenderer.invoke("commerce:downloadTheme", themeId),
+  commerceGetProfile: () => ipcRenderer.invoke("commerce:getProfile"),
+  commerceUpdateProfile: (input) => ipcRenderer.invoke("commerce:updateProfile", input),
+  commerceUploadAvatar: () => ipcRenderer.invoke("commerce:uploadAvatar"),
+  commerceGetWallet: () => ipcRenderer.invoke("commerce:getWallet"),
+  commerceListPointPacks: () => ipcRenderer.invoke("commerce:listPointPacks"),
+  commerceListPointLedger: () => ipcRenderer.invoke("commerce:listPointLedger"),
+  commerceCreatePointOrder: (packId: string) =>
+    ipcRenderer.invoke("commerce:createPointOrder", packId),
+  commerceGetPointOrder: (orderId: string) =>
+    ipcRenderer.invoke("commerce:getPointOrder", orderId),
+  commerceReconcilePointOrder: (orderId: string) =>
+    ipcRenderer.invoke("commerce:reconcilePointOrder", orderId),
+  commerceListSubmissions: () => ipcRenderer.invoke("commerce:listSubmissions"),
+  commerceSubmitTheme: (input) => ipcRenderer.invoke("commerce:submitTheme", input),
+  commerceWithdrawSubmission: (submissionId: string) =>
+    ipcRenderer.invoke("commerce:withdrawSubmission", submissionId),
+  commerceUnpublishOwnTheme: (themeId: string, reason: string) =>
+    ipcRenderer.invoke("commerce:unpublishOwnTheme", themeId, reason),
+  commerceAdminListSubmissions: (status) =>
+    ipcRenderer.invoke("commerce:adminListSubmissions", status),
+  commerceAdminReviewSubmission: (submissionId, input) =>
+    ipcRenderer.invoke("commerce:adminReviewSubmission", submissionId, input),
+  commerceAdminGetOverview: () => ipcRenderer.invoke("commerce:adminGetOverview"),
+  commerceAdminAdjustPoints: (input) => ipcRenderer.invoke("commerce:adminAdjustPoints", input),
+  commerceAdminSetThemeState: (themeId, input) =>
+    ipcRenderer.invoke("commerce:adminSetThemeState", themeId, input),
+  commerceAdminReconcilePointOrder: (orderId: string) =>
+    ipcRenderer.invoke("commerce:adminReconcilePointOrder", orderId),
+  commerceAdminRefundPointOrder: (orderId: string, reason: string) =>
+    ipcRenderer.invoke("commerce:adminRefundPointOrder", orderId, reason),
+  commerceAdminReconcileThemeOrder: (orderId: string) =>
+    ipcRenderer.invoke("commerce:adminReconcileThemeOrder", orderId),
+  commerceAdminRefundThemeOrder: (orderId: string, reason: string) =>
+    ipcRenderer.invoke("commerce:adminRefundThemeOrder", orderId, reason),
 
   onStateChanged: (cb: (state: AppState) => void) => subscribe("app:stateChanged", cb),
   onOpenThemeActionAvailable: (cb: () => void) =>
@@ -100,6 +136,8 @@ const api: CodexThemesApi = {
     subscribe("ai:approvalRequested", cb),
   onAuthChanged: (cb: (state: AuthState) => void) => subscribe("auth:changed", cb),
   onOrderChanged: (cb: (order: PurchaseOrder) => void) => subscribe("commerce:orderChanged", cb),
+  onPointOrderChanged: (cb: (order: PointOrder) => void) =>
+    subscribe("commerce:pointOrderChanged", cb),
 };
 
 contextBridge.exposeInMainWorld("codexThemes", {

@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { data, error } = await supabase
     .from("entitlements")
-    .select("theme_id, version, status, created_at, theme_products(name)")
+    .select("theme_id, version, status, acquisition_type, points_spent, creator_reward_points, created_at, theme_products(name)")
     .eq("user_id", user.id)
     .eq("status", "active")
     .order("created_at", { ascending: false });
@@ -30,6 +30,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       themeName: (item.theme_products as unknown as { name: string } | null)?.name ?? item.theme_id,
       version: item.version,
       status: item.status,
+      acquisitionType: item.acquisition_type,
+      pointsSpent: item.points_spent,
+      creatorRewardPoints: item.creator_reward_points,
       createdAt: item.created_at,
     })),
   );

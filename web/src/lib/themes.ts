@@ -104,10 +104,10 @@ const allThemes: WebTheme[] = Object.entries(manifestModules)
   })
   .sort((a, b) => {
     const featuredOrder = [
+      "moonlit-immortal",
       "blue-window-messenger",
       "mirror-lake-ribbon",
       "starcap-teemo",
-      "moonlit-immortal",
       "shanhai-nexus",
       "neon-star-hunter",
       "mecha-cat-studio",

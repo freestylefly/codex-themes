@@ -254,6 +254,8 @@ export type AuthProvider = "email" | "github";
 export interface AuthUserSummary {
   id: string;
   email: string;
+  /** Provider display name, falling back to the account email. */
+  displayName: string;
   avatarUrl: string | null;
   provider: AuthProvider;
   /** ISO timestamp of account creation. */
@@ -280,15 +282,176 @@ export interface ThemeProduct {
   previewUrl: string;
   /** Price in Chinese yuan cents. */
   priceCents: number;
+  /** Point price used for every new marketplace unlock. */
+  pricePoints: number;
   minEngineVersion: string;
   /** Whether the product is publicly listed. */
   published: boolean;
+  origin: "official" | "community";
+  authorId: string | null;
+  author: PublicCreatorProfile | null;
+  /** Unique users who have unlocked this theme. */
+  unlockCount: number;
+  downloadsEnabled: boolean;
+  publishedAt: string | null;
 }
 
-export type PurchaseOrderStatus = "pending" | "paid" | "closed" | "failed" | "refunded";
+export interface PublicCreatorProfile {
+  handle: string | null;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export interface CreatorProfile extends PublicCreatorProfile {
+  id: string;
+  email: string;
+  provider: AuthProvider;
+  createdAt: string;
+  isAdmin: boolean;
+}
+
+export interface PointWallet {
+  balance: number;
+  lifetimePurchased: number;
+  lifetimeEarned: number;
+  lifetimeSpent: number;
+  updatedAt: string;
+}
+
+export interface PointPack {
+  id: string;
+  name: string;
+  priceCents: number;
+  basePoints: number;
+  bonusPoints: number;
+  totalPoints: number;
+}
+
+export type PointOrderStatus =
+  | "pending"
+  | "paid"
+  | "refund_pending"
+  | "refunded"
+  | "closed"
+  | "failed";
+
+export interface PointOrder {
+  id: string;
+  userId?: string;
+  packId: string;
+  packName: string;
+  priceCents: number;
+  basePoints: number;
+  bonusPoints: number;
+  totalPoints: number;
+  status: PointOrderStatus;
+  outTradeNo: string;
+  createdAt: string;
+  paidAt: string | null;
+  refundedAt: string | null;
+  checkoutUrl?: string;
+}
+
+export type PointLedgerEntryType =
+  | "topup"
+  | "theme_unlock"
+  | "creator_reward"
+  | "refund_hold"
+  | "refund_reversal"
+  | "admin_adjustment";
+
+export interface PointLedgerEntry {
+  id: string;
+  userId?: string;
+  delta: number;
+  balanceAfter: number;
+  entryType: PointLedgerEntryType;
+  themeId: string | null;
+  reason: string | null;
+  createdAt: string;
+}
+
+export type ThemeSubmissionStatus =
+  | "uploading"
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "withdrawn"
+  | "failed";
+
+export interface ThemeSubmission {
+  id: string;
+  themeId: string;
+  authorId: string;
+  revision: number;
+  version: string;
+  sourceKind: "custom" | "ai";
+  status: ThemeSubmissionStatus;
+  proposedPricePoints: number;
+  approvedPricePoints: number | null;
+  name: string;
+  tagline: string;
+  description: string;
+  layout: LayoutKind;
+  previewUrl: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewReason: string | null;
+  createdAt: string;
+  author?: PublicCreatorProfile | null;
+}
+
+export interface SubmitThemeInput {
+  localThemeId: string;
+  sourceKind: "custom" | "ai";
+  proposedPricePoints: 0 | 49 | 99 | 199 | 399;
+  rightsAccepted: true;
+  /** Set when submitting a new revision of an existing community theme. */
+  themeId?: string;
+}
+
+export interface AdminOverview {
+  pendingSubmissions: number;
+  publishedCommunityThemes: number;
+  paidPointOrders: number;
+  paidThemeOrders: number;
+  grossPointRevenueCents: number;
+  grossThemeRevenueCents: number;
+  pointsInCirculation: number;
+  lifetimePointsPurchased: number;
+  lifetimeCreatorRewards: number;
+  lifetimePointsSpent: number;
+  recentPointOrders: PointOrder[];
+  recentThemeOrders: PurchaseOrder[];
+  recentLedger: PointLedgerEntry[];
+  userBalances: Array<{
+    userId: string;
+    handle: string | null;
+    displayName: string;
+    balance: number;
+    lifetimePurchased: number;
+    lifetimeEarned: number;
+    lifetimeSpent: number;
+  }>;
+  themeSales: Array<{
+    themeId: string;
+    name: string;
+    unlockCount: number;
+    pointsSpent: number;
+    creatorRewards: number;
+  }>;
+}
+
+export type PurchaseOrderStatus =
+  | "pending"
+  | "paid"
+  | "closed"
+  | "failed"
+  | "refunded";
 
 export interface PurchaseOrder {
   id: string;
+  userId?: string;
   themeId: string;
   themeName: string;
   priceCents: number;
@@ -310,6 +473,9 @@ export interface ThemeEntitlement {
   status: "active" | "revoked";
   /** ISO timestamp when the entitlement was granted. */
   createdAt: string;
+  acquisitionType?: "legacy_alipay" | "alipay" | "points" | "free" | "author";
+  pointsSpent?: number;
+  creatorRewardPoints?: number;
 }
 
 export interface CommerceThemeSummary extends ThemeSummary {
@@ -725,7 +891,40 @@ export interface CodexThemesApi {
   commerceGetOrder(orderId: string): Promise<PurchaseOrder>;
   commerceReconcileOrder(orderId: string): Promise<PurchaseOrder>;
   commerceListEntitlements(): Promise<ThemeEntitlement[]>;
+  commerceUnlockTheme(themeId: string): Promise<ThemeEntitlement>;
   commerceDownloadTheme(themeId: string): Promise<{ ok: boolean; error?: string; filePath?: string }>;
+  commerceGetProfile(): Promise<CreatorProfile>;
+  commerceUpdateProfile(input: { handle: string; displayName: string }): Promise<CreatorProfile>;
+  /** Opens the native image picker and uploads a normalized profile avatar. */
+  commerceUploadAvatar(): Promise<CreatorProfile | null>;
+  commerceGetWallet(): Promise<PointWallet>;
+  commerceListPointPacks(): Promise<PointPack[]>;
+  commerceListPointLedger(): Promise<PointLedgerEntry[]>;
+  commerceCreatePointOrder(packId: string): Promise<PointOrder>;
+  commerceGetPointOrder(orderId: string): Promise<PointOrder>;
+  commerceReconcilePointOrder(orderId: string): Promise<PointOrder>;
+  commerceListSubmissions(): Promise<ThemeSubmission[]>;
+  commerceSubmitTheme(input: SubmitThemeInput): Promise<ThemeSubmission>;
+  commerceWithdrawSubmission(submissionId: string): Promise<ThemeSubmission>;
+  commerceUnpublishOwnTheme(themeId: string, reason: string): Promise<{ ok: boolean }>;
+  commerceAdminListSubmissions(status?: ThemeSubmissionStatus): Promise<ThemeSubmission[]>;
+  commerceAdminReviewSubmission(
+    submissionId: string,
+    input: { action: "approve" | "reject"; pricePoints?: number; reason: string },
+  ): Promise<ThemeSubmission>;
+  commerceAdminGetOverview(): Promise<AdminOverview>;
+  commerceAdminAdjustPoints(input: { userId: string; delta: number; reason: string }): Promise<PointWallet>;
+  commerceAdminSetThemeState(
+    themeId: string,
+    input: {
+      action: "unpublish" | "republish" | "suspend_downloads" | "restore_downloads";
+      reason: string;
+    },
+  ): Promise<{ ok: boolean }>;
+  commerceAdminReconcilePointOrder(orderId: string): Promise<PointOrder>;
+  commerceAdminRefundPointOrder(orderId: string, reason: string): Promise<PointOrder>;
+  commerceAdminReconcileThemeOrder(orderId: string): Promise<PurchaseOrder>;
+  commerceAdminRefundThemeOrder(orderId: string, reason: string): Promise<PurchaseOrder>;
 
   onStateChanged(cb: (state: AppState) => void): () => void;
   /** Fired when a website deep-link action is ready to consume. */
@@ -741,4 +940,6 @@ export interface CodexThemesApi {
   onAuthChanged(cb: (state: AuthState) => void): () => void;
   /** Fired when an order status changes (payment completed, etc.). */
   onOrderChanged(cb: (order: PurchaseOrder) => void): () => void;
+  /** Fired when a point-pack order changes. */
+  onPointOrderChanged(cb: (order: PointOrder) => void): () => void;
 }

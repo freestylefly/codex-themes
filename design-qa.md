@@ -879,3 +879,66 @@ final result: passed
 - P3: add dedicated illustrated quick-action assets only if they can remain stable across Codex host updates.
 
 final result: passed
+
+---
+
+# Account and points redesign QA
+
+- Source visual truth: `/Users/canghe/.codex/generated_images/019f8e03-7663-7d43-941f-9b4008b07bf4/call_Um1UtjjzJt1sFibuhg5ksMq2.png`
+- Implementation screenshot: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/account-implementation-final.jpeg`
+- Full-view comparison: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/account-comparison-final.jpeg`
+- Focused hero comparison: `/Users/canghe/responsibility/canghe/codex-themes/tmp/design-qa/account-comparison-hero-final.jpeg`
+- Viewport/state: full-screen Electron window, authenticated account page, dark theme, zero-balance/empty-ledger live state.
+- Source pixels: 1536 × 1024.
+- Implementation capture pixels: 1147 × 716.
+- Normalization: the source was top-aligned and cover-cropped to 1148 × 716; the implementation was normalized by one horizontal pixel to 1148 × 716 for the side-by-side comparison. The Computer Use capture is treated as a 1× desktop capture.
+
+## Findings
+
+No actionable P0, P1, or P2 visual differences remain.
+
+- Fonts and typography: the implementation uses the existing SF Pro Text / PingFang SC system stack. Heading weight, muted body copy, numeric balance emphasis, truncation, and form text hierarchy preserve the visual target without introducing another font.
+- Spacing and layout rhythm: the identity/wallet hero, four-part recharge strip, and profile/activity split match the selected direction. The normal window stacks the responsive regions without overlap; the full-screen view preserves the two-column hierarchy.
+- Colors and visual tokens: the existing warm-ink background, honey-gold wallet accent, violet creator accent, dividers, and restrained elevation map closely to the target. Contrast remains readable for primary text, muted text, and form controls.
+- Image quality and asset fidelity: a real login avatar is used when available. The email-login fallback is a generated 512 × 512 WebP asset rather than a placeholder; a custom uploaded avatar overrides both. The circular crop is sharp and includes a visible upload affordance.
+- Copy and content: the implementation keeps the product's real point packs (60/330/800 and ¥6/¥30/¥68), rather than the inaccurate values produced by the visual mock. Full email addresses remain hidden.
+- Icons: visible controls use the project's established Lucide icon family with consistent stroke weight and optical sizing. Alipay recharge is identified by both a blue payment mark and text.
+- States and interactions: account navigation, profile-editor scroll/focus, input focus and disabled save states, refresh, native avatar picker, pending-payment state, pack selection, empty ledger, and sign-out affordance are represented. Financial purchase actions were not executed during visual QA.
+- Accessibility: controls are semantic buttons/inputs with labels or titles, the avatar has descriptive alt text, focus styling is visible, and responsive layouts avoid clipping.
+
+## Comparison history
+
+### Pass 1
+
+- Evidence: `tmp/design-qa/account-comparison-pass-1.jpeg`
+- [P2] The extra page title/description toolbar pushed the identity hero too far down and weakened the selected design's profile-first hierarchy.
+- Fix: removed the redundant toolbar and moved refresh into the creator action cluster beside “编辑资料”.
+
+### Pass 2
+
+- Evidence: `tmp/design-qa/account-comparison-final.jpeg` and `tmp/design-qa/account-comparison-hero-final.jpeg`
+- Result: the hero begins at the same visual level as the source, identity and wallet balance correctly share the top row, the recharge strip follows immediately, and the lower profile/activity columns align without crowding.
+
+## Intentional differences and test gaps
+
+- The source mock contains illustrative balance, sales, and ledger data. The implementation screenshot uses the signed-in account's real zero-balance/empty-ledger state and its real login avatar.
+- The source highlights “创作者中心” in the sidebar; the implementation correctly highlights the signed-in account item because this is the account page.
+- The new account, wallet, avatar, and point APIs are implemented locally but not deployed to `theme.codexguide.ai`, so the current development log still records expected 404 responses from that production host. Network-backed avatar upload and payment completion require the backend migration/deployment before end-to-end testing.
+
+## Verification
+
+- Primary account navigation: passed.
+- “编辑资料” scroll and focus interaction: passed.
+- Narrow-window responsive layout: passed.
+- Full-screen desktop layout: passed.
+- Renderer visual console/build state: no renderer layout exceptions observed; known server 404s are documented above.
+- TypeScript and Astro checks: passed.
+- Automated tests: 163 passed.
+- Electron production build: passed after final image-asset optimization; the fallback avatar bundles as a 14.14 kB WebP.
+
+## Follow-up polish
+
+- P3: once live ledger data is available, verify long theme titles and four-digit reward values in the activity rows.
+- P3: consider a crop-position editor in a later avatar iteration; the current upload uses a safe centered square crop.
+
+final result: passed

@@ -36,16 +36,47 @@ export function createSupabaseClient(): SupabaseClient {
       autoRefreshToken: false,
       persistSession: false,
       detectSessionInUrl: false,
+      flowType: "pkce",
     },
   });
 }
 
 function toAuthUser(session: Session): AuthUserSummary {
   const provider = session.user.app_metadata?.provider ?? "email";
+  const metadata = session.user.user_metadata ?? {};
+  const displayNameCandidates = [
+    metadata.full_name,
+    metadata.name,
+    metadata.user_name,
+    metadata.preferred_username,
+  ];
+  const displayName =
+    displayNameCandidates.find(
+      (value): value is string => typeof value === "string" && value.trim().length > 0,
+    )?.trim() ??
+    session.user.email ??
+    "账号";
+  const avatarCandidate =
+    typeof metadata.avatar_url === "string"
+      ? metadata.avatar_url
+      : typeof metadata.picture === "string"
+        ? metadata.picture
+        : null;
+  const avatarUrl = (() => {
+    if (!avatarCandidate) return null;
+    try {
+      const parsed = new URL(avatarCandidate);
+      return parsed.protocol === "https:" ? parsed.toString() : null;
+    } catch {
+      return null;
+    }
+  })();
+
   return {
     id: session.user.id,
     email: session.user.email ?? "",
-    avatarUrl: session.user.user_metadata?.avatar_url ?? null,
+    displayName,
+    avatarUrl,
     provider: provider === "github" ? "github" : "email",
     createdAt: session.user.created_at,
   };
@@ -72,7 +103,6 @@ export class AuthClient extends EventEmitter {
   private currentSession: Session | null = null;
   private currentState: AuthState = toAuthState("loading", null);
   private refreshTimer: NodeJS.Timeout | null = null;
-  private pendingPkceVerifier: string | null = null;
 
   constructor(opts: AuthClientOptions) {
     super();
@@ -81,6 +111,7 @@ export class AuthClient extends EventEmitter {
         autoRefreshToken: false,
         persistSession: false,
         detectSessionInUrl: false,
+        flowType: "pkce",
       },
     });
     this.tokenStore = opts.tokenStore;
@@ -154,9 +185,6 @@ export class AuthClient extends EventEmitter {
       },
     });
     if (error || !data.url) return { ok: false, error: formatAuthError(error) };
-    // Extract PKCE verifier that Supabase generated for this flow.
-    const verifier = (data as unknown as { provider?: string; url?: string; verifier?: string }).verifier ?? null;
-    this.pendingPkceVerifier = verifier;
     this.onOpenExternalUrl(data.url);
     return { ok: true, url: data.url };
   }
@@ -167,11 +195,6 @@ export class AuthClient extends EventEmitter {
       const parsed = new URL(url);
       const code = parsed.searchParams.get("code");
       if (!code) return;
-      const verifier = this.pendingPkceVerifier;
-      if (!verifier) {
-        this.setState({ ...this.currentState, status: "error", error: "未找到 OAuth 验证信息,请重新发起登录。" });
-        return;
-      }
       const { data, error } = await this.client.auth.exchangeCodeForSession(code);
       if (error || !data.session) {
         this.setState({ ...this.currentState, status: "error", error: formatAuthError(error) });
@@ -179,7 +202,6 @@ export class AuthClient extends EventEmitter {
       }
       await this.applySession(data.session, "github");
     } finally {
-      this.pendingPkceVerifier = null;
       this.onAuthUrlHandled?.();
     }
   }

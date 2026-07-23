@@ -11,3 +11,5 @@ web/dist/
 tmp/
 .env*
 *.enc
+/.alipay-sandbox.json
+supabase/.temp/

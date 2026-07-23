@@ -1,5 +1,6 @@
-import { LayoutGrid, Loader2, Palette, Settings2, Sparkles, User, Wand2 } from "lucide-react";
+import { LayoutGrid, Loader2, Palette, Settings2, ShieldCheck, Sparkles, Store, User, Wand2 } from "lucide-react";
 import { useEffect } from "react";
+import defaultCreatorAvatar from "./assets/creator-default-avatar.webp";
 import { ConfirmRestartModal } from "./components/ConfirmRestartModal";
 import { OpenThemeModal } from "./components/OpenThemeModal";
 import { StatusCard } from "./components/StatusCard";
@@ -10,12 +11,15 @@ import { Gallery } from "./pages/Gallery";
 import { Onboarding } from "./pages/Onboarding";
 import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
+import { Admin } from "./pages/Admin";
+import { CreatorCenter } from "./pages/CreatorCenter";
 import { useApp, type Page } from "./store";
 
 const NAV: { page: Page; label: string; icon: React.ReactNode }[] = [
   { page: "gallery", label: "主题画廊", icon: <LayoutGrid size={15} /> },
   { page: "ai-studio", label: "AI 生成主题", icon: <Sparkles size={15} /> },
   { page: "editor", label: "自定义主题", icon: <Wand2 size={15} /> },
+  { page: "creator", label: "创作者中心", icon: <Store size={15} /> },
   { page: "settings", label: "设置", icon: <Settings2 size={15} /> },
 ];
 
@@ -25,6 +29,8 @@ export function App() {
   const setPage = useApp((s) => s.setPage);
   const settings = useApp((s) => s.settings);
   const auth = useApp((s) => s.auth);
+  const profile = useApp((s) => s.profile);
+  const wallet = useApp((s) => s.wallet);
   const init = useApp((s) => s.init);
 
   useEffect(() => {
@@ -68,13 +74,42 @@ export function App() {
             {item.label}
           </button>
         ))}
+        {profile?.isAdmin && (
+          <button
+            className={`nav-item${page === "admin" ? " active" : ""}`}
+            onClick={() => setPage("admin")}
+          >
+            <ShieldCheck size={15} />
+            审核与财务
+          </button>
+        )}
         <div className="sidebar-spacer" />
         <button
           className={`nav-item nav-item--account${page === "account" ? " active" : ""}`}
           onClick={() => setPage("account")}
         >
-          <User size={15} />
-          {isAuthenticated ? auth.user?.email ?? "账号" : "登录 / 账号"}
+          <span className="nav-account-avatar" aria-hidden="true">
+            <User size={15} />
+            {(profile?.avatarUrl || auth?.user?.avatarUrl || isAuthenticated) && (
+              <img
+                src={profile?.avatarUrl || auth?.user?.avatarUrl || defaultCreatorAvatar}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={(event) => {
+                  event.currentTarget.src = defaultCreatorAvatar;
+                }}
+              />
+            )}
+          </span>
+          <span className="nav-account-copy">
+            <strong>
+              {isAuthenticated
+                ? profile?.displayName || auth.user?.displayName || auth.user?.email || "账号"
+                : "登录 / 账号"}
+            </strong>
+            {isAuthenticated && <small>{wallet?.balance ?? 0} 积分</small>}
+          </span>
+          {profile?.isAdmin && <span className="nav-admin-pill">管理员</span>}
         </button>
         <StatusCard />
       </aside>
@@ -82,6 +117,8 @@ export function App() {
         {page === "gallery" && <Gallery />}
         {page === "ai-studio" && <AiStudio />}
         {page === "editor" && <Editor />}
+        {page === "creator" && <CreatorCenter />}
+        {page === "admin" && <Admin />}
         {page === "settings" && <Settings />}
         {page === "account" && <Account />}
       </main>

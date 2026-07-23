@@ -16,6 +16,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const themeId = Array.isArray(id) ? id[0] : id;
   if (!themeId) return res.status(400).json({ error: "Theme id is required" });
 
+  const { data: product, error: productError } = await supabase
+    .from("theme_products")
+    .select("downloads_enabled")
+    .eq("id", themeId)
+    .single();
+  if (productError || !product) return res.status(404).json({ error: "Theme not found" });
+  if (!product.downloads_enabled) {
+    return res.status(423).json({ error: "Theme downloads have been suspended" });
+  }
+
   // Verify entitlement.
   const { data: entitlement, error: entitlementError } = await supabase
     .from("entitlements")

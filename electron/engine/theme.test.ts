@@ -238,6 +238,7 @@ describe("loadTheme", () => {
       "./assets/inject",
       "./assets/presets/blue-window-messenger",
     );
+    assert.equal(built.theme.catalogOnly, true);
     assert.equal(built.theme.resources.stamp, "stamp.png");
     assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
     assert.ok(built.payload.includes("dream-skin-retro-friend-avatar"));

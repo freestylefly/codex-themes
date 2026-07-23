@@ -13,8 +13,8 @@
     "build:web": "astro check --root web && astro build --root web",
     "preview": "electron-vite preview",
     "preview:web": "astro preview --root web",
-    "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit && astro check --root web",
-    "test": "esbuild electron/deep-links.test.ts electron/engine/theme.test.ts electron/engine/layout-catalog.test.ts electron/ai/ai.test.ts electron/engine/package-safety.test.ts --bundle --platform=node --format=esm --external:adm-zip --alias:electron=./electron/test-stubs/electron-stub.ts --outdir=tmp/tests --out-extension:.js=.mjs && node --test \"tmp/tests/**/*.test.mjs\"",
+    "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit && astro check --root web",
+    "test": "esbuild electron/deep-links.test.ts electron/engine/theme.test.ts electron/engine/layout-catalog.test.ts electron/ai/ai.test.ts electron/engine/package-safety.test.ts server/commerce-api/alipay.test.ts server/commerce-api/avatar.test.ts server/commerce-api/theme-package.test.ts --bundle --platform=node --format=esm --external:adm-zip --external:alipay-sdk --external:sharp --alias:electron=./electron/test-stubs/electron-stub.ts --outdir=tmp/tests --out-extension:.js=.mjs && node --test \"tmp/tests/**/*.test.mjs\"",
     "gen:presets": "node scripts/gen-presets.mjs",
     "verify:machine": "esbuild scripts/verify-real-machine.mts --bundle --platform=node --format=esm --external:adm-zip --outfile=tmp/verify-real-machine.mjs && node tmp/verify-real-machine.mjs",
     "dist": "electron-vite build && node scripts/build-dist.mjs",
@@ -30,6 +30,7 @@
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "sharp": "0.35.3",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

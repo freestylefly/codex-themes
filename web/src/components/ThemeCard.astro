@@ -19,6 +19,11 @@ const t = copy[locale];
       format="webp"
       loading="lazy"
     />
+    {item.id === "blue-window-messenger" && (
+      <span class="theme-card-ribbon theme-card-ribbon--popular">
+        {locale === "zh" ? "热门" : "Popular"}
+      </span>
+    )}
   </a>
   <div class="theme-card-copy">
     <div class="theme-card-meta">

@@ -1,4 +1,4 @@
-import { Check, Copy, Download, Loader2, Lock, Maximize2, Pencil, Play, ShoppingCart, Trash2 } from "lucide-react";
+import { Check, Coins, Copy, CreditCard, Download, Loader2, Lock, Maximize2, Pencil, Play, Store, Trash2, Users } from "lucide-react";
 import type { CommerceThemeSummary } from "../../electron/shared/types";
 import { useApp } from "../store";
 import { api } from "../api";
@@ -10,6 +10,7 @@ interface ThemeCardProps {
   isPurchasing?: boolean;
   onPreview(theme: CommerceThemeSummary): void;
   onPurchase?(): void;
+  onAlipay?(): void;
   onDownload?(): void;
 }
 
@@ -18,6 +19,7 @@ export function ThemeCard({
   isPurchasing,
   onPreview,
   onPurchase,
+  onAlipay,
   onDownload,
 }: ThemeCardProps) {
   const state = useApp((s) => s.state);
@@ -28,12 +30,16 @@ export function ThemeCard({
   const editTheme = useApp((s) => s.editTheme);
   const duplicateAndEdit = useApp((s) => s.duplicateAndEdit);
   const pendingWebThemeId = useApp((s) => s.pendingWebThemeId);
+  const setPage = useApp((s) => s.setPage);
 
   const isActive = state?.activeThemeId === theme.id;
   const isApplying = applyingId === theme.id;
   const isOwned = Boolean(theme.entitlement);
-  const isPaid = Boolean(theme.product);
+  const isMarketplace = Boolean(theme.product);
+  const requiresPoints = (theme.product?.pricePoints ?? 0) > 0;
   const isInstalled = Boolean(theme.local);
+  const isLimitedEdition = theme.id === "moonlit-immortal";
+  const isPopular = theme.id === "blue-window-messenger";
   const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;
   const catalogOnly = theme.catalogOnly && !isOwned;
 
@@ -64,29 +70,37 @@ export function ThemeCard({
       );
     }
 
-    if (isPaid || catalogOnly) {
-      return (
-        <button
-          className="btn btn-primary"
-          disabled={Boolean(isPurchasing) || !state?.codexDesktop.installed}
-          onClick={() => onPurchase?.()}
-        >
-          {isPurchasing ? (
-            <Loader2 size={13} className="spin" />
-          ) : (
-            <ShoppingCart size={13} strokeWidth={2.5} />
-          )}
-          {theme.product ? `${formatPrice(theme.product.priceCents)} 购买并使用` : "购买"}
-        </button>
-      );
-    }
-
     if (isOwned && !isInstalled) {
       return (
         <button className="btn btn-primary" onClick={() => onDownload?.()}>
           <Download size={13} strokeWidth={2.5} />
           下载主题
         </button>
+      );
+    }
+
+    if (!isOwned && (isMarketplace || catalogOnly)) {
+      return (
+        <div className="marketplace-actions">
+          <button
+            className="btn btn-primary"
+            disabled={Boolean(isPurchasing)}
+            onClick={() => onPurchase?.()}
+          >
+            {isPurchasing ? <Loader2 size={13} className="spin" /> : <Coins size={13} strokeWidth={2.5} />}
+            {theme.product?.pricePoints ? `${theme.product.pricePoints} 积分` : "免费解锁"}
+          </button>
+          {theme.product && theme.product.priceCents > 0 && (
+            <button
+              className="btn btn-secondary"
+              disabled={Boolean(isPurchasing)}
+              onClick={() => onAlipay?.()}
+            >
+              <CreditCard size={13} />
+              支付宝 ¥{(theme.product.priceCents / 100).toFixed(2)}
+            </button>
+          )}
+        </div>
       );
     }
 
@@ -131,10 +145,22 @@ export function ThemeCard({
             使用中
           </span>
         )}
-        {isPaid && !isOwned && (
-          <span className="paid-ribbon">
-            <Lock size={10} />
-            付费
+        {!isActive && isOwned && (
+          <span className="owned-ribbon">
+            <Check size={11} strokeWidth={3} />
+            已购
+          </span>
+        )}
+        {(isLimitedEdition || isPopular || (requiresPoints && !isOwned)) && (
+          <span className="card-preview-badges" aria-hidden="true">
+            {isLimitedEdition && <span className="limited-ribbon">限定款</span>}
+            {isPopular && <span className="popular-ribbon">热门</span>}
+            {requiresPoints && !isOwned && (
+              <span className="paid-ribbon">
+                <Lock size={10} />
+                {theme.product?.pricePoints} 积分
+              </span>
+            )}
           </span>
         )}
       </button>
@@ -152,12 +178,23 @@ export function ThemeCard({
           {!theme.valid && <span className="badge badge-warning">待校验</span>}
         </div>
         <div className="card-tagline">{theme.tagline}</div>
+        {theme.product?.origin === "community" && (
+          <div className="card-community-meta">
+            <span>@{theme.product.author?.handle ?? "creator"}</span>
+            <span><Users size={11} /> {theme.product.unlockCount} 人使用</span>
+          </div>
+        )}
         <div className="card-footer">
           {actionButton()}
           {theme.source === "custom" && theme.local && (
-            <button className="btn btn-ghost btn-icon" title="编辑" onClick={() => void editTheme(theme.id)}>
-              <Pencil size={14} />
-            </button>
+            <>
+              <button className="btn btn-ghost btn-icon" title="编辑" onClick={() => void editTheme(theme.id)}>
+                <Pencil size={14} />
+              </button>
+              <button className="btn btn-ghost btn-icon" title="发布到广场" onClick={() => setPage("creator")}>
+                <Store size={14} />
+              </button>
+            </>
           )}
           {theme.source !== "preset" && theme.source !== "purchased" && theme.local && (
             <>
@@ -180,8 +217,4 @@ export function ThemeCard({
       </div>
     </div>
   );
-}
-
-function formatPrice(cents: number): string {
-  return `¥${(cents / 100).toFixed(2)}`;
 }
