@@ -34,6 +34,48 @@ Codex Themes 是一套完整的 macOS 主题平台：从官方精选、可视化
 | --- | --- | --- | --- |
 | 浏览官方精选与社区作品 | 上传图片自定义，或让本机 Codex CLI 生成 | 一键投稿，经过自动校验与管理员审核后上架 | 用户首次解锁后，创作者获得实付积分的 70% |
 
+## 精选主题展示
+
+不只是更换颜色或背景图。每款主题都可以拥有自己的布局、导航、卡片结构、装饰语言与工作氛围。
+
+### 曜月谪仙 Moonlit Immortal
+
+深蓝月夜、冰蓝剑阵与云海天城构成的沉浸式东方幻想工作台。
+
+[![曜月谪仙 Moonlit Immortal 主题完整预览](./assets/presets/moonlit-immortal/preview.png)](https://theme.codexguide.ai/themes/moonlit-immortal)
+
+`full-canvas` · `v1.3.1` · [查看主题详情](https://theme.codexguide.ai/themes/moonlit-immortal)
+
+---
+
+### 蓝窗信使 Blue Window
+
+把 2007 年的蓝色桌面信使带回 Codex：三栏结构、XP 风格窗框、好友面板与欢迎门户全部重新设计。
+
+[![蓝窗信使 Blue Window 主题完整预览](./assets/presets/blue-window-messenger/preview.png)](https://theme.codexguide.ai/themes/blue-window-messenger)
+
+`retro-messenger` · `v2.4.0` · [查看主题详情](https://theme.codexguide.ai/themes/blue-window-messenger)
+
+---
+
+### 星愿提莫 Starcap Teemo
+
+薄荷绿斥候、星光孢子与云端蘑菇森林构成的明亮幻想工作台，让编码也带一点冒险感。
+
+[![星愿提莫 Starcap Teemo 主题完整预览](./assets/presets/starcap-teemo/preview.png)](https://theme.codexguide.ai/themes/starcap-teemo)
+
+`full-canvas` · `v1.0.0` · [查看主题详情](https://theme.codexguide.ai/themes/starcap-teemo)
+
+---
+
+### 魔法药水铺 Potion Workshop
+
+暖金药水铺、纸张任务板与史莱姆助手组成的童话工作台，用手账般的布局记录每一项创作任务。
+
+[![魔法药水铺 Potion Workshop 主题完整预览](./assets/presets/potion-workshop/preview.png)](https://theme.codexguide.ai/themes/potion-workshop)
+
+`paper-board` · `v1.0.0` · [查看主题详情](https://theme.codexguide.ai/themes/potion-workshop)
+
 ## 一句话开始，持续对话直到满意
 
 AI 主题工作室不是一次性生成器。它会按设置生成准确数量的候选主图，并把每次调整保存为独立版本。
