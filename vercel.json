@@ -1,20 +1,9 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build:web",
   "outputDirectory": "web/dist",
   "framework": null,
   "cleanUrls": true,
-  "functions": {
-    "web/api/**/*.ts": {
-      "runtime": "@vercel/node@3"
-    }
-  },
-  "rewrites": [
-    { "source": "/api/v1/orders/:id/reconcile", "destination": "/api/v1/orders/:id/reconcile.ts" },
-    { "source": "/api/v1/orders/:id", "destination": "/api/v1/orders/:id.ts" },
-    { "source": "/api/v1/orders", "destination": "/api/v1/orders/index.ts" },
-    { "source": "/api/v1/themes/:id/download", "destination": "/api/v1/themes/:id/download.ts" },
-    { "source": "/api/v1/:path*", "destination": "/api/v1/:path*.ts" }
-  ],
   "headers": [
     {
       "source": "/(.*)",
