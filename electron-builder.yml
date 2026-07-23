@@ -30,6 +30,7 @@ protocols:
       - codexthemes
 mac:
   category: public.app-category.utilities
+  icon: assets/presets/blue-window-messenger/mascot.png
   target:
     - dmg
     - zip

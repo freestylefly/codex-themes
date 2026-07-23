@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/build/icon.png" width="96" alt="Codex Themes 图标" />
+  <img src="./assets/presets/blue-window-messenger/mascot.png" width="112" alt="Codex Themes 小蓝机器人" />
 
   <h1>Codex Themes</h1>
 
