@@ -26,11 +26,13 @@ export interface VerifyResult {
   chromePointerEvents: string;
   homeRoute: boolean;
   homePresent: boolean;
+  nativeLayout: boolean;
   hero: BoxInfo | null;
   cards: (BoxInfo | null)[];
   visibleCardCount: number;
   projectButton: BoxInfo | null;
   composer: BoxInfo | null;
+  composerInViewport: boolean;
   sidebar: BoxInfo | null;
   viewport: { width: number; height: number };
   documentOverflow: { x: boolean; y: boolean };
@@ -78,10 +80,21 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
         visible: r.width > 0 && r.height > 0 && style.display !== 'none' && style.visibility !== 'hidden',
       };
     };
-    const homeIndicator = document.querySelector('[data-testid="home-icon"]');
-    const homeSignal = homeIndicator ?? document.querySelector('[data-feature="game-source"]') ??
-      document.querySelector('.group\\\\/home-suggestions');
-    const homeRoute = homeSignal?.closest('[role="main"]') ?? null;
+    const visible = (node) => {
+      if (!(node instanceof Element) || !node.isConnected) return false;
+      if (node.closest('[hidden], [inert], [aria-hidden="true"]')) return false;
+      const value = box(node);
+      return Boolean(value?.visible && node.getClientRects().length > 0);
+    };
+    const shellMain = document.querySelector('main.main-surface') ?? document.querySelector('main');
+    const homeRoute = shellMain ? [...shellMain.querySelectorAll('[role="main"]')].find((candidate) => {
+      const hasHomeContent = visible(candidate.querySelector('[data-feature="game-source"]')) ||
+        visible(candidate.querySelector('.group\\\\/home-suggestions'));
+      const hasTaskContent = [...candidate.querySelectorAll(
+        '[data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
+      )].some(visible);
+      return visible(candidate) && hasHomeContent && !hasTaskContent;
+    }) ?? null : null;
     const home = document.querySelector('[role="main"].dream-skin-home');
     const blueWindowHome = home?.querySelector('#codex-dream-skin-blue-window-home') ?? null;
     const suggestions = blueWindowHome?.querySelector('.blue-window-home__quick-actions') ??
@@ -104,11 +117,17 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
       chromePointerEvents: getComputedStyle(chrome || document.body).pointerEvents,
       homeRoute: Boolean(homeRoute),
       homePresent: Boolean(home),
+      nativeLayout: document.documentElement.getAttribute('data-dream-native-layout') === 'true',
       hero,
       cards: cardBoxes,
       visibleCardCount: visibleCards.length,
       projectButton,
       composer,
+      composerInViewport: Boolean(
+        composer?.visible &&
+        composer.y < innerHeight &&
+        composer.y + composer.height > 0
+      ),
       sidebar,
       viewport: { width: innerWidth, height: innerHeight },
       documentOverflow: {
@@ -118,12 +137,12 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
     };
     const basePass = result.installed && result.version === ${JSON.stringify(SKIN_VERSION)} &&
       result.stylePresent && result.chromePresent && result.chromePointerEvents === 'none' &&
-      Boolean(result.composer?.visible) && Boolean(result.sidebar?.visible) && !result.documentOverflow.x;
+      result.composerInViewport && Boolean(result.sidebar?.visible) && !result.documentOverflow.x;
     // Project selector markup varies across Codex builds — soft requirement.
-    const homePass = !result.homeRoute || (
-      result.homePresent && result.hero?.visible && result.hero.width >= 280 && result.hero.height >= 120 &&
-      result.visibleCardCount >= 1 && result.visibleCardCount <= 6
-    );
+    const homePass = !result.homeRoute || (result.nativeLayout
+      ? !result.homePresent
+      : result.homePresent && result.hero?.visible && result.hero.width >= 280 && result.hero.height >= 120 &&
+        result.visibleCardCount >= 1 && result.visibleCardCount <= 6);
     result.pass = Boolean(basePass && homePass);
     result.softNotes = {
       projectButtonOptional: !result.projectButton?.visible,

@@ -4,6 +4,7 @@ import { useApp } from "../store";
 
 export function Settings() {
   const state = useApp((s) => s.state);
+  const appUpdate = useApp((s) => s.appUpdate);
   const settings = useApp((s) => s.settings);
   const logs = useApp((s) => s.logs);
   const restore = useApp((s) => s.restore);
@@ -28,6 +29,20 @@ export function Settings() {
         <div>
           <h1 className="page-title">设置</h1>
           <p className="page-sub">运行状态、安全说明与应用偏好。</p>
+        </div>
+      </div>
+
+      <div className="settings-group">
+        <div className="settings-group-title">Codex Themes</div>
+        <div className="kv-row">
+          <span className="kv-key">客户端版本</span>
+          <span className="kv-value mono">
+            {appUpdate ? `v${appUpdate.currentVersion}` : "-"}
+          </span>
+        </div>
+        <div className="kv-row">
+          <span className="kv-key">主题引擎版本</span>
+          <span className="kv-value mono">{state.engineVersion}</span>
         </div>
       </div>
 
@@ -58,10 +73,6 @@ export function Settings() {
           <span className="kv-value">
             {state.watcherActive ? "运行中(刷新/新窗口自动重注入)" : "未运行"}
           </span>
-        </div>
-        <div className="kv-row">
-          <span className="kv-key">引擎版本</span>
-          <span className="kv-value mono">{state.engineVersion}</span>
         </div>
         <div className="row-actions">
           <button className="btn" onClick={() => void api.openCodex()}>

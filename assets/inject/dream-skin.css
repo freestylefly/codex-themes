@@ -933,6 +933,7 @@ html.codex-dream-skin[data-dream-theme="moonlit-immortal"] {
 }
 
 html.codex-dream-skin[data-dream-theme="moonlit-immortal"] body {
+  isolation: isolate;
   background-color: var(--moonlit-deep) !important;
   background-image: var(--dream-skin-art) !important;
   background-position: var(--ds-hero-position) !important;
@@ -1014,7 +1015,32 @@ html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface > h
 }
 
 html.codex-dream-skin[data-dream-theme="moonlit-immortal"] #codex-dream-skin-chrome {
+  z-index: 0;
   border-radius: 18px 0 0 0;
+}
+
+/*
+ * Moonlit Immortal is artwork-first, but Codex remains the application.
+ * Keep the injected chrome below the native shell and reserve the highest
+ * stacking range for app-owned dialogs, menus, listboxes, and notifications.
+ */
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel,
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface {
+  position: relative;
+  z-index: 1;
+}
+
+html.codex-dream-skin[data-dream-theme="moonlit-immortal"] :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tooltip"],
+  [data-radix-portal],
+  [data-radix-popper-content-wrapper],
+  [data-sonner-toaster],
+  [data-testid*="toast"]
+) {
+  z-index: 2147483000 !important;
 }
 
 html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-composer-stamp,

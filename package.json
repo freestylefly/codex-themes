@@ -1,6 +1,6 @@
 {
   "name": "codex-themes",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Desktop theme manager for the OpenAI Codex desktop app (CDP injection, no patching)",
   "type": "module",
   "main": "dist/main/index.js",

@@ -12,6 +12,7 @@ import type { NormalizedTheme, ThemeConfig } from "../shared/types";
 import { IMAGE_EXTENSIONS, MAX_ART_BYTES, SKIN_VERSION } from "./constants";
 import { normalizeTheme } from "./normalize";
 import { compileTheme } from "./compiler";
+import { isActiveHomeSurface } from "./home-detection";
 
 export interface LoadedTheme {
   themeDir: string;
@@ -118,6 +119,7 @@ export async function buildPayload(injectAssetsDir: string, themeDir: string): P
     .replace("__DREAM_SKIN_STAMP_JSON__", JSON.stringify(stampDataUrl))
     .replace("__DREAM_SKIN_THEME_JSON__", JSON.stringify(loaded.theme))
     .replace("__DREAM_SKIN_VARS_JSON__", JSON.stringify(compiled.variables))
+    .replace("__DREAM_SKIN_HOME_CLASSIFIER__", isActiveHomeSurface.toString())
     .replace("__DREAM_SKIN_VERSION_JSON__", JSON.stringify(SKIN_VERSION));
 
   return { payload, imageBytes: art.length, theme: loaded.theme };

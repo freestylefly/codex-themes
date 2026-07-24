@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import { normalizeTheme, contrastRatio, validateContrast, deriveDarkPalette } from "./normalize";
 import { compileTheme } from "./compiler";
 import { buildPayload, loadTheme } from "./payload";
+import { isActiveHomeSurface } from "./home-detection";
 import type { ThemeConfigV1, ThemeConfigV2, ThemePalette } from "../shared/types";
 
 const minimalV1: ThemeConfigV1 = {
@@ -224,6 +225,40 @@ describe("compileTheme", () => {
   });
 });
 
+describe("isActiveHomeSurface", () => {
+  const activeHome = {
+    withinShell: true,
+    connected: true,
+    rendered: true,
+    visibleGameSource: true,
+    visibleSuggestions: true,
+    visibleTaskContent: false,
+  };
+
+  it("accepts a rendered home surface inside the active Codex shell", () => {
+    assert.equal(isActiveHomeSurface(activeHome), true);
+  });
+
+  it("rejects hidden retained home DOM and active task content", () => {
+    assert.equal(isActiveHomeSurface({ ...activeHome, rendered: false }), false);
+    assert.equal(
+      isActiveHomeSurface({ ...activeHome, visibleTaskContent: true }),
+      false,
+    );
+  });
+
+  it("does not classify a surface from a home icon alone", () => {
+    assert.equal(
+      isActiveHomeSurface({
+        ...activeHome,
+        visibleGameSource: false,
+        visibleSuggestions: false,
+      }),
+      false,
+    );
+  });
+});
+
 describe("loadTheme", () => {
   it("loads a bundled v1 preset as NormalizedTheme", async () => {
     const loaded = await loadTheme("./assets/presets/cream-sage");
@@ -271,6 +306,9 @@ describe("loadTheme", () => {
     assert.equal(built.theme.light.background, "#dcecff");
     assert.equal(built.theme.dark.background, "#061a3d");
     assert.ok(built.payload.includes("data-dream-theme"));
+    assert.ok(built.payload.includes('PRESERVE_NATIVE_LAYOUT = THEME.id === "moonlit-immortal"'));
+    assert.ok(built.payload.includes('data-dream-native-layout'));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_HOME_CLASSIFIER__"));
     assert.doesNotThrow(() => new Function(built.payload));
     assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
   });

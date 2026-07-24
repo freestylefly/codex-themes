@@ -8,6 +8,8 @@
   const SHELL_ATTR = "data-dream-shell";
   const VERSION = version || "1.0.0";
   const THEME = themeConfig && typeof themeConfig === "object" ? themeConfig : {};
+  const PRESERVE_NATIVE_LAYOUT = THEME.id === "moonlit-immortal";
+  const isActiveHomeSurface = __DREAM_SKIN_HOME_CLASSIFIER__;
   const WALLPAPER_URL = wallpaperDataUrl || null;
   const LAYOUT_CLASSES = [
     "dream-banner",
@@ -603,6 +605,7 @@
     root?.removeAttribute("data-dream-layout");
     root?.removeAttribute("data-dream-theme");
     root?.removeAttribute("data-dream-wallpaper");
+    root?.removeAttribute("data-dream-native-layout");
     root?.style.removeProperty("--dream-skin-art");
     root?.style.removeProperty("--dream-skin-wallpaper");
     const vars = compileVariables("light");
@@ -642,6 +645,7 @@
     root.setAttribute("data-dream-layout", layout);
     root.setAttribute("data-dream-theme", THEME.id || "theme");
     root.setAttribute("data-dream-wallpaper", THEME.wallpaper?.enabled ? "true" : "false");
+    root.setAttribute("data-dream-native-layout", PRESERVE_NATIVE_LAYOUT ? "true" : "false");
     root.style.setProperty("--dream-skin-art", `url("${artUrl}")`);
     if (wallpaperUrl) {
       root.style.setProperty("--dream-skin-wallpaper", `url("${wallpaperUrl}")`);
@@ -662,17 +666,45 @@
     }
 
     const shellMain = document.querySelector("main.main-surface") || document.querySelector("main");
-    const homeIndicator = document.querySelector('[data-testid="home-icon"]');
-    const home = homeIndicator?.closest('[role="main"]') ||
-      [...document.querySelectorAll('[role="main"]')].find((candidate) =>
-        candidate.querySelector('[data-feature="game-source"]') &&
-        candidate.querySelector('.group\\/home-suggestions')) || null;
+    const isRenderedElement = (node) => {
+      if (!(node instanceof Element) || !node.isConnected) return false;
+      if (node.closest('[hidden], [inert], [aria-hidden="true"]')) return false;
+      const rect = node.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0 || node.getClientRects().length === 0) return false;
+      const style = getComputedStyle(node);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.visibility !== "collapse" &&
+        Number(style.opacity || "1") > 0;
+    };
+    const homeCandidates = shellMain
+      ? [
+          ...(shellMain.matches('[role="main"]') ? [shellMain] : []),
+          ...shellMain.querySelectorAll('[role="main"]'),
+        ]
+      : [];
+    const home = homeCandidates.find((candidate) => {
+      const visibleTaskContent = [
+        ...candidate.querySelectorAll(
+          '[data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
+        ),
+      ].some(isRenderedElement);
+      return isActiveHomeSurface({
+        withinShell: candidate === shellMain || Boolean(shellMain?.contains(candidate)),
+        connected: candidate.isConnected,
+        rendered: isRenderedElement(candidate),
+        visibleGameSource: isRenderedElement(candidate.querySelector('[data-feature="game-source"]')),
+        visibleSuggestions: isRenderedElement(candidate.querySelector('.group\\/home-suggestions')),
+        visibleTaskContent,
+      });
+    }) || null;
+    const layoutHome = PRESERVE_NATIVE_LAYOUT ? null : home;
     for (const candidate of document.querySelectorAll('[role="main"].dream-skin-home')) {
-      if (candidate !== home) candidate.classList.remove("dream-skin-home");
+      if (candidate !== layoutHome) candidate.classList.remove("dream-skin-home");
     }
-    if (home) home.classList.add("dream-skin-home");
-    ensureMoonlitWelcome(home);
-    ensureBlueWindowHome(home);
+    if (layoutHome) layoutHome.classList.add("dream-skin-home");
+    ensureMoonlitWelcome(layoutHome);
+    ensureBlueWindowHome(layoutHome);
 
     if (!shellMain || !document.body) return;
     shellMain.classList.toggle("dream-skin-home-shell", Boolean(home));

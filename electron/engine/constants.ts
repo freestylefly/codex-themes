@@ -4,7 +4,7 @@
  */
 
 /** Bumped whenever the injected payload format changes. */
-export const SKIN_VERSION = "1.0.0";
+export const SKIN_VERSION = "1.0.1";
 
 export const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
