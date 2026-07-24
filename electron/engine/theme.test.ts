@@ -257,6 +257,31 @@ describe("isActiveHomeSurface", () => {
       false,
     );
   });
+
+  it("keeps a visible theme-owned home active while native home content is hidden", () => {
+    assert.equal(
+      isActiveHomeSurface({
+        ...activeHome,
+        visibleThemeHome: true,
+        visibleGameSource: false,
+        visibleSuggestions: false,
+      }),
+      true,
+    );
+  });
+
+  it("removes a theme-owned home when task content becomes visible", () => {
+    assert.equal(
+      isActiveHomeSurface({
+        ...activeHome,
+        visibleThemeHome: true,
+        visibleGameSource: false,
+        visibleSuggestions: false,
+        visibleTaskContent: true,
+      }),
+      false,
+    );
+  });
 });
 
 describe("loadTheme", () => {
@@ -277,6 +302,8 @@ describe("loadTheme", () => {
     assert.equal(built.theme.resources.stamp, "stamp.png");
     assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
     assert.ok(built.payload.includes("dream-skin-retro-friend-avatar"));
+    assert.ok(built.payload.includes('const CUSTOM_HOME_THEME_IDS = new Set([\n    "blue-window-messenger"'));
+    assert.ok(built.payload.includes("const PRESERVE_NATIVE_LAYOUT = !CUSTOM_HOME_THEME_IDS.has(THEME.id)"));
   });
 
   it("loads the Shanhai Nexus preset with its hero, wallpaper, and stamp", async () => {
@@ -306,7 +333,8 @@ describe("loadTheme", () => {
     assert.equal(built.theme.light.background, "#dcecff");
     assert.equal(built.theme.dark.background, "#061a3d");
     assert.ok(built.payload.includes("data-dream-theme"));
-    assert.ok(built.payload.includes('PRESERVE_NATIVE_LAYOUT = THEME.id === "moonlit-immortal"'));
+    assert.ok(built.payload.includes('"moonlit-immortal"'));
+    assert.ok(built.payload.includes("!CUSTOM_HOME_THEME_IDS.has(THEME.id)"));
     assert.ok(built.payload.includes('data-dream-native-layout'));
     assert.ok(!built.payload.includes("__DREAM_SKIN_HOME_CLASSIFIER__"));
     assert.doesNotThrow(() => new Function(built.payload));
@@ -342,6 +370,9 @@ describe("loadTheme", () => {
     assert.equal(built.theme.resources.stamp, "stamp.png");
     assert.equal(built.theme.light.background, "#f6eee8");
     assert.equal(built.theme.dark.background, "#261c22");
+    assert.ok(built.payload.includes('"mirror-lake-ribbon"'));
+    assert.ok(built.payload.includes("!CUSTOM_HOME_THEME_IDS.has(THEME.id)"));
+    assert.ok(built.payload.includes('data-dream-native-layout'));
     assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
     assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));
     assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
@@ -363,6 +394,7 @@ describe("loadTheme", () => {
       assert.equal(built.theme.resources.hero, "hero.webp");
       assert.equal(built.theme.resources.preview, "preview.png");
       assert.ok(built.payload.includes(`data-dream-theme=\"${id}\"`) || built.payload.includes("data-dream-theme"));
+      assert.ok(built.payload.includes("const PRESERVE_NATIVE_LAYOUT = !CUSTOM_HOME_THEME_IDS.has(THEME.id)"));
       assert.doesNotThrow(() => new Function(built.payload));
       assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
     }

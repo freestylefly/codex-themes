@@ -87,14 +87,23 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
       return Boolean(value?.visible && node.getClientRects().length > 0);
     };
     const shellMain = document.querySelector('main.main-surface') ?? document.querySelector('main');
-    const homeRoute = shellMain ? [...shellMain.querySelectorAll('[role="main"]')].find((candidate) => {
-      const hasHomeContent = visible(candidate.querySelector('[data-feature="game-source"]')) ||
+    const homeCandidates = shellMain
+      ? [
+          ...(shellMain.matches('[role="main"]') ? [shellMain] : []),
+          ...shellMain.querySelectorAll('[role="main"]'),
+        ]
+      : [];
+    const hasVisibleTaskContent = shellMain
+      ? [...shellMain.querySelectorAll(
+          '[data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
+        )].some(visible)
+      : false;
+    const homeRoute = homeCandidates.find((candidate) => {
+      const hasHomeContent = visible(candidate.querySelector('#codex-dream-skin-blue-window-home')) ||
+        visible(candidate.querySelector('[data-feature="game-source"]')) ||
         visible(candidate.querySelector('.group\\\\/home-suggestions'));
-      const hasTaskContent = [...candidate.querySelectorAll(
-        '[data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
-      )].some(visible);
-      return visible(candidate) && hasHomeContent && !hasTaskContent;
-    }) ?? null : null;
+      return visible(candidate) && hasHomeContent && !hasVisibleTaskContent;
+    }) ?? null;
     const home = document.querySelector('[role="main"].dream-skin-home');
     const blueWindowHome = home?.querySelector('#codex-dream-skin-blue-window-home') ?? null;
     const suggestions = blueWindowHome?.querySelector('.blue-window-home__quick-actions') ??

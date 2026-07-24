@@ -37,7 +37,9 @@ export function ThemeCard({
   const isOwned = Boolean(theme.entitlement);
   const isMarketplace = Boolean(theme.product);
   const requiresPoints = (theme.product?.pricePoints ?? 0) > 0;
-  const isInstalled = Boolean(theme.local);
+  const isInstalled = isMarketplace
+    ? theme.local?.source === "purchased"
+    : Boolean(theme.local);
   const isLimitedEdition = theme.id === "moonlit-immortal";
   const isPopular = theme.id === "blue-window-messenger";
   const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;

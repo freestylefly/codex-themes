@@ -8,6 +8,7 @@ export interface HomeSurfaceSignals {
   withinShell: boolean;
   connected: boolean;
   rendered: boolean;
+  visibleThemeHome?: boolean;
   visibleGameSource: boolean;
   visibleSuggestions: boolean;
   visibleTaskContent: boolean;
@@ -18,5 +19,7 @@ export function isActiveHomeSurface(signals: HomeSurfaceSignals): boolean {
     signals.connected &&
     signals.rendered &&
     !signals.visibleTaskContent &&
-    (signals.visibleGameSource || signals.visibleSuggestions);
+    (signals.visibleThemeHome === true ||
+      signals.visibleGameSource ||
+      signals.visibleSuggestions);
 }

@@ -21,7 +21,9 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onAlipay, onDown
   const isApplying = applyingId === theme.id;
   const isOwned = Boolean(theme.entitlement);
   const isPaid = Boolean(theme.product);
-  const isInstalled = Boolean(theme.local);
+  const isInstalled = isPaid
+    ? theme.local?.source === "purchased"
+    : Boolean(theme.local);
   const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;
   const catalogOnly = theme.catalogOnly && !isOwned;
 

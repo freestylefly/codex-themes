@@ -8,7 +8,10 @@
   const SHELL_ATTR = "data-dream-shell";
   const VERSION = version || "1.0.0";
   const THEME = themeConfig && typeof themeConfig === "object" ? themeConfig : {};
-  const PRESERVE_NATIVE_LAYOUT = THEME.id === "moonlit-immortal";
+  const CUSTOM_HOME_THEME_IDS = new Set([
+    "blue-window-messenger",
+  ]);
+  const PRESERVE_NATIVE_LAYOUT = !CUSTOM_HOME_THEME_IDS.has(THEME.id);
   const isActiveHomeSurface = __DREAM_SKIN_HOME_CLASSIFIER__;
   const WALLPAPER_URL = wallpaperDataUrl || null;
   const LAYOUT_CLASSES = [
@@ -683,16 +686,21 @@
           ...shellMain.querySelectorAll('[role="main"]'),
         ]
       : [];
+    const visibleTaskContent = shellMain
+      ? [
+          ...shellMain.querySelectorAll(
+            '[data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
+          ),
+        ].some(isRenderedElement)
+      : false;
     const home = homeCandidates.find((candidate) => {
-      const visibleTaskContent = [
-        ...candidate.querySelectorAll(
-          '[data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
-        ),
-      ].some(isRenderedElement);
+      const visibleThemeHome = THEME.id === "blue-window-messenger" &&
+        isRenderedElement(candidate.querySelector(`:scope > #${BLUE_WINDOW_HOME_ID}`));
       return isActiveHomeSurface({
         withinShell: candidate === shellMain || Boolean(shellMain?.contains(candidate)),
         connected: candidate.isConnected,
         rendered: isRenderedElement(candidate),
+        visibleThemeHome,
         visibleGameSource: isRenderedElement(candidate.querySelector('[data-feature="game-source"]')),
         visibleSuggestions: isRenderedElement(candidate.querySelector('.group\\/home-suggestions')),
         visibleTaskContent,

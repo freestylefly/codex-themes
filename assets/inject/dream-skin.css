@@ -1020,17 +1020,24 @@ html.codex-dream-skin[data-dream-theme="moonlit-immortal"] #codex-dream-skin-chr
 }
 
 /*
- * Moonlit Immortal is artwork-first, but Codex remains the application.
- * Keep the injected chrome below the native shell and reserve the highest
- * stacking range for app-owned dialogs, menus, listboxes, and notifications.
+ * Themes preserve Codex's native home layout by default. Only a theme with an
+ * explicit, interactive home replacement may opt out. Keep injected
+ * decoration below the native shell so the composer and primary controls
+ * retain Codex's own geometry.
  */
-html.codex-dream-skin[data-dream-theme="moonlit-immortal"] aside.app-shell-left-panel,
-html.codex-dream-skin[data-dream-theme="moonlit-immortal"] main.main-surface {
+html.codex-dream-skin[data-dream-native-layout="true"] #codex-dream-skin-chrome {
+  z-index: 0;
+}
+
+html.codex-dream-skin[data-dream-native-layout="true"] aside.app-shell-left-panel,
+html.codex-dream-skin[data-dream-native-layout="true"] main.main-surface {
   position: relative;
   z-index: 1;
 }
 
-html.codex-dream-skin[data-dream-theme="moonlit-immortal"] :where(
+/* App-owned portals must always win the stacking order, including while the
+   Blue Window interactive home is active. */
+html.codex-dream-skin :where(
   [role="dialog"],
   [role="menu"],
   [role="listbox"],
@@ -3929,4 +3936,23 @@ html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:
   html.codex-dream-skin[data-dream-theme="focus-capybara"] .dream-skin-home > div:first-child > div:nth-child(2) {
     width: 100% !important;
   }
+}
+
+/*
+ * Safe native-home artwork.
+ *
+ * Non-wallpaper themes previously needed `.dream-skin-home` to expose their
+ * hero, but that class also opted the real Codex containers into brittle grid
+ * and fixed-height rewrites. Paint the artwork on the main surface instead:
+ * it preserves the theme identity without moving the native composer,
+ * suggestions, banners or project controls.
+ */
+html.codex-dream-skin[data-dream-native-layout="true"][data-dream-wallpaper="false"]
+  main.main-surface.dream-skin-home-shell {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--ds-panel) 97%, transparent) 0%,
+      color-mix(in srgb, var(--ds-panel) 92%, transparent) 48%,
+      color-mix(in srgb, var(--ds-panel) 72%, transparent) 100%),
+    var(--dream-skin-art) var(--ds-hero-position) / cover no-repeat !important;
 }

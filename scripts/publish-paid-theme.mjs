@@ -13,6 +13,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import AdmZip from "adm-zip";
 
@@ -42,20 +43,60 @@ function imageContentType(fileName) {
   throw new Error(`Unsupported preview image type: ${extension || "none"}`);
 }
 
+function packageImageName(slot, sourceName) {
+  const extension = path.extname(sourceName).toLowerCase();
+  imageContentType(sourceName);
+  return `${slot}${extension}`;
+}
+
+function resolveThemeResource(dir, sourceName, slot) {
+  if (typeof sourceName !== "string" || !sourceName.trim()) {
+    throw new Error(`Missing required theme resource: ${slot}`);
+  }
+  if (sourceName !== path.basename(sourceName)) {
+    throw new Error(`Theme resource must be a root-level file: ${sourceName}`);
+  }
+  const resolved = path.resolve(dir, sourceName);
+  if (path.dirname(resolved) !== dir) {
+    throw new Error(`Theme resource escapes the theme directory: ${sourceName}`);
+  }
+  return resolved;
+}
+
 async function loadThemeJson(dir) {
   const raw = await fs.readFile(path.join(dir, "theme.json"), "utf8");
   return JSON.parse(raw);
 }
 
-async function buildPackage(dir, themeId) {
+export async function buildPackage(dir, themeId) {
+  const sourceTheme = await loadThemeJson(dir);
+  const theme = {
+    ...sourceTheme,
+    id: themeId,
+  };
+  delete theme.catalogOnly;
+  delete theme.priceCents;
+  delete theme.price_cents;
+  delete theme.preview_url;
+  delete theme.published;
+  delete theme.signature;
+
   const zip = new AdmZip();
-  const entries = await fs.readdir(dir);
-  for (const entry of entries) {
-    if (entry.startsWith(".")) continue;
-    const file = path.join(dir, entry);
-    const stat = await fs.stat(file);
-    if (stat.isFile()) zip.addLocalFile(file, "", entry);
+  for (const { key, slot, required } of [
+    { key: "hero", slot: "hero", required: true },
+    { key: "wallpaper", slot: "wallpaper", required: false },
+    { key: "stamp", slot: "stamp", required: false },
+    { key: "preview", slot: "preview", required: false },
+  ]) {
+    const sourceName = theme[key];
+    if (sourceName == null && !required) continue;
+    const sourcePath = resolveThemeResource(dir, sourceName, slot);
+    const packageName = packageImageName(slot, sourceName);
+    zip.addFile(packageName, await fs.readFile(sourcePath));
+    theme[key] = packageName;
   }
+
+  zip.addFile("theme.json", Buffer.from(`${JSON.stringify(theme, null, 2)}\n`, "utf8"));
   const buffer = zip.toBuffer();
   const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
   return { buffer, sha256 };
@@ -143,7 +184,9 @@ async function main() {
   console.log(`Price: ¥${(priceCents / 100).toFixed(2)}`);
 }
 
-main().catch((err) => {
-  console.error(err.message);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error(err.message);
+    process.exit(1);
+  });
+}
