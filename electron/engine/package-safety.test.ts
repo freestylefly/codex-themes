@@ -85,16 +85,22 @@ describe("animated image detection", () => {
 describe("ThemeStore package inspection", () => {
   let root: string;
   let store: ThemeStore;
+  let purchasedRoot: string;
   let heroPng: Buffer;
   let themeJson: string;
 
   before(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), "pkg-safety-test-"));
+    purchasedRoot = path.join(root, "purchased");
     store = new ThemeStore({
       presetsRoot: path.join(root, "presets"),
       userThemesRoot: path.join(root, "user"),
+      purchasedThemesRoot: purchasedRoot,
     });
-    await fs.mkdir(path.join(root, "user"), { recursive: true });
+    await Promise.all([
+      fs.mkdir(path.join(root, "user"), { recursive: true }),
+      fs.mkdir(purchasedRoot, { recursive: true }),
+    ]);
     // Minimal static PNG-shaped payload (decode is stubbed in tests).
     heroPng = Buffer.concat([
       Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
@@ -162,6 +168,59 @@ describe("ThemeStore package inspection", () => {
     const listedIds = (await store.listThemes()).map((theme) => theme.id);
     assert.ok(listedIds.includes("visible-preset"));
     assert.ok(!listedIds.includes("hidden-preset"));
+  });
+
+  it("prefers a downloaded package over a catalog placeholder for application", async () => {
+    const presetDir = path.join(root, "presets", "market-collision");
+    const purchasedDir = path.join(purchasedRoot, "market-collision");
+    const baseManifest = JSON.parse(themeJson) as Record<string, unknown>;
+    await Promise.all([
+      fs.mkdir(presetDir, { recursive: true }),
+      fs.mkdir(purchasedDir, { recursive: true }),
+    ]);
+    await Promise.all([
+      fs.writeFile(path.join(presetDir, "theme.json"), JSON.stringify({
+        ...baseManifest,
+        id: "market-collision",
+        name: "Preview Placeholder",
+        catalogOnly: true,
+      })),
+      fs.writeFile(path.join(presetDir, "hero.png"), heroPng),
+      fs.writeFile(path.join(purchasedDir, "theme.json"), JSON.stringify({
+        ...baseManifest,
+        id: "market-collision",
+        name: "Downloaded Theme",
+        catalogOnly: false,
+      })),
+      fs.writeFile(path.join(purchasedDir, "hero.png"), heroPng),
+    ]);
+
+    const resolved = await store.resolveThemeDir("market-collision", {
+      preferPurchased: true,
+      allowCatalogOnly: false,
+    });
+    assert.equal(resolved, purchasedDir);
+  });
+
+  it("never resolves a catalog-only placeholder as an applicable theme", async () => {
+    const placeholderDir = path.join(root, "presets", "preview-only");
+    const baseManifest = JSON.parse(themeJson) as Record<string, unknown>;
+    await fs.mkdir(placeholderDir, { recursive: true });
+    await Promise.all([
+      fs.writeFile(path.join(placeholderDir, "theme.json"), JSON.stringify({
+        ...baseManifest,
+        id: "preview-only",
+        name: "Preview Only",
+        catalogOnly: true,
+      })),
+      fs.writeFile(path.join(placeholderDir, "hero.png"), heroPng),
+    ]);
+
+    const resolved = await store.resolveThemeDir("preview-only", {
+      preferPurchased: true,
+      allowCatalogOnly: false,
+    });
+    assert.equal(resolved, null);
   });
 
   it("accepts a well-formed package and cleans up on discard", async () => {

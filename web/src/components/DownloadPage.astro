@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { CURRENT_VERSION, DOWNLOAD_URL, GITHUB_REPO_URL, ZIP_DOWNLOAD_URL } from "../config";
+import { DOWNLOAD_URL, GITHUB_REPO_URL, ZIP_DOWNLOAD_URL } from "../config";
 import type { Locale } from "../lib/i18n";
 
 const { locale } = Astro.props as { locale: Locale };
@@ -12,7 +12,7 @@ const description =
 
 <BaseLayout locale={locale} title={locale === "zh" ? "下载" : "Download"} description={description}>
   <section class="download-page-hero section-shell">
-    <div class="eyebrow">CODEX THEMES v{CURRENT_VERSION} BETA</div>
+    <div class="eyebrow">CODEX THEMES · LATEST BETA</div>
     <h1>{locale === "zh" ? "下载，然后打开一个更有趣的 Codex。" : "Download a more personal Codex workspace."}</h1>
     <p>{description}</p>
     <div class="download-card">

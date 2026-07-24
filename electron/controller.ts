@@ -154,7 +154,10 @@ export class ThemeController extends EventEmitter {
       return;
     }
     try {
-      const dir = await this.store.resolveThemeDir(activeThemeId);
+      const dir = await this.store.resolveThemeDir(activeThemeId, {
+        preferPurchased: true,
+        allowCatalogOnly: false,
+      });
       if (!dir) throw new Error("theme directory is gone");
       await this.startWatcher(dir, cdpPort);
       this.log("info", `已恢复主题「${this.persisted.activeThemeName ?? activeThemeId}」的注入守护。`);
@@ -353,9 +356,18 @@ export class ThemeController extends EventEmitter {
       if (!this.install) {
         return this.result("failed", false, false, notes, "未找到 Codex 桌面端(ChatGPT.app)。");
       }
-      const dir = await this.store.resolveThemeDir(themeId);
+      const dir = await this.store.resolveThemeDir(themeId, {
+        preferPurchased: true,
+        allowCatalogOnly: false,
+      });
       if (!dir) {
-        return this.result("failed", false, false, notes, "主题不存在或已损坏。");
+        return this.result(
+          "failed",
+          false,
+          false,
+          notes,
+          "主题尚未下载、已损坏，或当前仅有展示预览。请先在主题画廊下载后再使用。",
+        );
       }
 
       // 1) Make sure Codex is running with a verified loopback CDP port.

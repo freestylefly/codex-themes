@@ -122,7 +122,7 @@ interface AppStore {
   unlockTheme(themeId: string): Promise<void>;
   purchaseTheme(themeId: string): Promise<void>;
   pollOrder(orderId: string): Promise<void>;
-  downloadPurchasedTheme(themeId: string): Promise<void>;
+  downloadPurchasedTheme(themeId: string): Promise<boolean>;
   buyPointPack(packId: string): Promise<void>;
   pollPointOrder(orderId: string): Promise<void>;
   refreshSubmissions(): Promise<void>;
@@ -373,6 +373,14 @@ export const useApp = create<AppStore>((set, get) => ({
     }
     set({ applyingId: id });
     try {
+      const hasDownloadedPackage = get().themes.some(
+        (candidate) => candidate.id === id && candidate.source === "purchased",
+      );
+      if (isPaid && isOwned && !hasDownloadedPackage) {
+        get().toast("info", "正在下载这台电脑所需的完整主题包…");
+        const downloaded = await get().downloadPurchasedTheme(id);
+        if (!downloaded) return;
+      }
       const result = await api.applyTheme(id);
       if (result.needsRestart) {
         set({ pendingRestartThemeId: id });
@@ -757,12 +765,18 @@ export const useApp = create<AppStore>((set, get) => ({
   },
 
   async downloadPurchasedTheme(themeId) {
-    const result = await api.commerceDownloadTheme(themeId);
-    if (result.ok) {
-      await get().refreshThemes();
-      get().toast("ok", "主题已下载。");
-    } else {
+    try {
+      const result = await api.commerceDownloadTheme(themeId);
+      if (result.ok) {
+        await get().refreshThemes();
+        get().toast("ok", "主题已下载。");
+        return true;
+      }
       get().toast("err", result.error ?? "下载失败");
+      return false;
+    } catch (error) {
+      get().toast("err", `下载失败：${(error as Error).message}`);
+      return false;
     }
   },
 
