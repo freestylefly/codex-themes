@@ -1,6 +1,6 @@
 {
   "name": "codex-themes",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Desktop theme manager for the OpenAI Codex desktop app (CDP injection, no patching)",
   "type": "module",
   "main": "dist/main/index.js",
@@ -14,7 +14,7 @@
     "preview": "electron-vite preview",
     "preview:web": "astro preview --root web",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit && astro check --root web",
-    "test": "esbuild electron/deep-links.test.ts electron/updater-state.test.ts electron/engine/cdp.test.ts electron/engine/theme.test.ts electron/engine/layout-catalog.test.ts electron/ai/ai.test.ts electron/engine/package-safety.test.ts server/commerce-api/alipay.test.ts server/commerce-api/avatar.test.ts server/commerce-api/theme-package.test.ts server/downloads/github-release.test.ts --bundle --platform=node --format=esm --external:adm-zip --external:alipay-sdk --external:sharp --alias:electron=./electron/test-stubs/electron-stub.ts --outdir=tmp/tests --out-extension:.js=.mjs && node --test \"tmp/tests/**/*.test.mjs\" scripts/publish-paid-theme.test.mjs",
+    "test": "esbuild electron/deep-links.test.ts electron/updater-state.test.ts electron/engine/cdp.test.ts electron/engine/theme.test.ts electron/engine/layout-catalog.test.ts electron/ai/ai.test.ts electron/engine/package-safety.test.ts electron/gallery-themes.test.ts server/commerce-api/alipay.test.ts server/commerce-api/avatar.test.ts server/commerce-api/theme-package.test.ts server/downloads/github-release.test.ts --bundle --platform=node --format=esm --external:adm-zip --external:alipay-sdk --external:sharp --alias:electron=./electron/test-stubs/electron-stub.ts --outdir=tmp/tests --out-extension:.js=.mjs && node --test \"tmp/tests/**/*.test.mjs\" scripts/publish-paid-theme.test.mjs",
     "gen:presets": "node scripts/gen-presets.mjs",
     "verify:machine": "esbuild scripts/verify-real-machine.mts --bundle --platform=node --format=esm --external:adm-zip --outfile=tmp/verify-real-machine.mjs && node tmp/verify-real-machine.mjs",
     "dist": "electron-vite build && node scripts/build-dist.mjs",

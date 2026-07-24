@@ -5,33 +5,11 @@ import { ImportPreviewModal } from "../components/ImportPreviewModal";
 import { ThemePreviewModal } from "../components/ThemePreviewModal";
 import { useApp } from "../store";
 import { api } from "../api";
+import { mergeGalleryThemes } from "../galleryThemes";
 import type {
   CommerceThemeSummary,
   InspectedThemePackage,
-  ThemeSummary,
 } from "../../electron/shared/types";
-
-/**
- * Curated gallery order: presets with original character or scene artwork and
- * richer, high-resolution previews define the gallery. Palette-only bundled
- * presets are filtered by the main process using theme metadata.
- */
-const FEATURED_PRESET_IDS = [
-  "moonlit-immortal",
-  "blue-window-messenger",
-  "mirror-lake-ribbon",
-  "shanhai-nexus",
-  "starcap-teemo",
-  "neon-star-hunter",
-  "mecha-cat-studio",
-  "potion-workshop",
-  "focus-capybara",
-  "hacker-zero",
-] as const;
-
-const FEATURED_PRESET_RANK = new Map<string, number>(
-  FEATURED_PRESET_IDS.map((id, index) => [id, index]),
-);
 
 type FilterTab = "official" | "community" | "owned" | "local";
 
@@ -41,27 +19,6 @@ const FILTER_LABELS: Record<FilterTab, string> = {
   owned: "已拥有",
   local: "本地作品",
 };
-
-function rankFor(theme: ThemeSummary): number {
-  return FEATURED_PRESET_RANK.get(theme.id) ?? Number.MAX_SAFE_INTEGER;
-}
-
-function galleryOrder(items: CommerceThemeSummary[]): CommerceThemeSummary[] {
-  return items
-    .map((item, index) => ({ item, index }))
-    .sort((left, right) => {
-      const leftHasPreview = Boolean(left.item.previewUrl);
-      const rightHasPreview = Boolean(right.item.previewUrl);
-      if (leftHasPreview !== rightHasPreview) return rightHasPreview ? 1 : -1;
-
-      const leftRank = rankFor(left.item);
-      const rightRank = rankFor(right.item);
-      if (leftRank !== rightRank) return leftRank - rightRank;
-
-      return left.index - right.index;
-    })
-    .map(({ item }) => item);
-}
 
 export function Gallery() {
   const themes = useApp((s) => s.themes);
@@ -97,60 +54,10 @@ export function Gallery() {
     });
   }, [pendingWebThemeId]);
 
-  const merged: CommerceThemeSummary[] = useMemo(() => {
-    const entitlementMap = new Map(entitlements.map((e) => [e.themeId, e]));
-    const localMap = new Map(themes.map((t) => [t.id, t]));
-
-    const fromProducts: CommerceThemeSummary[] = catalog.map((product) => {
-      const local = localMap.get(product.id);
-      const entitlement = entitlementMap.get(product.id);
-      return {
-        ...product,
-        id: product.id,
-        uuid: local?.uuid ?? product.id,
-        name: product.name,
-        tagline: product.tagline,
-        description: product.description,
-        version: local?.version ?? product.version,
-        layout: product.layout,
-        source: local?.source ?? (entitlement ? "purchased" : "preset"),
-        readOnly: true,
-        valid: true,
-        signed: false,
-        minEngineVersion: product.minEngineVersion,
-        dir: local?.dir ?? "",
-        previewUrl: local?.previewUrl ?? product.previewUrl,
-        colors: local?.colors ?? {
-          background: "#141518",
-          panel: "#1e1f23",
-          panelAlt: "#25262b",
-          surface: "#1e1f23",
-          text: "#e8e8e8",
-          muted: "#9ca3af",
-          border: "#2f3036",
-          accent: "#60a5fa",
-          accentAlt: "#93c5fd",
-          secondary: "#a78bfa",
-          highlight: "#fbbf24",
-        },
-        product,
-        entitlement,
-        local,
-      };
-    });
-
-    // Add local-only themes (custom/imported/purchased) not in catalog.
-    const fromLocals: CommerceThemeSummary[] = themes
-      .filter((t) => !catalog.some((p) => p.id === t.id))
-      .map((t) => ({
-        ...t,
-        product: undefined,
-        entitlement: entitlementMap.get(t.id),
-        local: t,
-      }));
-
-    return galleryOrder([...fromProducts, ...fromLocals]);
-  }, [themes, catalog, entitlements]);
+  const merged: CommerceThemeSummary[] = useMemo(
+    () => mergeGalleryThemes(themes, catalog, entitlements),
+    [themes, catalog, entitlements],
+  );
 
   const filtered = useMemo(() => {
     switch (filter) {

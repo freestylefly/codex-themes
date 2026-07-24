@@ -312,9 +312,10 @@ describe("loadTheme", () => {
       "./assets/presets/shanhai-nexus",
     );
     assert.equal(built.theme.id, "shanhai-nexus");
+    assert.equal(built.theme.version, "1.1.0");
     assert.equal(built.theme.layout, "full-canvas");
     assert.equal(built.theme.resources.hero, "hero.png");
-    assert.equal(built.theme.resources.wallpaper, "hero.png");
+    assert.equal(built.theme.resources.wallpaper, "wallpaper-v2.png");
     assert.equal(built.theme.resources.stamp, "stamp.png");
     assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
     assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));

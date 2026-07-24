@@ -2799,12 +2799,31 @@ html.codex-dream-skin--retro-messenger [data-message-author-role] {
 }
 
 @media (max-width: 900px) {
-  html.codex-dream-skin--retro-messenger {
-    --ds-retro-rail-width: 0px;
+  html.codex-dream-skin--retro-messenger main.main-surface {
+    padding-right: 148px !important;
   }
 
   html.codex-dream-skin--retro-messenger .dream-skin-retro-rail {
+    width: 148px;
+  }
+
+  html.codex-dream-skin--retro-messenger .dream-skin-retro-mascot-stage {
+    height: 104px;
+  }
+
+  html.codex-dream-skin--retro-messenger .dream-skin-retro-mascot {
+    width: 72px;
+    height: 92px;
+  }
+
+  html.codex-dream-skin--retro-messenger .dream-skin-retro-profile-copy p {
     display: none;
+  }
+
+  html.codex-dream-skin--retro-messenger .dream-skin-retro-friend-card,
+  html.codex-dream-skin--retro-messenger .dream-skin-retro-friend-avatar {
+    min-height: 142px;
+    height: 142px;
   }
 }
 
@@ -2845,11 +2864,12 @@ html.codex-dream-skin--retro-messenger [data-message-author-role] {
 }
 
 @media (max-width: 720px) {
-  html.codex-dream-skin--retro-messenger {
-    --ds-retro-toolbar-height: 0px;
+  html.codex-dream-skin--retro-messenger main.main-surface {
+    padding-right: 0 !important;
   }
 
-  html.codex-dream-skin--retro-messenger .dream-skin-retro-toolbar {
+  html.codex-dream-skin--retro-messenger .dream-skin-retro-toolbar,
+  html.codex-dream-skin--retro-messenger .dream-skin-retro-rail {
     display: none;
   }
 
@@ -2870,6 +2890,45 @@ html.codex-dream-skin[data-dream-wallpaper="true"] {
    stable preset id: each layout keeps the real Codex controls while matching
    the approved concept art's materials, contrast and composition.
    ========================================================================== */
+
+/* --------------------------------------------------------- shanhai nexus */
+
+/*
+ * The original Shanhai artwork was almost entirely lost behind the native
+ * home surface. Paint the dedicated, UI-safe wallpaper directly on that
+ * surface: this preserves Codex's own container geometry and stacking while
+ * keeping the quiet center of the artwork visible behind native controls.
+ */
+html.codex-dream-skin[data-dream-theme="shanhai-nexus"]
+  main.main-surface.dream-skin-home-shell {
+  background-color: #07131a !important;
+  background-image:
+    linear-gradient(180deg,
+      rgba(7, 19, 26, .08) 0%,
+      rgba(7, 19, 26, .18) 58%,
+      rgba(7, 19, 26, .34) 100%),
+    linear-gradient(90deg,
+      rgba(7, 19, 26, .12) 0%,
+      transparent 26%,
+      transparent 72%,
+      rgba(7, 19, 26, .08) 100%),
+    var(--dream-skin-wallpaper) !important;
+  background-position:
+    center,
+    center,
+    var(--ds-wallpaper-position) !important;
+  background-size:
+    100% 100%,
+    100% 100%,
+    cover !important;
+  background-repeat: no-repeat !important;
+}
+
+html.codex-dream-skin[data-dream-theme="shanhai-nexus"]
+  main.main-surface.dream-skin-home-shell [data-feature="game-source"] {
+  color: #e9e0c9 !important;
+  text-shadow: 0 2px 18px rgba(2, 12, 16, .72) !important;
+}
 
 /* ----------------------------------------------------- neon star hunter */
 
@@ -3401,7 +3460,8 @@ html.codex-dream-skin[data-dream-theme="focus-capybara"] main.main-surface:not(.
    from main.main-surface, so setting only the shell color is insufficient. */
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) main.main-surface:not(.dream-skin-home-shell) .thread-scroll-container {
   --color-token-conversation-body: color-mix(in srgb, var(--ds-text) 94%, transparent);
   --color-token-text-secondary: color-mix(in srgb, var(--ds-text) 76%, transparent);
@@ -3418,14 +3478,16 @@ html.codex-dream-skin:is(
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) main.main-surface:not(.dream-skin-home-shell) > header.app-header-tint :where(span, button, svg) {
   color: var(--ds-text) !important;
 }
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) main.main-surface:not(.dream-skin-home-shell)
   .thread-scroll-container [class*="_markdownContent_"] {
   padding: 13px 15px;
@@ -3438,7 +3500,8 @@ html.codex-dream-skin:is(
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) main.main-surface:not(.dream-skin-home-shell)
   .thread-scroll-container [class*="_markdownContent_"]
   :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, blockquote, span) {
@@ -3447,7 +3510,8 @@ html.codex-dream-skin:is(
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) main.main-surface:not(.dream-skin-home-shell)
   .thread-scroll-container [class*="_markdownContent_"] a {
   color: var(--ds-lime) !important;
@@ -3474,7 +3538,8 @@ html.codex-dream-skin:is(
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) .composer-surface-chrome :where(*, .ProseMirror) {
   color: var(--ds-text) !important;
   caret-color: var(--ds-lime) !important;
@@ -3482,14 +3547,16 @@ html.codex-dream-skin:is(
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) .composer-surface-chrome :where([data-placeholder], [data-placeholder] *) {
   color: color-mix(in srgb, var(--ds-text) 58%, transparent) !important;
 }
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) .dream-skin-home [class*="_homeUtilityBar_"] {
   border-color: color-mix(in srgb, var(--ds-green) 28%, transparent) !important;
   background: color-mix(in srgb, var(--ds-panel) 96%, transparent) !important;
@@ -3498,7 +3565,8 @@ html.codex-dream-skin:is(
 
 html.codex-dream-skin:is(
   [data-dream-theme="neon-star-hunter"],
-  [data-dream-theme="hacker-zero"]
+  [data-dream-theme="hacker-zero"],
+  [data-dream-theme="shanhai-nexus"]
 ) .dream-skin-home [class*="_homeUtilityBar_"] :where(button, span, svg) {
   color: var(--ds-text) !important;
 }

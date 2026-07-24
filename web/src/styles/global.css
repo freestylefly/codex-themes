@@ -1684,6 +1684,40 @@ h3 {
   color: var(--muted);
 }
 
+.install-troubleshooting {
+  margin: 34px 0 28px;
+  padding: 26px 28px;
+  border: 1px solid var(--line-dark);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.install-troubleshooting h3 {
+  margin: 0 0 12px;
+  font-size: 21px;
+}
+
+.install-troubleshooting ol {
+  margin-bottom: 18px;
+}
+
+.install-troubleshooting pre {
+  overflow-x: auto;
+  margin: 18px 0;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: #eef7ff;
+  background: #111821;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.install-troubleshooting code {
+  white-space: pre;
+}
+
 /* Modal */
 
 .install-modal-backdrop {

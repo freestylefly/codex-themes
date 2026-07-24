@@ -6,8 +6,8 @@ import type { Locale } from "../lib/i18n";
 const { locale } = Astro.props as { locale: Locale };
 const description =
   locale === "zh"
-    ? "下载适用于 Apple 芯片 Mac 的 Codex Themes，并查看首次安装与安全说明。"
-    : "Download Codex Themes for Apple silicon Macs and follow the first-run safety guide.";
+    ? "下载适用于 Apple 芯片 Mac 的最新版 Codex Themes，并查看 Codex 版本要求、更新与首次安装说明。"
+    : "Download the latest Codex Themes for Apple silicon Macs and review Codex version, update, and first-run guidance.";
 ---
 
 <BaseLayout locale={locale} title={locale === "zh" ? "下载" : "Download"} description={description}>
@@ -36,21 +36,68 @@ const description =
   </section>
 
   <section class="install-guide section-shell">
-    <div class="section-kicker">{locale === "zh" ? "首次安装" : "FIRST INSTALL"}</div>
+    <div class="section-kicker">{locale === "zh" ? "安装与更新" : "INSTALL & UPDATE"}</div>
     <div class="install-guide-grid">
-      <h2>{locale === "zh" ? "当前 Beta 尚未完成 Apple 公证" : "The current Beta is not yet notarized by Apple"}</h2>
+      <h2>
+        {locale === "zh"
+          ? "先把 Codex 和 Codex Themes 都更新到最新版"
+          : "Keep both Codex and Codex Themes up to date"}
+      </h2>
       <div>
         <ol>
-          <li>{locale === "zh" ? "打开下载的 DMG，把 Codex Themes 拖入“应用程序”。" : "Open the DMG and drag Codex Themes into Applications."}</li>
-          <li>{locale === "zh" ? "第一次打开若被阻止，进入“系统设置 → 隐私与安全性”。" : "If the first launch is blocked, open System Settings → Privacy & Security."}</li>
-          <li>{locale === "zh" ? "找到 Codex Themes 的提示并选择“仍要打开”。" : "Find the Codex Themes notice and choose Open Anyway."}</li>
-          <li>{locale === "zh" ? "完成引导后，从主题画廊选择并应用主题。" : "Finish onboarding, then choose a theme from the gallery."}</li>
+          <li>
+            {locale === "zh"
+              ? "先从官方渠道安装或升级到最新版 ChatGPT / Codex 桌面应用，并确认可以进入 Codex 模式。"
+              : "First install or update the official ChatGPT / Codex desktop app and confirm that Codex mode is available."}
+          </li>
+          <li>
+            {locale === "zh"
+              ? "从本页面下载最新版 Codex Themes；不要继续使用旧安装包。"
+              : "Download the latest Codex Themes from this page instead of reusing an older installer."}
+          </li>
+          <li>{locale === "zh" ? "打开 DMG，把 Codex Themes 拖入“应用程序”。" : "Open the DMG and drag Codex Themes into Applications."}</li>
+          <li>{locale === "zh" ? "第一次打开若被阻止，进入“系统设置 → 隐私与安全性”，选择“仍要打开”。" : "If the first launch is blocked, open System Settings → Privacy & Security and choose Open Anyway."}</li>
+          <li>
+            {locale === "zh"
+              ? "以后看到客户端更新提示请及时升级；若自动安装受 macOS 限制，请重新下载最新版 DMG 覆盖安装。"
+              : "Install future in-app updates promptly. If macOS blocks automatic installation, download the latest DMG and install it over the existing copy."}
+          </li>
         </ol>
         <p>
           {locale === "zh"
-            ? "应用不修改 Codex 安装包，也不会读取 API Key。源码与发布文件均可在 GitHub 检查。"
-            : "The app does not patch Codex or read API keys. Source and release files are available for inspection on GitHub."}
+            ? "Codex 界面会持续迭代，Codex Themes 也会同步提供兼容修复。遇到主题显示异常时，请先确认两边都是最新版，再重新应用主题。应用不修改 Codex 安装包，也不会读取 API Key。"
+            : "Codex evolves continuously, and Codex Themes ships matching compatibility fixes. If a theme looks wrong, update both apps first and reapply the theme. Codex Themes does not patch Codex or read API keys."}
         </p>
+        <aside class="install-troubleshooting">
+          <h3>
+            {locale === "zh"
+              ? "提示“Codex Themes.app 已损坏”怎么办"
+              : "If macOS says Codex Themes.app is damaged"}
+          </h3>
+          <p>
+            {locale === "zh"
+              ? "当前安装包尚未完成 Apple 签名与公证。浏览器下载后，macOS 会添加 com.apple.quarantine 隔离属性；Gatekeeper 无法验证开发者身份时，有时会把应用显示为“已损坏”。这通常是隔离策略造成的拦截，并不代表文件真的损坏。"
+              : "The current build is not yet Apple-signed or notarized. macOS adds the com.apple.quarantine attribute to browser downloads, and Gatekeeper may report an unverified app as damaged. This is usually a quarantine block rather than actual file corruption."}
+          </p>
+          <ol>
+            <li>
+              {locale === "zh"
+                ? "确认 DMG 来自本官网或官方 GitHub Release，把最新版 Codex Themes.app 拖入“应用程序”并覆盖旧版本。"
+                : "Confirm the DMG came from this website or the official GitHub Release, then copy the latest Codex Themes.app to Applications and replace the old copy."}
+            </li>
+            <li>
+              {locale === "zh"
+                ? "打开“终端”，执行下面的命令。"
+                : "Open Terminal and run the command below."}
+            </li>
+          </ol>
+          <pre><code>xattr -dr com.apple.quarantine "/Applications/Codex Themes.app"</code></pre>
+          <p>
+            {locale === "zh"
+              ? "然后重新打开应用。这条命令只移除 Codex Themes 的下载隔离属性，不会全局关闭 Gatekeeper；请勿对来源不明的应用执行。"
+              : "Then reopen the app. This removes quarantine only from Codex Themes and does not disable Gatekeeper globally. Never run it for an app from an untrusted source."}
+          </p>
+        </aside>
         <a class="text-link" href={GITHUB_REPO_URL}>{locale === "zh" ? "在 GitHub 查看源码" : "View the source on GitHub"}</a>
       </div>
     </div>
