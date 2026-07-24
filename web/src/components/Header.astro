@@ -1,7 +1,7 @@
 ---
 import appIcon from "../../../assets/presets/blue-window-messenger/mascot.png";
 import { Download } from "lucide-astro";
-import { DOWNLOAD_URL } from "../config";
+import { COMMUNITY_JOIN_URL, DOWNLOAD_URL, GITHUB_REPO_URL } from "../config";
 import { alternateHref, copy, href, type Locale } from "../lib/i18n";
 
 interface Props {
@@ -23,6 +23,8 @@ const t = copy[locale];
       <a href={href(locale, "/themes")}>{t.navThemes}</a>
       <a href={`${href(locale, "/")}#how-it-works`}>{t.navHow}</a>
       <a href={`${href(locale, "/")}#faq`}>{t.navFaq}</a>
+      <a href={GITHUB_REPO_URL}>GitHub</a>
+      <a href={COMMUNITY_JOIN_URL}>{t.navCommunity}</a>
     </nav>
     <div class="header-actions">
       <a class="language-link" href={alternateHref(locale, pathname)} aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}>
@@ -47,6 +49,8 @@ const t = copy[locale];
     <a href={href(locale, "/themes")}>{t.navThemes}</a>
     <a href={`${href(locale, "/")}#how-it-works`}>{t.navHow}</a>
     <a href={`${href(locale, "/")}#faq`}>{t.navFaq}</a>
+    <a href={GITHUB_REPO_URL}>GitHub</a>
+    <a href={COMMUNITY_JOIN_URL}>{t.navCommunity}</a>
     <a href={DOWNLOAD_URL}>{t.download}</a>
   </nav>
 </header>
