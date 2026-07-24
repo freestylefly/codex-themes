@@ -20,17 +20,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const download = await fetchLatestReleaseDownload(format);
-    res.setHeader(
-      "Cache-Control",
-      "public, s-maxage=300, stale-while-revalidate=86400",
-    );
+    // The release tag is correctness-sensitive: serving a stale redirect after
+    // publishing a release makes the website advertise the previous package.
+    // Keep browsers and Vercel's CDN from caching this response.
+    res.setHeader("Cache-Control", "no-store, max-age=0");
+    res.setHeader("CDN-Cache-Control", "no-store");
+    res.setHeader("Vercel-CDN-Cache-Control", "no-store");
     res.setHeader("Location", download.url);
     res.setHeader("X-Codex-Themes-Release", download.tagName);
     res.statusCode = 307;
     return res.end();
   } catch (error) {
     console.error("latest release download redirect error:", error);
-    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Cache-Control", "no-store, max-age=0");
+    res.setHeader("CDN-Cache-Control", "no-store");
+    res.setHeader("Vercel-CDN-Cache-Control", "no-store");
     res.setHeader("Location", LATEST_RELEASE_PAGE);
     res.statusCode = 302;
     return res.end();
