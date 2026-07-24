@@ -40,8 +40,8 @@ dmg:
   artifactName: Codex-Themes-${version}-mac-${arch}.${ext}
 artifactName: Codex-Themes-${version}-${os}-${arch}.${ext}
 npmRebuild: false
-# Auto-update feed (M4). Publish GitHub Releases for this repo; unsigned
-# builds skip updating gracefully at runtime.
+# Auto-update feed. Packaged builds announce GitHub releases in the app;
+# unsigned macOS builds also expose the direct DMG fallback.
 publish:
   provider: github
   owner: freestylefly

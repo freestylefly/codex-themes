@@ -25,6 +25,7 @@ import type { AppPaths } from "./paths";
 import type { ThemeController } from "./controller";
 import type { SettingsStore } from "./settings";
 import type { ThemeStore } from "./themes/store";
+import type { AppUpdaterService } from "./updater";
 import { AuthClient } from "./auth/client";
 import { CommerceService } from "./commerce/service";
 import { extractPalette } from "./themes/palette";
@@ -46,6 +47,7 @@ interface IpcContext {
   store: ThemeStore;
   authClient?: AuthClient;
   commerceService?: CommerceService;
+  updater: AppUpdaterService;
   getWindow: () => BrowserWindow | null;
   consumeOpenThemeAction: () => OpenThemeAction | null;
 }
@@ -64,7 +66,16 @@ function send(getWindow: () => BrowserWindow | null, channel: string, payload: u
 }
 
 export function registerIpc(ctx: IpcContext): void {
-  const { controller, settings, store, authClient, commerceService, getWindow, consumeOpenThemeAction } = ctx;
+  const {
+    controller,
+    settings,
+    store,
+    authClient,
+    commerceService,
+    updater,
+    getWindow,
+    consumeOpenThemeAction,
+  } = ctx;
 
   controller.on("stateChanged", (state) => send(getWindow, "app:stateChanged", state));
   controller.on("log", (line) => send(getWindow, "app:log", line));
@@ -73,6 +84,7 @@ export function registerIpc(ctx: IpcContext): void {
   authClient?.on("authChanged", (state) => send(getWindow, "auth:changed", state));
   commerceService?.on("orderChanged", (order) => send(getWindow, "commerce:orderChanged", order));
   commerceService?.on("pointOrderChanged", (order) => send(getWindow, "commerce:pointOrderChanged", order));
+  updater.on("stateChanged", (state) => send(getWindow, "updater:stateChanged", state));
 
   ipcMain.handle("app:getState", () => controller.getState());
   ipcMain.handle("app:consumeOpenThemeAction", () => consumeOpenThemeAction());
@@ -93,6 +105,13 @@ export function registerIpc(ctx: IpcContext): void {
     }
     return next;
   });
+
+  ipcMain.handle("updater:getState", () => updater.getState());
+  ipcMain.handle("updater:check", () => updater.checkForUpdates());
+  ipcMain.handle("updater:download", () => updater.downloadUpdate());
+  ipcMain.handle("updater:install", () => updater.installUpdate());
+  ipcMain.handle("updater:openRelease", () => updater.openReleasePage());
+  ipcMain.handle("updater:openDownload", () => updater.openManualDownload());
 
   ipcMain.handle("themes:list", () => store.listThemes());
 

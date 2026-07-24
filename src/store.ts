@@ -9,6 +9,7 @@ import type {
   AiThemeJobSummary,
   AdminOverview,
   AppState,
+  AppUpdateState,
   AuthState,
   CodexApprovalRequest,
   CreatorProfile,
@@ -41,6 +42,7 @@ export interface Toast {
 interface AppStore {
   ready: boolean;
   state: AppState | null;
+  appUpdate: AppUpdateState | null;
   settings: RendererSettings | null;
   themes: ThemeSummary[];
   logs: LogLine[];
@@ -85,6 +87,11 @@ interface AppStore {
   restore(): Promise<void>;
   finishOnboarding(): Promise<void>;
   updateSettings(patch: Partial<RendererSettings>): Promise<void>;
+  checkForAppUpdate(): Promise<void>;
+  downloadAppUpdate(): Promise<void>;
+  installAppUpdate(): Promise<void>;
+  openAppUpdateRelease(): Promise<void>;
+  openAppUpdateDownload(): Promise<void>;
 
   refreshAiJobs(): Promise<void>;
   newAiConversation(): void;
@@ -174,6 +181,7 @@ function toAiJobSummary(job: AiThemeJob): AiThemeJobSummary {
 export const useApp = create<AppStore>((set, get) => ({
   ready: false,
   state: null,
+  appUpdate: null,
   settings: null,
   themes: [],
   logs: [],
@@ -213,6 +221,7 @@ export const useApp = create<AppStore>((set, get) => ({
       if (get().ready) void consumeOpenThemeActions();
     });
     api.onStateChanged((state) => set({ state }));
+    api.onAppUpdateStateChanged((appUpdate) => set({ appUpdate }));
     api.onLog((line) =>
       set((s) => ({ logs: [...s.logs.slice(-199), line] })),
     );
@@ -279,14 +288,15 @@ export const useApp = create<AppStore>((set, get) => ({
         get().toast("ok", `${order.totalPoints} 积分已到账。`);
       }
     });
-    const [state, settings, themes, aiJobs, auth] = await Promise.all([
+    const [state, settings, themes, aiJobs, auth, appUpdate] = await Promise.all([
       api.getState(),
       api.getSettings(),
       api.listThemes(),
       api.listAiThemeJobs(),
       api.authGetState(),
+      api.getAppUpdateState(),
     ]);
-    set({ state, settings, themes, aiJobs, auth, ready: true });
+    set({ state, settings, themes, aiJobs, auth, appUpdate, ready: true });
     await consumeOpenThemeActions();
     void get().refreshCatalog();
     void api.commerceListPointPacks().then((pointPacks) => set({ pointPacks })).catch(() => {});
@@ -445,6 +455,33 @@ export const useApp = create<AppStore>((set, get) => ({
 
   async updateSettings(patch) {
     set({ settings: await api.updateSettings(patch) });
+  },
+
+  async checkForAppUpdate() {
+    set({ appUpdate: await api.checkForAppUpdate() });
+  },
+
+  async downloadAppUpdate() {
+    const appUpdate = await api.downloadAppUpdate();
+    set({ appUpdate });
+    if (appUpdate.status === "error" && appUpdate.error) {
+      get().toast("err", appUpdate.error);
+    }
+  },
+
+  async installAppUpdate() {
+    const result = await api.installAppUpdate();
+    if (!result.ok) {
+      get().toast("err", result.error ?? "更新安装失败。");
+    }
+  },
+
+  async openAppUpdateRelease() {
+    await api.openAppUpdateRelease();
+  },
+
+  async openAppUpdateDownload() {
+    await api.openAppUpdateDownload();
   },
 
   async refreshAiJobs() {

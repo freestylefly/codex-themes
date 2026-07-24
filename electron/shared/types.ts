@@ -914,6 +914,34 @@ export interface RendererSettings {
 }
 
 /** ---------------------------------------------------------------------- */
+/** Application updates                                                   */
+/** ---------------------------------------------------------------------- */
+
+export type AppUpdateStatus =
+  | "disabled"
+  | "idle"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "downloaded"
+  | "error";
+
+export interface AppUpdateState {
+  status: AppUpdateStatus;
+  currentVersion: string;
+  availableVersion: string | null;
+  releaseName: string | null;
+  releaseNotes: string | null;
+  releaseDate: string | null;
+  releaseUrl: string | null;
+  progressPercent: number | null;
+  transferredBytes: number | null;
+  totalBytes: number | null;
+  bytesPerSecond: number | null;
+  error: string | null;
+}
+
+/** ---------------------------------------------------------------------- */
 /** Theme package inspection                                              */
 /** ---------------------------------------------------------------------- */
 
@@ -941,6 +969,12 @@ export interface CodexThemesApi {
   getState(): Promise<AppState>;
   getSettings(): Promise<RendererSettings>;
   updateSettings(patch: Partial<RendererSettings>): Promise<RendererSettings>;
+  getAppUpdateState(): Promise<AppUpdateState>;
+  checkForAppUpdate(): Promise<AppUpdateState>;
+  downloadAppUpdate(): Promise<AppUpdateState>;
+  installAppUpdate(): Promise<{ ok: boolean; error?: string }>;
+  openAppUpdateRelease(): Promise<void>;
+  openAppUpdateDownload(): Promise<void>;
   listThemes(): Promise<ThemeSummary[]>;
   applyTheme(id: string, opts?: { confirmRestart?: boolean }): Promise<ApplyResult>;
   restoreOfficial(): Promise<{ ok: boolean; error?: string }>;
@@ -1051,6 +1085,8 @@ export interface CodexThemesApi {
   commerceAdminRefundThemeOrder(orderId: string, reason: string): Promise<PurchaseOrder>;
 
   onStateChanged(cb: (state: AppState) => void): () => void;
+  /** Fired whenever update availability, progress, or install readiness changes. */
+  onAppUpdateStateChanged(cb: (state: AppUpdateState) => void): () => void;
   /** Fired when a website deep-link action is ready to consume. */
   onOpenThemeActionAvailable(cb: () => void): () => void;
   onLog(cb: (line: LogLine) => void): () => void;

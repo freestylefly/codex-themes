@@ -258,6 +258,114 @@ body {
   letter-spacing: 0.3px;
 }
 
+.app-update-notice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 48px;
+  margin: 0 0 7px;
+  padding: 8px 10px;
+  overflow: hidden;
+  color: #ffe4a3;
+  text-align: left;
+  cursor: pointer;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 217, 128, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(111, 73, 18, 0.56), rgba(48, 37, 23, 0.64));
+  border: 1px solid rgba(232, 176, 75, 0.3);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 0.16s var(--ease-out),
+    background 0.16s var(--ease-out),
+    transform 0.16s var(--ease-out);
+}
+
+.app-update-notice:hover {
+  border-color: rgba(232, 176, 75, 0.55);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 217, 128, 0.23), transparent 36%),
+    linear-gradient(135deg, rgba(126, 82, 20, 0.65), rgba(54, 41, 24, 0.72));
+  transform: translateY(-1px);
+}
+
+.app-update-notice.is-downloaded {
+  color: #a7f3d0;
+  border-color: rgba(52, 211, 153, 0.34);
+  background: linear-gradient(135deg, rgba(13, 87, 65, 0.5), rgba(22, 52, 43, 0.62));
+}
+
+.app-update-notice.is-error {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.34);
+  background: linear-gradient(135deg, rgba(105, 31, 31, 0.48), rgba(54, 29, 29, 0.62));
+}
+
+.app-update-notice__icon {
+  display: grid;
+  flex: 0 0 25px;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  color: currentColor;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+}
+
+.app-update-notice__copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-update-notice__copy strong,
+.app-update-notice__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-update-notice__copy strong {
+  font-size: 11.5px;
+  font-weight: 680;
+}
+
+.app-update-notice__copy small {
+  color: var(--text-dim);
+  font-size: 9.5px;
+}
+
+.app-update-notice__dot {
+  align-self: flex-start;
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin-top: 2px;
+  background: currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.app-update-notice__progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app-update-notice__progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent-strong);
+  transition: width 0.2s linear;
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -321,7 +429,9 @@ body {
 .sidebar-collapsed .brand-copy,
 .sidebar-collapsed .nav-item-label,
 .sidebar-collapsed .nav-account-copy,
-.sidebar-collapsed .nav-admin-pill {
+.sidebar-collapsed .nav-admin-pill,
+.sidebar-collapsed .app-update-notice__copy,
+.sidebar-collapsed .app-update-notice__dot {
   display: none;
 }
 
@@ -333,6 +443,177 @@ body {
 
 .sidebar-collapsed .nav-item:hover {
   transform: none;
+}
+
+.sidebar-collapsed .app-update-notice {
+  justify-content: center;
+  min-height: 42px;
+  padding-inline: 0;
+}
+
+.sidebar-collapsed .app-update-notice:hover {
+  transform: none;
+}
+
+.update-modal {
+  width: min(620px, calc(100vw - 48px));
+  max-height: min(720px, calc(100vh - 48px));
+}
+
+.update-modal__header > div:first-child {
+  min-width: 0;
+}
+
+.update-modal__header h3 {
+  overflow: hidden;
+  margin-top: 3px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.update-modal__eyebrow {
+  color: var(--accent-strong);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+
+.update-modal__body {
+  display: flex;
+  min-height: 240px;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.update-modal__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.update-modal__summary time {
+  color: var(--text-faint);
+  font-size: 10.5px;
+}
+
+.update-status-badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 3px 9px;
+  color: #ffe4a3;
+  background: rgba(232, 176, 75, 0.1);
+  border: 1px solid rgba(232, 176, 75, 0.24);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 650;
+}
+
+.update-status-badge.is-downloaded {
+  color: #a7f3d0;
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.24);
+}
+
+.update-status-badge.is-error {
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.24);
+}
+
+.update-download-progress > div {
+  height: 6px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.update-download-progress > div > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  border-radius: inherit;
+  transition: width 0.2s linear;
+}
+
+.update-download-progress p {
+  margin: 7px 0 0;
+  color: var(--text-faint);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+}
+
+.update-error-message {
+  padding: 10px 12px;
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.update-notes-heading {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.update-release-notes {
+  padding: 14px 15px;
+  color: var(--text-dim);
+  background: rgba(10, 11, 13, 0.36);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.65;
+  user-select: text;
+}
+
+.update-release-notes h3,
+.update-release-notes h4,
+.update-release-notes h5,
+.update-release-notes p {
+  margin: 0;
+}
+
+.update-release-notes h3,
+.update-release-notes h4,
+.update-release-notes h5 {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.update-note-item {
+  position: relative;
+  padding-left: 14px;
+}
+
+.update-note-item::before {
+  position: absolute;
+  left: 1px;
+  color: var(--accent-strong);
+  content: "•";
+}
+
+.update-note-space {
+  height: 8px;
+}
+
+.update-notes-empty {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+.update-modal__footer {
+  flex-wrap: wrap;
+}
+
+.update-modal__footer-spacer {
+  flex: 1;
 }
 
 .status-card {

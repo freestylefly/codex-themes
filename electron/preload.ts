@@ -7,6 +7,7 @@ import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type {
   AiThemeJob,
   AppState,
+  AppUpdateState,
   AuthState,
   CodexApprovalRequest,
   CodexThemesApi,
@@ -34,6 +35,12 @@ const api: CodexThemesApi = {
   getSettings: () => ipcRenderer.invoke("app:getSettings"),
   updateSettings: (patch: Partial<RendererSettings>) =>
     ipcRenderer.invoke("app:updateSettings", patch),
+  getAppUpdateState: () => ipcRenderer.invoke("updater:getState"),
+  checkForAppUpdate: () => ipcRenderer.invoke("updater:check"),
+  downloadAppUpdate: () => ipcRenderer.invoke("updater:download"),
+  installAppUpdate: () => ipcRenderer.invoke("updater:install"),
+  openAppUpdateRelease: () => ipcRenderer.invoke("updater:openRelease"),
+  openAppUpdateDownload: () => ipcRenderer.invoke("updater:openDownload"),
   listThemes: () => ipcRenderer.invoke("themes:list"),
   applyTheme: (id: string, opts?: { confirmRestart?: boolean }) =>
     ipcRenderer.invoke("themes:apply", id, opts),
@@ -138,6 +145,8 @@ const api: CodexThemesApi = {
     ipcRenderer.invoke("commerce:adminRefundThemeOrder", orderId, reason),
 
   onStateChanged: (cb: (state: AppState) => void) => subscribe("app:stateChanged", cb),
+  onAppUpdateStateChanged: (cb: (state: AppUpdateState) => void) =>
+    subscribe("updater:stateChanged", cb),
   onOpenThemeActionAvailable: (cb: () => void) =>
     subscribe<OpenThemeAction | undefined>("app:openThemeActionAvailable", () => cb()),
   onLog: (cb: (line: LogLine) => void) => subscribe("app:log", cb),

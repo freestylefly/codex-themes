@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import defaultCreatorAvatar from "./assets/creator-default-avatar.webp";
+import { AppUpdateNotice } from "./components/AppUpdateNotice";
 import { ConfirmRestartModal } from "./components/ConfirmRestartModal";
 import { OpenThemeModal } from "./components/OpenThemeModal";
 import { StatusCard } from "./components/StatusCard";
@@ -202,6 +203,7 @@ export function App() {
             <div className="brand-sub">Codex 桌面端换肤</div>
           </div>
         </div>
+        <AppUpdateNotice />
         {NAV.map((item) => (
           <button
             key={item.page}

@@ -300,6 +300,11 @@ app.whenReady().then(async () => {
     }
   });
 
+  const updater = initAutoUpdater(
+    () => mainWindow,
+    (level, message) => controller.emit("log", { at: new Date().toISOString(), level, message }),
+  );
+
   registerIpc({
     paths,
     controller,
@@ -307,6 +312,7 @@ app.whenReady().then(async () => {
     store,
     authClient: authClient ?? undefined,
     commerceService: commerceService ?? undefined,
+    updater,
     getWindow: () => mainWindow,
     consumeOpenThemeAction: () => pendingOpenThemeActions.shift() ?? null,
   });
@@ -322,10 +328,6 @@ app.whenReady().then(async () => {
 
   createWindow(paths);
   await controller.init();
-  initAutoUpdater(
-    () => mainWindow,
-    (level, message) => controller.emit("log", { at: new Date().toISOString(), level, message }),
-  );
 
   // Keep status fresh and drive Codex-launch auto-apply (M4).
   setInterval(() => {
