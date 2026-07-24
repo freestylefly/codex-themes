@@ -900,12 +900,25 @@ html.codex-dream-skin--full-canvas .dream-skin-home > div:first-child > div:firs
   min-height: 100% !important;
   border-radius: var(--ds-radius) 0 0 0 !important;
   z-index: 0 !important;
+  /*
+   * The full-canvas hero is a decorative layer stretched across the native
+   * Codex home surface. It must not become an invisible hit-test shield over
+   * suggestion cards or the composer when Codex changes its DOM geometry.
+   */
+  pointer-events: none !important;
 }
 
 html.codex-dream-skin--full-canvas .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child {
   position: relative !important;
   z-index: 1 !important;
   padding-top: 48px !important;
+}
+
+html.codex-dream-skin--full-canvas .dream-skin-home [data-feature="game-source"],
+html.codex-dream-skin--full-canvas .dream-skin-home [data-feature="game-source"] *,
+html.codex-dream-skin--full-canvas .dream-skin-home .group\/home-suggestions,
+html.codex-dream-skin--full-canvas .dream-skin-home .group\/home-suggestions button {
+  pointer-events: auto !important;
 }
 
 /* moonlit-immortal: one continuous xianxia canvas behind the complete app.

@@ -1011,7 +1011,11 @@ export class AiThemeJobService extends EventEmitter {
       request.layoutPreference ? `Preferred layout: ${request.layoutPreference}.` : "",
       `Original user request: ${request.prompt}`,
       instruction && instruction !== request.prompt ? `Current user instruction: ${instruction}` : "",
-      "The image must work as artwork inside the Codex desktop interface, with readable content-safe regions.",
+      "Create pure background artwork only. The final image will be placed behind the real Codex desktop interface.",
+      "Never draw or imitate any software interface: no app window, title bar, sidebar, toolbar, navigation, conversation, message bubble, card, input box, composer, button, icon, cursor, code editor, terminal, screenshot, mockup, wireframe, or device frame.",
+      "Do not include text, letters, numbers, logos, watermarks, labels, borders, panels, or UI-shaped rectangles.",
+      "Keep important subjects away from the left navigation area and lower composer area, with calm negative space for the real interface.",
+      "The result must remain convincing as a standalone illustration or photographic background when every interface element is absent.",
     ].filter(Boolean).join("\n");
   }
 

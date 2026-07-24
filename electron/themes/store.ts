@@ -46,6 +46,13 @@ export interface StorePaths {
   purchasedThemesRoot?: string;
 }
 
+export interface ResolveThemeDirOptions {
+  /** Prefer a downloaded marketplace package over a bundled catalog placeholder. */
+  preferPurchased?: boolean;
+  /** Catalog-only packages are previews and must never be applied to Codex. */
+  allowCatalogOnly?: boolean;
+}
+
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 
 function validateHex(value: string, name: string): string {
@@ -183,10 +190,11 @@ export class ThemeStore {
     return out;
   }
 
-  /** Resolve a theme id to its directory (presets win on collision). */
-  async resolveThemeDir(id: string): Promise<string | null> {
-    const roots = [this.paths.presetsRoot, this.paths.userThemesRoot];
-    if (this.paths.purchasedThemesRoot) roots.push(this.paths.purchasedThemesRoot);
+  /** Resolve a theme id to its directory. Library operations keep preset-first compatibility. */
+  async resolveThemeDir(id: string, options: ResolveThemeDirOptions = {}): Promise<string | null> {
+    const roots = options.preferPurchased && this.paths.purchasedThemesRoot
+      ? [this.paths.purchasedThemesRoot, this.paths.userThemesRoot, this.paths.presetsRoot]
+      : [this.paths.presetsRoot, this.paths.userThemesRoot, ...(this.paths.purchasedThemesRoot ? [this.paths.purchasedThemesRoot] : [])];
     for (const root of roots) {
       let entries: string[] = [];
       try {
@@ -199,7 +207,9 @@ export class ThemeStore {
         const dir = path.join(root, entry);
         try {
           const loaded = await loadTheme(dir);
-          if (loaded.theme.id === id) return dir;
+          if (loaded.theme.id !== id) continue;
+          if (options.allowCatalogOnly === false && loaded.theme.catalogOnly) continue;
+          return dir;
         } catch {
           // ignore invalid dirs
         }
@@ -211,7 +221,7 @@ export class ThemeStore {
   /** Resolve a theme-image:// URL path to a real file, confined to theme roots. */
   async resolveImageFile(id: string, filename: string): Promise<string | null> {
     if (path.basename(filename) !== filename) return null;
-    const dir = await this.resolveThemeDir(id);
+    const dir = await this.resolveThemeDir(id, { preferPurchased: true });
     if (!dir) return null;
     const file = path.join(dir, filename);
     const extension = path.extname(filename).toLowerCase();

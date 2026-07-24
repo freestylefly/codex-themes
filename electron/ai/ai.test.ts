@@ -476,6 +476,24 @@ describe("AiThemeJobService multi-turn flow", () => {
     cli.emit("notification", "turn/completed", { threadId: job.threadId });
   }
 
+  it("forbids generated hero artwork from containing a fake application interface", () => {
+    const prompt = (
+      service as unknown as {
+        buildImagePrompt(
+          request: ThemeGenerationRequest,
+          instruction: string,
+          slot: number,
+          count: number,
+          attempt: number,
+        ): string;
+      }
+    ).buildImagePrompt(makeRequest(), makeRequest().prompt, 1, 1, 1);
+    assert.match(prompt, /pure background artwork only/i);
+    assert.match(prompt, /Never draw or imitate any software interface/i);
+    assert.match(prompt, /no app window.*sidebar.*input box.*composer/i);
+    assert.match(prompt, /Do not include text.*watermarks.*UI-shaped rectangles/i);
+  });
+
   it("generates exactly three slots before selection and keeps revisions out of the theme library", async () => {
     const job = await service.createJob({
       prompt: "雨夜未来城市",
