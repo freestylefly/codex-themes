@@ -3,9 +3,10 @@
  *
  * Resolution order:
  *   1. User-selected absolute path from settings.
- *   2. Common installation paths (/opt/homebrew/bin/codex, /usr/local/bin/codex,
+ *   2. Codex CLI bundled with the verified official ChatGPT / Codex app.
+ *   3. Common installation paths (/opt/homebrew/bin/codex, /usr/local/bin/codex,
  *      ~/.local/bin/codex).
- *   3. Directories in the launch environment PATH.
+ *   4. Directories in the launch environment PATH.
  *
  * No shell string interpolation is used; all paths are checked with fs.access.
  */
@@ -15,6 +16,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { homedir } from "node:os";
 import { promisify } from "node:util";
+import { discoverCodexApp } from "../platform/codex-macos";
 
 const execFileAsync = promisify(execFile);
 
@@ -35,8 +37,7 @@ async function isExecutable(file: string): Promise<boolean> {
   }
 }
 
-async function findInPath(): Promise<string | null> {
-  const envPath = process.env.PATH ?? "";
+async function findInPath(envPath = process.env.PATH ?? ""): Promise<string | null> {
   const dirs = envPath.split(path.delimiter).filter(Boolean);
   for (const dir of dirs) {
     const candidate = path.join(dir, "codex");
@@ -50,7 +51,24 @@ export interface LocatedCli {
   version: string | null;
 }
 
-export async function locateCodexCli(preferredPath?: string | null): Promise<LocatedCli | null> {
+export interface LocateCodexCliOptions {
+  /**
+   * Override desktop discovery in tests. `undefined` discovers the verified
+   * official bundle; `null` explicitly skips the bundled CLI candidate.
+   */
+  desktopBundlePath?: string | null;
+  commonPaths?: string[];
+  envPath?: string;
+}
+
+export function bundledCodexCliPath(bundlePath: string): string {
+  return path.join(bundlePath, "Contents", "Resources", "codex");
+}
+
+export async function locateCodexCli(
+  preferredPath?: string | null,
+  options: LocateCodexCliOptions = {},
+): Promise<LocatedCli | null> {
   let executable: string | null = null;
 
   if (preferredPath && path.isAbsolute(preferredPath) && (await isExecutable(preferredPath))) {
@@ -58,7 +76,17 @@ export async function locateCodexCli(preferredPath?: string | null): Promise<Loc
   }
 
   if (!executable) {
-    for (const candidate of COMMON_PATHS) {
+    const desktopBundlePath = options.desktopBundlePath === undefined
+      ? (await discoverCodexApp())?.bundle ?? null
+      : options.desktopBundlePath;
+    if (desktopBundlePath) {
+      const bundled = bundledCodexCliPath(desktopBundlePath);
+      if (await isExecutable(bundled)) executable = bundled;
+    }
+  }
+
+  if (!executable) {
+    for (const candidate of options.commonPaths ?? COMMON_PATHS) {
       if (await isExecutable(candidate)) {
         executable = candidate;
         break;
@@ -67,7 +95,7 @@ export async function locateCodexCli(preferredPath?: string | null): Promise<Loc
   }
 
   if (!executable) {
-    executable = await findInPath();
+    executable = await findInPath(options.envPath);
   }
 
   if (!executable) return null;

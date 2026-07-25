@@ -202,7 +202,7 @@ Codex Themes 不只是一个 Electron 换肤工具，也包含 Astro 官网、Ve
 - [Node.js](https://nodejs.org/) >= 22
 - Codex 桌面端，默认安装在 `/Applications/ChatGPT.app`
 - Git
-- 可选：[Codex CLI](https://developers.openai.com/codex/cli) >= 0.144.0，仅 AI 生成主题需要
+- AI 生成会自动复用最新版官方 ChatGPT / Codex 桌面应用内置的 Codex CLI；也可以手动选择独立 [Codex CLI](https://developers.openai.com/codex/cli) >= 0.144.0
 - 可选：[Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)，部署社区功能需要
 - 可选：[Vercel CLI](https://vercel.com/docs/cli)，本地调试或部署官网与 API 需要
 
@@ -218,7 +218,7 @@ npm install
 
 | 模式 | 需要云服务 | 可以使用的功能 |
 | --- | --- | --- |
-| 本地主题工具 | 不需要 | 主题画廊、本地自定义、导入导出、应用主题；安装并登录 Codex CLI 后可使用 AI 创作 |
+| 本地主题工具 | 不需要 | 主题画廊、本地自定义、导入导出、应用主题；最新版官方 Codex 已登录时可直接使用 AI 创作，也支持独立 Codex CLI |
 | 完整社区平台 | Supabase + Vercel | GitHub / Google 登录、社区广场、投稿审核、积分、头像、下载与创作者中心 |
 | 完整商业平台 | Supabase + Vercel + 支付宝 | 在社区平台基础上增加支付宝购买主题、购买积分和退款 |
 

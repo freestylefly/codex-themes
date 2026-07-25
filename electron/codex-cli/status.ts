@@ -71,7 +71,10 @@ export class CodexCliStatusService extends EventEmitter {
   private async probe(): Promise<CodexCliStatus> {
     const located = await locateCodexCli(this.settings.current.codexCliPath);
     if (!located) {
-      return { ...EMPTY_STATUS, error: "未找到 Codex CLI。请通过设置手动选择路径。" };
+      return {
+        ...EMPTY_STATUS,
+        error: "未找到 Codex CLI。请先安装或更新官方 Codex，或通过设置手动选择路径。",
+      };
     }
 
     const { executablePath, version } = located;
