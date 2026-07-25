@@ -374,6 +374,10 @@
    * 2007-style welcome portal. The visible controls proxy the real Codex home
    * controls underneath, so suggestions, composer submission and task links
    * continue to use the app's own behavior instead of becoming static chrome.
+   *
+   * The custom composer also mirrors native composer controls (attachments,
+   * model selector, permission level, dictation and voice chat) so users do not
+   * lose capabilities while using the themed home.
    */
   const ensureBlueWindowHome = (home) => {
     const existingPanels = [...document.querySelectorAll(`#${BLUE_WINDOW_HOME_ID}`)];
@@ -387,17 +391,54 @@
     });
 
     let panel = home.querySelector(`:scope > #${BLUE_WINDOW_HOME_ID}`);
+
+    const labelOf = (node) => `${node.getAttribute("aria-label") || ""} ${node.title || ""} ${node.textContent || ""}`;
+
     const findNativeSend = () => {
       const buttons = [...home.querySelectorAll("button")]
         .filter((button) => !button.closest(`#${BLUE_WINDOW_HOME_ID}`));
-      const labelled = buttons.find((button) => {
-        const label = `${button.getAttribute("aria-label") || ""} ${button.textContent || ""}`;
-        return /send|submit|发送|提交/i.test(label);
-      });
-      if (labelled) return labelled;
-      const composerButtons = [...(home.querySelector(".composer-surface-chrome")?.querySelectorAll("button") || [])];
-      return composerButtons.sort((a, b) => b.getBoundingClientRect().right - a.getBoundingClientRect().right)[0] || null;
+      return buttons.find((button) => /send|submit|发送|提交/i.test(labelOf(button))) || null;
     };
+
+    const findNativeComposerControl = (type) => {
+      const composer = home.querySelector(".composer-surface-chrome");
+      if (!composer) return null;
+      const buttons = [...composer.querySelectorAll("button")]
+        .filter((button) => !button.closest(`#${BLUE_WINDOW_HOME_ID}`));
+      switch (type) {
+        case "attach":
+          return buttons.find((b) => /添加文件|附件|attach|file/i.test(labelOf(b))) || null;
+        case "permission":
+          return buttons.find((b) => /完全访问|full.access|权限|permission|access/i.test(labelOf(b))) || null;
+        case "model":
+          return buttons.find((b) => /\b(GPT|Codex|Spark|o3|Claude|Sonnet|模型|model)\b/i.test(labelOf(b))) || null;
+        case "dictate":
+          return buttons.find((b) => /听写|dictate|语音输入|voice.input/i.test(labelOf(b))) || null;
+        case "voice":
+          return buttons.find((b) => /语音聊天|voice.chat|开始新的/i.test(labelOf(b))) || null;
+        default:
+          return null;
+      }
+    };
+
+    const findNativeProjectControl = (type) => {
+      const shell = document.querySelector("main.main-surface");
+      const candidates = [...(shell?.querySelectorAll("button") || [])]
+        .filter((button) => !button.closest(`#${BLUE_WINDOW_HOME_ID}`));
+      switch (type) {
+        case "project":
+          return candidates.find((b) => /切换项目|switch.project/i.test(b.getAttribute("aria-label") || "")) || null;
+        case "clear-project":
+          return candidates.find((b) => /不在项目中工作|clear.project/i.test(labelOf(b))) || null;
+        case "local-mode":
+          return candidates.find((b) => /本地模式|local/i.test(labelOf(b))) || null;
+        case "branch":
+          return candidates.find((b) => /^main$/.test((b.textContent || "").trim())) || null;
+        default:
+          return null;
+      }
+    };
+
     if (!panel) {
       panel = document.createElement("section");
       panel.id = BLUE_WINDOW_HOME_ID;
@@ -432,7 +473,16 @@
         <section class="blue-window-home__composer-zone">
           <div class="blue-window-home__project-context">
             <button type="button" data-project-target="codex-themes"><span class="blue-window-home__context-icon"></span><b>codex-themes</b></button>
-            <span>本地</span><span>main</span>
+            <button type="button" data-native-action="clear-project" title="不在项目中工作">×</button>
+            <button type="button" data-native-action="local-mode" title="本地模式">本地</button>
+            <button type="button" data-native-action="branch" title="分支">main</button>
+          </div>
+          <div class="blue-window-home__composer-actions">
+            <button type="button" data-native-action="attach" title="添加文件等内容"><span class="blue-window-home__composer-action-icon"></span><span class="blue-window-home__composer-action-label">附件</span></button>
+            <button type="button" data-native-action="permission" title="完全访问"><span class="blue-window-home__composer-action-icon"></span><span class="blue-window-home__composer-action-label">完全访问</span></button>
+            <button type="button" data-native-action="model" title="选择模型"><span class="blue-window-home__composer-action-icon"></span><span class="blue-window-home__composer-action-label">模型</span></button>
+            <button type="button" data-native-action="dictate" title="听写"><span class="blue-window-home__composer-action-icon"></span><span class="blue-window-home__composer-action-label">听写</span></button>
+            <button type="button" data-native-action="voice" title="开始新的语音聊天"><span class="blue-window-home__composer-action-icon"></span><span class="blue-window-home__composer-action-label">语音</span></button>
           </div>
           <div class="blue-window-home__composer">
             <textarea rows="1" aria-label="告诉 Codex 你想完成什么" placeholder="告诉 Codex 你想完成什么…"></textarea>
@@ -526,10 +576,19 @@
       });
 
       panel.querySelector("[data-project-target]")?.addEventListener("click", () => {
-        const original = [...document.querySelectorAll("button")].find((candidate) =>
-          !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`) &&
-          (candidate.textContent || "").includes("codex-themes"));
+        const original = findNativeProjectControl("project") ||
+          [...document.querySelectorAll("button")].find((candidate) =>
+            !candidate.closest(`#${BLUE_WINDOW_HOME_ID}`) &&
+            (candidate.textContent || "").includes("codex-themes"));
         if (original instanceof HTMLElement) original.click();
+      });
+
+      panel.querySelectorAll("[data-native-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.getAttribute("data-native-action") || "";
+          const target = findNativeComposerControl(action) || findNativeProjectControl(action);
+          if (target instanceof HTMLElement) target.click();
+        });
       });
     }
 
@@ -591,6 +650,24 @@
       sendIconSlot.appendChild(nativeSendIcon.cloneNode(true));
       panel.querySelector(".blue-window-home__send")?.classList.add("has-icon");
     }
+
+    panel.querySelectorAll("[data-native-action]").forEach((button) => {
+      const action = button.getAttribute("data-native-action") || "";
+      const native = findNativeComposerControl(action) || findNativeProjectControl(action);
+      if (!native) return;
+      const iconSlot = button.querySelector(".blue-window-home__composer-action-icon");
+      const nativeIcon = native.querySelector("svg");
+      if (iconSlot && nativeIcon && !iconSlot.querySelector("svg")) {
+        iconSlot.appendChild(nativeIcon.cloneNode(true));
+      }
+      if (action === "model") {
+        const label = button.querySelector(".blue-window-home__composer-action-label");
+        if (label) {
+          const short = (native.textContent || "").trim().split(/\s+/)[0];
+          label.textContent = short || "模型";
+        }
+      }
+    });
   };
 
   /**
@@ -649,6 +726,11 @@
     root.setAttribute("data-dream-theme", THEME.id || "theme");
     root.setAttribute("data-dream-wallpaper", THEME.wallpaper?.enabled ? "true" : "false");
     root.setAttribute("data-dream-native-layout", PRESERVE_NATIVE_LAYOUT ? "true" : "false");
+    try {
+      root.setAttribute("data-dream-rail-collapsed", localStorage.getItem("codex-dream-skin-rail-collapsed") === "true" ? "true" : "false");
+    } catch {
+      root.setAttribute("data-dream-rail-collapsed", "false");
+    }
     root.style.setProperty("--dream-skin-art", `url("${artUrl}")`);
     if (wallpaperUrl) {
       root.style.setProperty("--dream-skin-wallpaper", `url("${wallpaperUrl}")`);
@@ -761,10 +843,11 @@
           <div class="dream-skin-retro-titlebar">
             <b class="dream-skin-retro-title"></b>
             <span>主题工作台</span>
+            <button type="button" class="dream-skin-retro-rail-toggle" aria-label="收起好友栏">收起</button>
           </div>
           <div class="dream-skin-retro-toolbar">
-            <span>新建任务</span><span>已安排</span><span>插件</span>
-            <span>站点</span><span>拉取请求</span><span>聊天</span>
+            <span data-rail-action="new-task">新建任务</span><span data-rail-action="scheduled">已安排</span><span data-rail-action="extensions">插件</span>
+            <span data-rail-action="sites">站点</span><span data-rail-action="pull-requests">拉取请求</span><span data-rail-action="chat">聊天</span>
           </div>
           <aside class="dream-skin-retro-rail">
             <section class="dream-skin-retro-profile">
@@ -776,7 +859,7 @@
                 <b><i></i> Codex 小蓝 <em>LV 07</em></b>
                 <p>代码有问题？找我！<br>我是你的智能伙伴 Codex<br>陪你写代码、改 Bug、查文档。</p>
               </div>
-              <nav><span>消息</span><span>收藏</span><span>邮件</span><span>好友</span><span>文件</span></nav>
+              <nav><span data-rail-action="messages">消息</span><span data-rail-action="collections">收藏</span><span data-rail-action="mail">邮件</span><span data-rail-action="friends">好友</span><span data-rail-action="files">文件</span></nav>
             </section>
             <section class="dream-skin-retro-friends">
               <header>我的好友 (2/8)</header>
@@ -792,6 +875,50 @@
           </aside>
         </div>`;
       document.body.appendChild(chrome);
+
+      const railToggle = chrome.querySelector(".dream-skin-retro-rail-toggle");
+      if (railToggle) {
+        const updateToggle = () => {
+          const collapsed = root.getAttribute("data-dream-rail-collapsed") === "true";
+          railToggle.textContent = collapsed ? "展开" : "收起";
+          railToggle.setAttribute("aria-label", collapsed ? "展开好友栏" : "收起好友栏");
+        };
+        updateToggle();
+        railToggle.addEventListener("click", () => {
+          const collapsed = root.getAttribute("data-dream-rail-collapsed") === "true";
+          const next = !collapsed;
+          root.setAttribute("data-dream-rail-collapsed", next ? "true" : "false");
+          try { localStorage.setItem("codex-dream-skin-rail-collapsed", next ? "true" : "false"); } catch {}
+          updateToggle();
+        });
+      }
+
+      const railActionLabel = (node) => `${node.getAttribute("aria-label") || ""} ${node.title || ""} ${node.textContent || ""}`;
+      const railActionPatterns = {
+        "new-task": /^(新建任务|New task)$/i,
+        "scheduled": /^(已安排|Scheduled)$/i,
+        "extensions": /^(插件|Extensions|Plugins)$/i,
+        "sites": /^(站点|Sites)$/i,
+        "pull-requests": /^(拉取请求|Pull requests)$/i,
+        "chat": /^(聊天|Chat|Quick chat)$/i,
+        "messages": /^(消息|Messages|聊天|Chat)$/i,
+        "collections": /^(收藏|Collections)$/i,
+        "mail": /^(邮件|Mail)$/i,
+        "friends": /^(好友|Friends)$/i,
+        "files": /^(文件|Files)$/i,
+      };
+      chrome.querySelectorAll("[data-rail-action]").forEach((node) => {
+        node.style.cursor = "pointer";
+        node.addEventListener("click", () => {
+          const action = node.getAttribute("data-rail-action");
+          const pattern = railActionPatterns[action];
+          if (!pattern) return;
+          const sidebar = document.querySelector("aside.app-shell-left-panel");
+          const target = [...(sidebar?.querySelectorAll("button, a, [role=\"button\"]") || [])].find((b) =>
+            pattern.test(railActionLabel(b)));
+          if (target instanceof HTMLElement) target.click();
+        });
+      });
     }
     const copy = THEME.copy || {};
     chrome.querySelector(".dream-skin-brand b").textContent = THEME.name || "Codex Dream Skin";
@@ -809,6 +936,12 @@
     chrome.querySelector(".dream-skin-silk-status span").textContent = copy.statusText || "湖光正明";
     chrome.querySelector(".dream-skin-silk-status b").textContent = copy.quote || "一卷湖光，写尽风华";
     chrome.querySelector(".dream-skin-retro-title").textContent = `Codex 2007 - ${THEME.name || "蓝窗信使"}`;
+    const railToggle = chrome.querySelector(".dream-skin-retro-rail-toggle");
+    if (railToggle) {
+      const collapsed = root.getAttribute("data-dream-rail-collapsed") === "true";
+      railToggle.textContent = collapsed ? "展开" : "收起";
+      railToggle.setAttribute("aria-label", collapsed ? "展开好友栏" : "收起好友栏");
+    }
     const retroMascot = chrome.querySelector(".dream-skin-retro-mascot");
     if (retroMascot.getAttribute("src") !== artUrl) retroMascot.setAttribute("src", artUrl);
     const retroFriendAvatar = chrome.querySelector(".dream-skin-retro-friend-avatar");
