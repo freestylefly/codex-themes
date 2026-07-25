@@ -1,4 +1,11 @@
-import { FolderOpen, RefreshCw, RotateCcw, ShieldAlert, Terminal } from "lucide-react";
+import {
+  FolderOpen,
+  Loader2,
+  RefreshCw,
+  RotateCcw,
+  ShieldAlert,
+  Terminal,
+} from "lucide-react";
 import { api } from "../api";
 import { useApp } from "../store";
 
@@ -9,6 +16,7 @@ export function Settings() {
   const logs = useApp((s) => s.logs);
   const restore = useApp((s) => s.restore);
   const updateSettings = useApp((s) => s.updateSettings);
+  const checkForAppUpdate = useApp((s) => s.checkForAppUpdate);
 
   if (!state) return null;
 
@@ -43,6 +51,34 @@ export function Settings() {
         <div className="kv-row">
           <span className="kv-key">主题引擎版本</span>
           <span className="kv-value mono">{state.engineVersion}</span>
+        </div>
+        <div className="kv-row">
+          <span className="kv-key">更新状态</span>
+          <span className={`kv-value${appUpdate?.status === "error" ? " faint" : ""}`}>
+            {appUpdate?.status === "checking" && "正在检查更新…"}
+            {appUpdate?.status === "available" && `发现新版本 v${appUpdate.availableVersion}`}
+            {appUpdate?.status === "downloading" &&
+              `正在下载 v${appUpdate.availableVersion} (${Math.round(appUpdate.progressPercent ?? 0)}%)`}
+            {appUpdate?.status === "downloaded" &&
+              `v${appUpdate.availableVersion} 已下载，可安装`}
+            {appUpdate?.status === "error" && (appUpdate.error ?? "检查更新失败")}
+            {(!appUpdate || appUpdate.status === "idle" || appUpdate.status === "disabled") &&
+              "已是最新版本"}
+          </span>
+        </div>
+        <div className="row-actions">
+          <button
+            className="btn"
+            disabled={appUpdate?.status === "checking" || appUpdate?.status === "downloading"}
+            onClick={() => void checkForAppUpdate()}
+          >
+            {appUpdate?.status === "checking" ? (
+              <Loader2 className="spin" size={14} />
+            ) : (
+              <RefreshCw size={14} />
+            )}
+            {appUpdate?.status === "checking" ? "检查中…" : "检查更新"}
+          </button>
         </div>
       </div>
 
