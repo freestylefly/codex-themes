@@ -34,6 +34,14 @@ Codex Themes 是一套完整的 macOS 主题平台：从官方精选、可视化
 | --- | --- | --- | --- |
 | 浏览官方精选与社区作品 | 上传图片自定义，或让本机 Codex CLI 生成 | 一键投稿，经过自动校验与管理员审核后上架 | 用户首次解锁后，创作者获得实付积分的 70% |
 
+## ❤️ 赞助商
+
+> [想出现在这里？](https://raw.githubusercontent.com/freestylefly/wesight/main/public/readme/community/wechat-personal.jpg) 添加微信时请备注你的产品名和项目赞助说明。
+
+| 赞助商 | 介绍 |
+| ------ | ---- |
+| <a href="https://sui-xiang.com/"><img src="https://raw.githubusercontent.com/freestylefly/CodexGuide/main/assets/sponsors/sui-xiang-ai-gateway.jpg" alt="随想AI中转站" width="240"></a> | 感谢随想AI中转站对本项目的赞助！随想AI中转站是一家可靠高效的 API 中继服务提供商，提供 Claude、Codex、Gemini 等的中继服务。注重隐私的中转站·无数据倒卖·无模型掺水，隐私，透明，极速售后。新账户注册每日签到就送 0.5 元测试额度，充值额度 1:1，无需订阅，按量付费。多线路冗余、跨区域容灾、自动故障切换，长链路 SSE 不中断。99.9% 可用性，关键调用从不掉队。 |
+
 ## 精选主题展示
 
 不只是更换颜色或背景图。每款主题都可以拥有自己的布局、导航、卡片结构、装饰语言与工作氛围。
