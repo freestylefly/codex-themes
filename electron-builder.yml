@@ -34,8 +34,10 @@ mac:
   target:
     - dmg
     - zip
-  hardenedRuntime: false
-  identity: null
+  hardenedRuntime: true
+  entitlements: assets/build/entitlements.mac.plist
+  entitlementsInherit: assets/build/entitlements.mac.plist
+  notarize: true
 dmg:
   artifactName: Codex-Themes-${version}-mac-${arch}.${ext}
 artifactName: Codex-Themes-${version}-${os}-${arch}.${ext}

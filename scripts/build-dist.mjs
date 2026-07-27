@@ -65,6 +65,18 @@ if (isWrappedNode()) {
   process.exit(result.status ?? 1);
 }
 
+// Keep compatibility with the credential names used by the release team while
+// passing electron-builder the names it expects.
+if (process.env.APPLE_APP_PWD && !process.env.APPLE_APP_SPECIFIC_PASSWORD) {
+  process.env.APPLE_APP_SPECIFIC_PASSWORD = process.env.APPLE_APP_PWD;
+}
+if (process.env.MACOS_SIGNING_IDENTITY && !process.env.CSC_NAME) {
+  process.env.CSC_NAME = process.env.MACOS_SIGNING_IDENTITY.replace(
+    /^Developer ID Application:\s*/,
+    ""
+  );
+}
+
 const { build } = await import("electron-builder");
 
 const dir = process.argv.includes("--dir");
