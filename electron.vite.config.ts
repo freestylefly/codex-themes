@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 electron-vite、Vite/React、公开构建环境变量与注入静态资源
+ * [OUTPUT]: 提供主进程/preload/Renderer 三套构建配置和最小原生依赖外置策略
+ * [POS]: 桌面构建组合根，纯 JS 依赖进入 bundle，只有 sharp 留给运行时 node_modules
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import { defineConfig, externalizeDepsPlugin, loadEnv } from "electron-vite";
 import react from "@vitejs/plugin-react";
 import path, { resolve } from "node:path";
@@ -53,7 +59,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     main: {
-      plugins: [externalizeDepsPlugin(), copyInjectAssets(), mainEnvPlugin(env)],
+      plugins: [
+        externalizeDepsPlugin({
+          exclude: ["@supabase/supabase-js", "adm-zip", "electron-updater", "zod"],
+        }),
+        copyInjectAssets(),
+        mainEnvPlugin(env),
+      ],
       build: {
         outDir: "dist/main",
         rollupOptions: {

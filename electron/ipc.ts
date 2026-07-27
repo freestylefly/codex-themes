@@ -1,7 +1,8 @@
 /**
- * Typed IPC surface. Every renderer call routes through ipcMain.handle and
- * every main-process event is forwarded from the controller/store to the
- * focused window. Channel names are mirrored one-to-one in preload.ts.
+ * [INPUT]: 依赖 Electron IPC、窗口、控制器、设置、主题、认证、交易与更新模块
+ * [OUTPUT]: 注册 preload 对应的受校验请求处理器，并向 Renderer 转发状态事件
+ * [POS]: 主进程与 Renderer 的唯一调用 seam，在此完成参数白名单和平台文件选择限制
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { app, dialog, ipcMain, nativeImage, type BrowserWindow } from "electron";
@@ -31,14 +32,15 @@ import { CommerceService } from "./commerce/service";
 import { extractPalette } from "./themes/palette";
 import { registerPickedImage } from "./picked-images";
 import { IMAGE_EXTENSIONS, MAX_ART_BYTES } from "./engine/constants";
+import { HIDDEN_LOGIN_ARGUMENT } from "./launch-arguments";
 
 const IMAGE_FILE_FILTERS = [
   { name: "Images", extensions: ["png", "jpg", "jpeg", "webp"] },
 ];
 
-const CLI_FILE_FILTERS = [
-  { name: "Codex CLI", extensions: ["*"] },
-];
+const CLI_FILE_FILTERS = process.platform === "win32"
+  ? [{ name: "Codex CLI", extensions: ["exe", "cmd"] }]
+  : [{ name: "Codex CLI", extensions: ["*"] }];
 
 interface IpcContext {
   paths: AppPaths;
@@ -86,7 +88,10 @@ export function registerIpc(ctx: IpcContext): void {
   commerceService?.on("pointOrderChanged", (order) => send(getWindow, "commerce:pointOrderChanged", order));
   updater.on("stateChanged", (state) => send(getWindow, "updater:stateChanged", state));
 
-  ipcMain.handle("app:getState", () => controller.getState());
+  ipcMain.handle("app:getState", async () => {
+    await controller.init();
+    return controller.getState();
+  });
   ipcMain.handle("app:consumeOpenThemeAction", () => consumeOpenThemeAction());
 
   ipcMain.handle("app:getSettings", (): RendererSettings => settings.current);
@@ -101,7 +106,9 @@ export function registerIpc(ctx: IpcContext): void {
     }
     const next = await settings.update(allowed);
     if (typeof allowed.launchAtLogin === "boolean") {
-      app.setLoginItemSettings({ openAtLogin: allowed.launchAtLogin });
+      app.setLoginItemSettings(process.platform === "win32"
+        ? { openAtLogin: allowed.launchAtLogin, args: [HIDDEN_LOGIN_ARGUMENT] }
+        : { openAtLogin: allowed.launchAtLogin });
     }
     return next;
   });
@@ -286,7 +293,7 @@ export function registerIpc(ctx: IpcContext): void {
     const win = getWindow();
     const result = await dialog.showOpenDialog(win!, {
       title: "选择 Codex CLI 可执行文件",
-      properties: ["openFile", "treatPackageAsDirectory"],
+      properties: process.platform === "darwin" ? ["openFile", "treatPackageAsDirectory"] : ["openFile"],
       filters: CLI_FILE_FILTERS,
     });
     if (result.canceled || result.filePaths.length === 0) return null;
@@ -322,7 +329,13 @@ export function registerIpc(ctx: IpcContext): void {
   ipcMain.handle("ai:deleteJob", (_event, jobId: string) => controller.deleteAiThemeJob(jobId));
   ipcMain.handle("ai:respondApproval", (_event, requestId: string, decision: "accept" | "decline" | "cancel") => controller.respondToCodexApproval(requestId, decision));
 
-  ipcMain.handle("auth:getState", () => authClient?.getState() ?? { status: "unauthenticated", user: null, entitlementCount: 0, error: null });
+  ipcMain.handle("auth:getState", () => authClient?.getState() ?? {
+    status: "disabled",
+    user: null,
+    entitlementCount: 0,
+    pendingProvider: null,
+    error: "社区账号功能未配置。",
+  });
   ipcMain.handle("auth:signInGitHub", () => authClient?.startGitHubSignIn() ?? { ok: false, error: "认证服务未启用。" });
   ipcMain.handle("auth:signInGoogle", () => authClient?.startGoogleSignIn() ?? { ok: false, error: "认证服务未启用。" });
   ipcMain.handle("auth:signOut", () => authClient?.signOut() ?? { ok: false, error: "认证服务未启用。" });

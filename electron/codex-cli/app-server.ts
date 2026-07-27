@@ -1,18 +1,20 @@
 /**
- * JSON-RPC / JSONL client for `codex app-server --listen stdio://`.
- *
- * Responsibilities:
- *   - spawn and own the single App Server child process per application instance
- *   - perform the initialize / initialized handshake
- *   - route responses to pending requests by id
- *   - surface server notifications as typed events
- *   - recover stderr into logs, never treat it as protocol data
+ * [INPUT]: 依赖 EventEmitter、统一 CLI runner 与 JSONL stdio 子进程
+ * [OUTPUT]: 对外提供 CodexAppServerClient、请求/通知、能力和账号读取接口
+ * [POS]: electron/codex-cli 的长生命周期协议深模块，拥有唯一 App Server 子进程
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { EventEmitter } from "node:events";
-import { spawn, type ChildProcess } from "node:child_process";
+import type { ChildProcess } from "node:child_process";
+import { spawnCodexCli } from "./runner";
 
 const MIN_CODEX_CLI_VERSION = "0.144.0";
+
+export type AppServerSpawner = (executablePath: string) => ChildProcess;
+
+const spawnAppServer: AppServerSpawner = (executablePath) =>
+  spawnCodexCli(executablePath, ["app-server", "--listen", "stdio://"]);
 
 interface JsonRpcMessage {
   jsonrpc: "2.0";
@@ -43,6 +45,10 @@ export class CodexAppServerClient extends EventEmitter {
   private ready = false;
   private executablePath: string | null = null;
 
+  constructor(private readonly spawnProcess: AppServerSpawner = spawnAppServer) {
+    super();
+  }
+
   get isReady(): boolean {
     return this.ready;
   }
@@ -61,10 +67,7 @@ export class CodexAppServerClient extends EventEmitter {
     this.ready = false;
     this.buffer = "";
 
-    const child = spawn(executablePath, ["app-server", "--listen", "stdio://"], {
-      stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env },
-    });
+    const child = this.spawnProcess(executablePath);
 
     this.process = child;
 
@@ -77,7 +80,12 @@ export class CodexAppServerClient extends EventEmitter {
     child.on("error", (err) => this.onFatal(err));
     child.on("exit", (code, signal) => this.onExit(code, signal));
 
-    await this.handshake();
+    try {
+      await this.handshake();
+    } catch (error) {
+      await this.disconnect();
+      throw error;
+    }
   }
 
   async disconnect(): Promise<void> {

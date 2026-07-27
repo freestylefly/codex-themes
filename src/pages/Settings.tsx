@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 Renderer Store、类型化 IPC 与 CLI/平台/更新状态
+ * [OUTPUT]: 对外提供 Settings 页面及 CLI 路径、开机启动和恢复操作
+ * [POS]: pages 的桌面设置入口，只消费主进程能力而不复制平台逻辑
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import {
   FolderOpen,
   Loader2,
@@ -89,7 +95,7 @@ export function Settings() {
           <span className={`kv-value${state.codexDesktop.installed ? "" : " faint"}`}>
             {state.codexDesktop.installed
               ? `${state.codexDesktop.bundlePath}(v${state.codexDesktop.version})`
-              : "未检测到 ChatGPT.app(bundle id com.openai.codex)"}
+              : `未检测到${state.platform.desktopInstallHint}`}
           </span>
         </div>
         <div className="kv-row">
@@ -160,7 +166,7 @@ export function Settings() {
         <div className="settings-group-title">偏好</div>
         <div className="kv-row">
           <span className="kv-key">开机自动启动</span>
-          <span className="kv-value faint">登录 macOS 后常驻菜单栏</span>
+          <span className="kv-value faint">{state.platform.os === "windows" ? "登录 Windows 后自动启动" : "登录 macOS 后常驻菜单栏"}</span>
           <button
             className={`toggle${settings?.launchAtLogin ? " on" : ""}`}
             onClick={() => void updateSettings({ launchAtLogin: !settings?.launchAtLogin })}

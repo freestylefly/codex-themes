@@ -1,8 +1,14 @@
 ---
+/**
+ * [INPUT]: 依赖主题目录、本地化投影、BaseLayout 与主题卡片组件
+ * [OUTPUT]: 提供单主题详情、关联推荐和客户端深链入口
+ * [POS]: Web components 的主题详情组合页
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import { Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ThemeCard from "./ThemeCard.astro";
-import { DOWNLOAD_URL } from "../config";
+import { DOWNLOAD_PAGE_PATH } from "../config";
 import { copy, href, localizeTheme, type Locale } from "../lib/i18n";
 import { themes, type WebTheme } from "../lib/themes";
 
@@ -59,11 +65,11 @@ const priceText = item.isPaid ? `¥${(item.priceCents! / 100).toFixed(2)}` : nul
         <button class={`button ${item.isPaid ? "button-gold" : "button-blue"} button-full`} type="button" data-deep-link={item.deepLink}>
           {item.isPaid ? (locale === "zh" ? `在客户端购买 ${priceText}` : `Buy in app ${priceText}`) : t.useTheme}
         </button>
-        <a class="button button-light button-full" href={DOWNLOAD_URL}>{t.download}</a>
+        <a class="button button-light button-full" href={href(locale, DOWNLOAD_PAGE_PATH)}>{t.download}</a>
         <dl class="theme-facts">
           <div><dt>{locale === "zh" ? "布局" : "Layout"}</dt><dd>{item.layout}</dd></div>
           <div><dt>{locale === "zh" ? "来源" : "Source"}</dt><dd>{item.isPaid ? (locale === "zh" ? "付费主题" : "Paid") : t.builtIn}</dd></div>
-          <div><dt>{locale === "zh" ? "兼容" : "Support"}</dt><dd>macOS Apple silicon</dd></div>
+          <div><dt>{locale === "zh" ? "兼容" : "Support"}</dt><dd>Windows 11 x64 · macOS Apple silicon</dd></div>
         </dl>
       </aside>
     </div>

@@ -9,8 +9,8 @@
   "description": "聚光灯下的黑金时刻。",
   "tagline": "聚光灯下的黑金时刻。",
   "tags": [],
-  "hero": "background.png",
-  "preview": "preview.png",
+  "hero": "background.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f7f5f0",
     "panel": "#ffffff",

@@ -9,8 +9,8 @@
   "description": "云很轻，阳光是温的。",
   "tagline": "云很轻，阳光是温的。",
   "tags": [],
-  "hero": "background.png",
-  "preview": "preview.png",
+  "hero": "background.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f8f6f1",
     "panel": "#ffffff",

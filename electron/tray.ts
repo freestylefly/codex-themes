@@ -1,6 +1,8 @@
 /**
- * Menu-bar tray: the app's always-on presence. Reflects theme state and
- * offers the two most important actions without opening the window.
+ * [INPUT]: 依赖 Electron Tray/Menu、AppState 与 ThemeController 操作
+ * [OUTPUT]: 提供跨平台托盘生命周期、状态菜单、打开窗口与退出动作
+ * [POS]: Electron 常驻入口，在隐藏启动和主窗口关闭后维持应用可达
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { Menu, Tray, nativeImage } from "electron";
@@ -18,7 +20,7 @@ export class AppTray {
     private quit: () => void,
   ) {
     const image = nativeImage.createFromPath(iconPath);
-    image.setTemplateImage(true);
+    if (process.platform === "darwin") image.setTemplateImage(true);
     this.tray = new Tray(image);
     this.tray.setToolTip("Codex Themes");
     this.state = controller.getState();

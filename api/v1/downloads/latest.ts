@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 server/downloads 的 GitHub Release 制品解析与 Vercel 请求响应类型
+ * [OUTPUT]: 提供最新版 macOS/Windows 安装包的 GET/HEAD 重定向 API
+ * [POS]: api/v1/downloads 的公开下载入口，只信任官方仓库精确版本制品
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   fetchLatestReleaseDownload,
@@ -15,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const format = parseDownloadFormat(req.query.format);
   if (!format) {
-    return res.status(400).json({ error: "format must be dmg or zip" });
+    return res.status(400).json({ error: "format must be dmg, zip, or exe" });
   }
 
   try {

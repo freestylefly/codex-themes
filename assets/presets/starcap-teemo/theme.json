@@ -13,10 +13,10 @@
     "可爱",
     "同人"
   ],
-  "hero": "hero.png",
-  "wallpaper": "hero.png",
-  "stamp": "stamp.png",
-  "preview": "preview.png",
+  "hero": "hero.webp",
+  "wallpaper": "hero.webp",
+  "stamp": "stamp.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f4faef",
     "panel": "#fffef7",

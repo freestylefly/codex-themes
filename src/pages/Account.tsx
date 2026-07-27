@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 Renderer 账号状态、交易/资料动作与账号视觉资源
+ * [OUTPUT]: 对外提供禁用、登录中、已登录三态账号页及资料/积分/退出交互
+ * [POS]: pages 的账号呈现层，OAuth 生命周期由主进程 AuthClient 统一持有
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import {
   Coins,
   Camera,
@@ -127,7 +133,6 @@ export function Account() {
   const buyPointPack = useApp((s) => s.buyPointPack);
 
   const [busy, setBusy] = useState(false);
-  const [loginProvider, setLoginProvider] = useState<"github" | "google" | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [signOutBusy, setSignOutBusy] = useState(false);
   const [handle, setHandle] = useState("");
@@ -144,6 +149,24 @@ export function Account() {
 
   if (!auth) {
     return <div className="page"><div className="loading-screen"><Loader2 size={22} className="spin" /></div></div>;
+  }
+
+  if (auth.status === "loading") {
+    return <div className="page"><div className="loading-screen"><Loader2 size={22} className="spin" /></div></div>;
+  }
+
+  if (auth.status === "disabled") {
+    return (
+      <div className="page">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">社区账号未配置</h1>
+            <p className="page-sub">本地主题功能仍可使用，登录、社区和支付需要在正式构建中配置服务地址。</p>
+          </div>
+        </div>
+        <div className="settings-group"><div className="note-block note-error">{auth.error}</div></div>
+      </div>
+    );
   }
 
   if (auth.status === "authenticated" && auth.user) {
@@ -394,14 +417,10 @@ export function Account() {
     );
   }
 
+  const pendingProvider = auth.status === "authenticating" ? auth.pendingProvider : null;
   const handleOAuth = async (provider: "github" | "google") => {
-    setLoginProvider(provider);
-    try {
-      if (provider === "github") await signInGitHub();
-      else await signInGoogle();
-    } finally {
-      setLoginProvider(null);
-    }
+    if (provider === "github") await signInGitHub();
+    else await signInGoogle();
   };
 
   return (
@@ -414,23 +433,27 @@ export function Account() {
       </div>
       <div className="settings-group account-oauth-panel">
         <div className="settings-group-title">选择登录方式</div>
-        <p className="account-oauth-copy">使用可信的第三方账号安全登录，不再发送邮箱验证码。</p>
+        <p className="account-oauth-copy">
+          {pendingProvider
+            ? `正在等待 ${pendingProvider === "google" ? "Google" : "GitHub"} 浏览器授权；可再次点击重新打开同一登录页面。`
+            : "使用可信的第三方账号安全登录，不再发送邮箱验证码。"}
+        </p>
         <div className="account-oauth-actions">
           <button
             className="btn btn-secondary account-oauth-button"
-            disabled={loginProvider !== null}
+            disabled={pendingProvider !== null && pendingProvider !== "github"}
             onClick={() => void handleOAuth("github")}
           >
-            {loginProvider === "github" ? <Loader2 size={17} className="spin" /> : <GitHubMark />}
-            使用 GitHub 登录
+            {pendingProvider === "github" ? <Loader2 size={17} className="spin" /> : <GitHubMark />}
+            {pendingProvider === "github" ? "重新打开 GitHub 登录" : "使用 GitHub 登录"}
           </button>
           <button
             className="btn btn-secondary account-oauth-button account-oauth-button--google"
-            disabled={loginProvider !== null}
+            disabled={pendingProvider !== null && pendingProvider !== "google"}
             onClick={() => void handleOAuth("google")}
           >
-            {loginProvider === "google" ? <Loader2 size={17} className="spin" /> : <GoogleMark />}
-            使用 Google 登录
+            {pendingProvider === "google" ? <Loader2 size={17} className="spin" /> : <GoogleMark />}
+            {pendingProvider === "google" ? "重新打开 Google 登录" : "使用 Google 登录"}
           </button>
         </div>
       </div>

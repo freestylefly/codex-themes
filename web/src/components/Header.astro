@@ -1,7 +1,13 @@
 ---
+/**
+ * [INPUT]: 依赖品牌资源、站点导航配置、Locale 与本地化路由工具
+ * [OUTPUT]: 提供响应式官网页眉、语言导航和客户端下载入口
+ * [POS]: Web components 的全站主导航外壳
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import appIcon from "../../../assets/presets/blue-window-messenger/mascot.png";
 import { Download } from "lucide-astro";
-import { COMMUNITY_JOIN_URL, DOWNLOAD_URL, GITHUB_REPO_URL } from "../config";
+import { COMMUNITY_JOIN_URL, DOWNLOAD_PAGE_PATH, GITHUB_REPO_URL } from "../config";
 import { alternateHref, copy, href, type Locale } from "../lib/i18n";
 
 interface Props {
@@ -30,7 +36,7 @@ const t = copy[locale];
       <a class="language-link" href={alternateHref(locale, pathname)} aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}>
         {locale === "zh" ? "EN" : "中文"}
       </a>
-      <a class="button button-dark header-download" href={DOWNLOAD_URL}>
+      <a class="button button-dark header-download" href={href(locale, DOWNLOAD_PAGE_PATH)}>
         <Download size={16} stroke-width={1.8} aria-hidden="true" />
         {t.download}
       </a>
@@ -51,6 +57,6 @@ const t = copy[locale];
     <a href={`${href(locale, "/")}#faq`}>{t.navFaq}</a>
     <a href={GITHUB_REPO_URL}>GitHub</a>
     <a href={COMMUNITY_JOIN_URL}>{t.navCommunity}</a>
-    <a href={DOWNLOAD_URL}>{t.download}</a>
+    <a href={href(locale, DOWNLOAD_PAGE_PATH)}>{t.download}</a>
   </nav>
 </header>

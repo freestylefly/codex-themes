@@ -1,13 +1,11 @@
 /**
- * Main process entry: single instance, privileged image protocols, the main
- * window (hidden-inset title bar), tray, IPC wiring, and quit semantics.
- *
- * Window close retreats to the tray instead of quitting (DESIGN §3); a real
- * quit stops the watcher, and the injected skin fades on Codex's next
- * refresh — the user is told this in the Settings page and quit dialog.
+ * [INPUT]: 依赖 Electron 生命周期、路径/设置/主题/认证/更新模块与 ThemeController
+ * [OUTPUT]: 组合单实例窗口、托盘、IPC、深链、登录、更新和周期状态驱动
+ * [POS]: Electron 主进程组合根，只编排模块并处理应用级生命周期与失败呈现
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { app, BrowserWindow, dialog, nativeImage, net, protocol, shell } from "electron";
+import { app, BrowserWindow, dialog, nativeImage, net, protocol, screen, shell } from "electron";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { resolveAppPaths, type AppPaths } from "./paths";
@@ -18,12 +16,14 @@ import { registerIpc } from "./ipc";
 import { AppTray } from "./tray";
 import { resolvePickedImage } from "./picked-images";
 import { initAutoUpdater } from "./updater";
-import { CODEX_THEMES_PROTOCOL, parseOpenThemeUrl, parseAuthCallbackUrl, parsePaymentResultUrl } from "./deep-links";
+import { CODEX_THEMES_PROTOCOL, parseOpenThemeUrl } from "./deep-links";
 import type { OpenThemeAction } from "./shared/types";
 import type { PaymentResultAction } from "./deep-links";
+import { HIDDEN_LOGIN_ARGUMENT, classifyLaunchArguments, type LaunchArgument } from "./launch-arguments";
 import { AuthClient } from "./auth/client";
-import { AuthTokenStore } from "./auth/store";
+import { AuthTokenStore, EncryptedAuthStorage } from "./auth/store";
 import { CommerceService } from "./commerce/service";
+import { assertSupportedDesktopHost } from "./platform";
 
 // Files launched before the app is ready (double-click / drag to Dock).
 const pendingOpenFiles: string[] = [];
@@ -80,6 +80,10 @@ if (!singleInstance) {
   app.quit();
 }
 
+if (process.platform === "win32") {
+  app.setAppUserModelId("com.codexthemes.app");
+}
+
 if (process.defaultApp && process.argv[1]) {
   app.setAsDefaultProtocolClient(CODEX_THEMES_PROTOCOL.slice(0, -1), process.execPath, [
     path.resolve(process.argv[1]),
@@ -107,15 +111,53 @@ async function reconcilePayment(payment: PaymentResultAction): Promise<void> {
   }
 }
 
-function createWindow(paths: AppPaths): void {
+async function routeLaunchArgument(argument: LaunchArgument): Promise<void> {
+  if (argument.type === "theme-file") {
+    if (themeStore) await importPackageFromPath(argument.filePath, themeStore, () => mainWindow);
+    else pendingOpenFiles.push(argument.filePath);
+    return;
+  }
+  if (argument.type === "auth") {
+    if (authClient) await authClient.handleAuthCallback(argument.rawUrl);
+    else pendingAuthCallbacks.push(argument.rawUrl);
+    showWindow();
+    return;
+  }
+  if (argument.type === "payment") {
+    await reconcilePayment(argument.action);
+    showWindow();
+    return;
+  }
+  if (themeStore) await enqueueOpenThemeUrl(argument.rawUrl);
+  else pendingOpenThemeUrls.push(argument.rawUrl);
+}
+
+function createWindow(paths: AppPaths, showOnReady: boolean): void {
+  const macosWindowOptions = process.platform === "darwin"
+    ? {
+        titleBarStyle: "hiddenInset" as const,
+        trafficLightPosition: { x: 14, y: 14 },
+      }
+    : {
+        titleBarStyle: "hidden" as const,
+        titleBarOverlay: {
+          color: "#18191c",
+          symbolColor: "#b8b6b0",
+          height: 40,
+        },
+      };
+  const workArea = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: 1120,
-    height: 760,
-    minWidth: 760,
-    minHeight: 620,
+    width: Math.min(1120, Math.max(680, workArea.width)),
+    height: Math.min(760, Math.max(480, workArea.height)),
+    minWidth: 680,
+    minHeight: 480,
+    center: true,
     title: "Codex Themes",
-    titleBarStyle: "hiddenInset",
-    trafficLightPosition: { x: 14, y: 14 },
+    ...(process.platform === "win32" && !app.isPackaged
+      ? { icon: path.join(paths.assetsRoot, "build", "icon.ico") }
+      : {}),
+    ...macosWindowOptions,
     backgroundColor: "#141518",
     show: false,
     webPreferences: {
@@ -126,7 +168,9 @@ function createWindow(paths: AppPaths): void {
     },
   });
 
-  mainWindow.once("ready-to-show", () => mainWindow?.show());
+  mainWindow.once("ready-to-show", () => {
+    if (showOnReady) mainWindow?.show();
+  });
   mainWindow.on("close", (event) => {
     if (!quitting) {
       event.preventDefault();
@@ -185,45 +229,17 @@ async function enqueueOpenThemeUrl(raw: string): Promise<void> {
 
 app.on("open-file", (event, filePath) => {
   event.preventDefault();
-  pendingOpenFiles.push(filePath);
+  for (const argument of classifyLaunchArguments([filePath])) void routeLaunchArgument(argument);
 });
 
 app.on("open-url", (event, url) => {
   event.preventDefault();
-  if (parseAuthCallbackUrl(url)) {
-    if (authClient) void authClient.handleAuthCallback(url);
-    else pendingAuthCallbacks.push(url);
-    return;
-  }
-  const payment = parsePaymentResultUrl(url);
-  if (payment) {
-    void reconcilePayment(payment);
-    showWindow();
-    return;
-  }
-  if (themeStore) void enqueueOpenThemeUrl(url);
-  else pendingOpenThemeUrls.push(url);
+  for (const argument of classifyLaunchArguments([url])) void routeLaunchArgument(argument);
 });
 
 app.on("second-instance", (_event, argv) => {
   showWindow();
-  const file = argv.find((arg) => isCodexthemeFile(arg));
-  if (file) pendingOpenFiles.push(file);
-  const url = argv.find((arg) => arg.startsWith(CODEX_THEMES_PROTOCOL));
-  if (url) {
-    if (parseAuthCallbackUrl(url)) {
-      if (authClient) void authClient.handleAuthCallback(url);
-      else pendingAuthCallbacks.push(url);
-      return;
-    }
-    const payment = parsePaymentResultUrl(url);
-    if (payment) {
-      void reconcilePayment(payment);
-      return;
-    }
-    if (themeStore) void enqueueOpenThemeUrl(url);
-    else pendingOpenThemeUrls.push(url);
-  }
+  for (const argument of classifyLaunchArguments(argv)) void routeLaunchArgument(argument);
 });
 
 app.on("activate", () => {
@@ -231,11 +247,14 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(async () => {
+  assertSupportedDesktopHost();
   const paths = await resolveAppPaths();
   const settings = new SettingsStore(paths.settingsFile);
   await settings.load();
   if (settings.current.launchAtLogin) {
-    app.setLoginItemSettings({ openAtLogin: true });
+    app.setLoginItemSettings(process.platform === "win32"
+      ? { openAtLogin: true, args: [HIDDEN_LOGIN_ARGUMENT] }
+      : { openAtLogin: true });
   }
 
   const store = new ThemeStore({
@@ -255,7 +274,8 @@ app.whenReady().then(async () => {
     authClient = new AuthClient({
       supabaseUrl,
       supabaseAnonKey,
-      tokenStore: new AuthTokenStore(paths.userDataRoot),
+      storage: new EncryptedAuthStorage(paths.userDataRoot),
+      legacyTokenStore: new AuthTokenStore(paths.userDataRoot),
       onOpenExternalUrl: (url) => shell.openExternal(url),
     });
     commerceService = new CommerceService({
@@ -326,12 +346,14 @@ app.whenReady().then(async () => {
     },
   );
 
-  createWindow(paths);
+  createWindow(paths, !process.argv.includes(HIDDEN_LOGIN_ARGUMENT));
   await controller.init();
 
   // Keep status fresh and drive Codex-launch auto-apply (M4).
   setInterval(() => {
-    void controller.tick();
+    void controller.tick().catch((error) => {
+      console.error("Periodic Codex status refresh failed:", (error as Error).message);
+    });
   }, 5000);
 
   // Process files opened before or during launch (double-click / Dock drop).
@@ -352,22 +374,16 @@ app.whenReady().then(async () => {
     if (payment) await reconcilePayment(payment);
   }
 
-  const startupUrls = new Set([
+  for (const argument of classifyLaunchArguments([
     ...pendingOpenThemeUrls.splice(0),
-    ...process.argv.filter((arg) => arg.startsWith(CODEX_THEMES_PROTOCOL)),
-  ]);
-  for (const raw of startupUrls) {
-    if (parseAuthCallbackUrl(raw)) {
-      await authClient?.handleAuthCallback(raw);
-      continue;
-    }
-    const payment = parsePaymentResultUrl(raw);
-    if (payment) {
-      await reconcilePayment(payment);
-      continue;
-    }
-    await enqueueOpenThemeUrl(raw);
+    ...process.argv,
+  ])) {
+    await routeLaunchArgument(argument);
   }
+}).catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  dialog.showErrorBox("Codex Themes 无法启动", message);
+  app.exit(1);
 });
 
 /** Confirm quit when a theme is live: the skin fades on Codex's next refresh. */

@@ -1,9 +1,8 @@
 /**
- * User-driven application updates.
- *
- * Packaged builds check GitHub shortly after launch and every four hours.
- * Finding an update only announces it to the renderer; downloading and
- * installing always require explicit user actions in the update dialog.
+ * [INPUT]: 依赖 electron-updater、平台下载映射、BrowserWindow 与系统浏览器
+ * [OUTPUT]: 提供更新检查、下载、安装、状态广播和手动下载回退
+ * [POS]: Electron 更新生命周期唯一入口，所有下载与安装均由用户确认驱动
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { app, shell, type BrowserWindow } from "electron";
@@ -15,6 +14,7 @@ import {
   normalizeReleaseNotes,
   releaseUrlForVersion,
 } from "./updater-state";
+import { manualDownloadCopy, manualDownloadUrl } from "./updater-platform";
 
 const { autoUpdater } = electronUpdater;
 
@@ -22,8 +22,8 @@ const UPDATE_CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const FIRST_UPDATE_CHECK_DELAY_MS = 5_000;
 const LATEST_RELEASE_URL =
   "https://github.com/freestylefly/codex-themes/releases/latest";
-const LATEST_DMG_URL =
-  "https://theme.codexguide.ai/api/v1/downloads/latest?format=dmg";
+const updaterPlatform = process.platform === "win32" ? "windows" : "macos" as const;
+const manualPackageLabel = manualDownloadCopy(updaterPlatform);
 
 type Logger = (level: LogLine["level"], message: string) => void;
 
@@ -136,10 +136,8 @@ export class AppUpdaterService extends EventEmitter {
       this.log("warn", `自动更新失败:${error.message}`);
       this.patchState({
         status: "error",
-        error:
-          "自动更新暂时无法完成。你可以重试，或直接下载最新版 DMG 安装包。",
+        error: `自动更新失败。你可以重试，或直接下载最新版${manualPackageLabel}。`,
       });
-      if (this.state.availableVersion) this.showWindow();
     });
 
     this.checkTimer = setTimeout(() => {
@@ -166,9 +164,8 @@ export class AppUpdaterService extends EventEmitter {
       const message = (error as Error).message;
       this.log("warn", `自动更新检查失败:${message}`);
       this.patchState({
-        status: "error",
         error: this.state.availableVersion
-          ? "检查更新失败。可以重试，或直接下载最新版 DMG。"
+          ? `检查更新失败。可以重试，或直接下载最新版${manualPackageLabel}。`
           : "检查更新失败，请稍后重试。",
       });
     } finally {
@@ -199,9 +196,8 @@ export class AppUpdaterService extends EventEmitter {
       const message = (error as Error).message;
       this.log("warn", `下载应用更新失败:${message}`);
       this.patchState({
-        status: "error",
         error:
-          "自动下载失败。可以重试，或直接下载最新版 DMG 安装包。",
+          `自动下载失败。可以重试，或直接下载最新版${manualPackageLabel}。`,
       });
     } finally {
       this.downloading = false;
@@ -223,7 +219,7 @@ export class AppUpdaterService extends EventEmitter {
   }
 
   async openManualDownload(): Promise<void> {
-    await shell.openExternal(LATEST_DMG_URL);
+    await shell.openExternal(manualDownloadUrl(updaterPlatform));
   }
 
   private progressState(progress: ProgressInfo): Partial<AppUpdateState> {

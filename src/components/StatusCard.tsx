@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 Renderer 全局状态中的主题、Codex 与 watcher 状态
+ * [OUTPUT]: 对外提供标题栏状态卡，窄窗可压缩为仍带完整辅助文本的状态指示
+ * [POS]: components 的只读状态镜像，不发起平台探测或业务副作用
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import { useApp } from "../store";
 
 /** Titlebar mirror of the active theme and Codex connection state. */
@@ -17,7 +23,11 @@ export function StatusCard() {
         : { dot: "", text: "未运行" };
 
   return (
-    <div className="status-card" aria-label="当前主题和 Codex 状态">
+    <div
+      className="status-card"
+      aria-label={`当前主题 ${themeRow.text}；Codex ${codexRow.text}`}
+      title={`当前主题：${themeRow.text}；Codex：${codexRow.text}`}
+    >
       <div className="status-row" title={`当前主题 · ${themeRow.text}`}>
         <span className={`dot ${themeRow.dot}`} />
         <span className="status-prefix">当前主题</span>

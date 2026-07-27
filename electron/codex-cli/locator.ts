@@ -1,30 +1,34 @@
 /**
- * Discover the local Codex CLI executable and read its version.
- *
- * Resolution order:
- *   1. User-selected absolute path from settings.
- *   2. Codex CLI bundled with the verified official ChatGPT / Codex app.
- *   3. Common installation paths (/opt/homebrew/bin/codex, /usr/local/bin/codex,
- *      ~/.local/bin/codex).
- *   4. Directories in the launch environment PATH.
- *
- * No shell string interpolation is used; all paths are checked with fs.access.
+ * [INPUT]: 依赖文件系统、PATH/PATHEXT、macOS bundle 发现与统一 CLI runner
+ * [OUTPUT]: 对外提供独立 Codex CLI 定位、版本读取与最低版本比较
+ * [POS]: electron/codex-cli 的发现模块，Windows 只接受可执行 exe 与 npm cmd shim
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFile } from "node:child_process";
 import { homedir } from "node:os";
-import { promisify } from "node:util";
 import { discoverCodexApp } from "../platform/codex-macos";
+import { execCodexCli } from "./runner";
 
-const execFileAsync = promisify(execFile);
-
-const COMMON_PATHS = [
-  "/opt/homebrew/bin/codex",
-  "/usr/local/bin/codex",
-  path.join(homedir(), ".local", "bin", "codex"),
-];
+function commonCliPaths(platform: NodeJS.Platform, home: string): string[] {
+  if (platform === "win32") {
+    const localAppData = process.env.LOCALAPPDATA ?? path.join(home, "AppData", "Local");
+    return [
+      path.join(home, ".bun", "bin", "codex.exe"),
+      path.join(home, ".bun", "bin", "codex.cmd"),
+      path.join(home, ".local", "bin", "codex.exe"),
+      path.join(localAppData, "Programs", "codex", "codex.exe"),
+      path.join(localAppData, "Microsoft", "WinGet", "Links", "codex.exe"),
+      path.join(process.env.APPDATA ?? path.join(home, "AppData", "Roaming"), "npm", "codex.cmd"),
+    ];
+  }
+  return [
+    "/opt/homebrew/bin/codex",
+    "/usr/local/bin/codex",
+    path.join(home, ".local", "bin", "codex"),
+  ];
+}
 
 async function isExecutable(file: string): Promise<boolean> {
   try {
@@ -37,11 +41,24 @@ async function isExecutable(file: string): Promise<boolean> {
   }
 }
 
-async function findInPath(envPath = process.env.PATH ?? ""): Promise<string | null> {
-  const dirs = envPath.split(path.delimiter).filter(Boolean);
-  for (const dir of dirs) {
-    const candidate = path.join(dir, "codex");
-    if (await isExecutable(candidate)) return candidate;
+async function findInPath(
+  platform: NodeJS.Platform,
+  envPath = process.env.PATH ?? "",
+  pathExt = process.env.PATHEXT ?? ".EXE;.CMD",
+): Promise<string | null> {
+  const platformPath = platform === "win32" ? path.win32 : path;
+  const delimiter = platform === "win32" ? ";" : path.delimiter;
+  const executableNames = platform === "win32"
+    ? [...new Set(pathExt.split(";")
+        .map((extension) => extension.toLowerCase())
+        .filter((extension) => extension === ".exe" || extension === ".cmd")
+        .map((extension) => `codex${extension}`))]
+    : ["codex"];
+  for (const dir of envPath.split(delimiter).filter(Boolean)) {
+    for (const executableName of executableNames) {
+      const candidate = platformPath.join(dir, executableName);
+      if (await isExecutable(candidate)) return candidate;
+    }
   }
   return null;
 }
@@ -59,23 +76,41 @@ export interface LocateCodexCliOptions {
   desktopBundlePath?: string | null;
   commonPaths?: string[];
   envPath?: string;
+  platform?: NodeJS.Platform;
+  home?: string;
+  pathExt?: string;
+  readVersion?: (executablePath: string) => Promise<string | null>;
 }
 
 export function bundledCodexCliPath(bundlePath: string): string {
   return path.join(bundlePath, "Contents", "Resources", "codex");
 }
 
+export function codexCliPathSupported(file: string, platform: NodeJS.Platform): boolean {
+  if (platform !== "win32") return true;
+  const extension = path.win32.extname(file).toLowerCase();
+  return extension === ".exe" || extension === ".cmd";
+}
+
 export async function locateCodexCli(
   preferredPath?: string | null,
   options: LocateCodexCliOptions = {},
 ): Promise<LocatedCli | null> {
+  const platform = options.platform ?? process.platform;
+  const home = options.home ?? homedir();
+  const platformPath = platform === "win32" ? path.win32 : path;
   let executable: string | null = null;
 
-  if (preferredPath && path.isAbsolute(preferredPath) && (await isExecutable(preferredPath))) {
+  if (
+    preferredPath
+    && platformPath.isAbsolute(preferredPath)
+    && codexCliPathSupported(preferredPath, platform)
+    && (await isExecutable(preferredPath))
+  ) {
     executable = preferredPath;
   }
 
-  if (!executable) {
+  if (!executable && platform === "darwin") {
     const desktopBundlePath = options.desktopBundlePath === undefined
       ? (await discoverCodexApp())?.bundle ?? null
       : options.desktopBundlePath;
@@ -86,8 +121,8 @@ export async function locateCodexCli(
   }
 
   if (!executable) {
-    for (const candidate of options.commonPaths ?? COMMON_PATHS) {
-      if (await isExecutable(candidate)) {
+    for (const candidate of options.commonPaths ?? commonCliPaths(platform, home)) {
+      if (codexCliPathSupported(candidate, platform) && await isExecutable(candidate)) {
         executable = candidate;
         break;
       }
@@ -95,18 +130,18 @@ export async function locateCodexCli(
   }
 
   if (!executable) {
-    executable = await findInPath(options.envPath);
+    executable = await findInPath(platform, options.envPath, options.pathExt);
   }
-
   if (!executable) return null;
 
-  const version = await readCodexCliVersion(executable);
+  const version = await (options.readVersion ?? readCodexCliVersion)(executable);
+
   return { executablePath: executable, version };
 }
 
 export async function readCodexCliVersion(executablePath: string): Promise<string | null> {
   try {
-    const { stdout } = await execFileAsync(executablePath, ["--version"], { timeout: 10_000 });
+    const { stdout } = await execCodexCli(executablePath, ["--version"], { timeout: 10_000 });
     const match = stdout.trim().match(/(\d+\.\d+(?:\.\d+)?)/);
     return match ? match[1] : null;
   } catch {

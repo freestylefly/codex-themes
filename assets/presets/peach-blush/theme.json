@@ -9,8 +9,8 @@
   "description": "傍晚六点的粉色反光。",
   "tagline": "傍晚六点的粉色反光。",
   "tags": [],
-  "hero": "background.png",
-  "preview": "preview.png",
+  "hero": "background.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#faf4f2",
     "panel": "#ffffff",

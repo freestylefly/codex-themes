@@ -1,7 +1,8 @@
 /**
- * Unit tests for the theme normalizer and compiler.
- * Run with: node --test dist/engine/theme.test.js (after build)
- * Or during dev via a tsx runner if available.
+ * [INPUT]: 依赖主题规范化、编译、载荷构建与内置主题资源
+ * [OUTPUT]: 验证主题结构、配色、首页判定及全部预设资源可加载
+ * [POS]: engine 的端到端纯逻辑回归门禁，覆盖清单到注入载荷的数据流
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { describe, it } from "node:test";
@@ -289,7 +290,7 @@ describe("loadTheme", () => {
     const loaded = await loadTheme("./assets/presets/cream-sage");
     assert.equal(loaded.theme.schemaVersion, 2);
     assert.equal(loaded.theme.layout, "dream-banner");
-    assert.equal(loaded.theme.resources.hero, "background.png");
+    assert.equal(loaded.theme.resources.hero, "background.webp");
     assert.ok(loaded.imageBytes > 0);
   });
 
@@ -299,10 +300,10 @@ describe("loadTheme", () => {
       "./assets/presets/blue-window-messenger",
     );
     assert.equal(built.theme.catalogOnly, true);
-    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.resources.stamp, "stamp.webp");
     assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
     assert.ok(built.payload.includes("dream-skin-retro-friend-avatar"));
-    assert.ok(built.payload.includes('const CUSTOM_HOME_THEME_IDS = new Set([\n    "blue-window-messenger"'));
+    assert.match(built.payload, /const CUSTOM_HOME_THEME_IDS = new Set\(\[\s*"blue-window-messenger"\s*,?\s*\]\)/);
     assert.ok(built.payload.includes("const PRESERVE_NATIVE_LAYOUT = !CUSTOM_HOME_THEME_IDS.has(THEME.id)"));
   });
 
@@ -314,9 +315,9 @@ describe("loadTheme", () => {
     assert.equal(built.theme.id, "shanhai-nexus");
     assert.equal(built.theme.version, "1.1.0");
     assert.equal(built.theme.layout, "full-canvas");
-    assert.equal(built.theme.resources.hero, "hero.png");
-    assert.equal(built.theme.resources.wallpaper, "wallpaper-v2.png");
-    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.resources.hero, "hero.webp");
+    assert.equal(built.theme.resources.wallpaper, "wallpaper-v2.webp");
+    assert.equal(built.theme.resources.stamp, "stamp.webp");
     assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
     assert.ok(!built.payload.includes("__DREAM_SKIN_WALLPAPER_JSON__"));
     assert.ok(!built.payload.includes("__DREAM_SKIN_STAMP_JSON__"));
@@ -349,9 +350,9 @@ describe("loadTheme", () => {
     );
     assert.equal(built.theme.id, "starcap-teemo");
     assert.equal(built.theme.layout, "full-canvas");
-    assert.equal(built.theme.resources.hero, "hero.png");
-    assert.equal(built.theme.resources.wallpaper, "hero.png");
-    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.resources.hero, "hero.webp");
+    assert.equal(built.theme.resources.wallpaper, "hero.webp");
+    assert.equal(built.theme.resources.stamp, "stamp.webp");
     assert.equal(built.theme.light.background, "#f4faef");
     assert.equal(built.theme.dark.background, "#172a26");
     assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
@@ -366,9 +367,9 @@ describe("loadTheme", () => {
     );
     assert.equal(built.theme.id, "mirror-lake-ribbon");
     assert.equal(built.theme.layout, "silk-scroll");
-    assert.equal(built.theme.resources.hero, "hero.png");
-    assert.equal(built.theme.resources.wallpaper, "wallpaper.png");
-    assert.equal(built.theme.resources.stamp, "stamp.png");
+    assert.equal(built.theme.resources.hero, "hero.webp");
+    assert.equal(built.theme.resources.wallpaper, "wallpaper.webp");
+    assert.equal(built.theme.resources.stamp, "stamp.webp");
     assert.equal(built.theme.light.background, "#f6eee8");
     assert.equal(built.theme.dark.background, "#261c22");
     assert.ok(built.payload.includes('"mirror-lake-ribbon"'));
@@ -393,7 +394,7 @@ describe("loadTheme", () => {
       assert.equal(built.theme.id, id);
       assert.equal(built.theme.layout, layout);
       assert.equal(built.theme.resources.hero, "hero.webp");
-      assert.equal(built.theme.resources.preview, "preview.png");
+      assert.equal(built.theme.resources.preview, "preview.webp");
       assert.ok(built.payload.includes(`data-dream-theme=\"${id}\"`) || built.payload.includes("data-dream-theme"));
       assert.ok(built.payload.includes("const PRESERVE_NATIVE_LAYOUT = !CUSTOM_HOME_THEME_IDS.has(THEME.id)"));
       assert.doesNotThrow(() => new Function(built.payload));

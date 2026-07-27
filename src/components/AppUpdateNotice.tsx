@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 Renderer 更新状态、用户更新动作、React Portal 与 Lucide 图标
+ * [OUTPUT]: 提供可下载、安装、关闭和手动回退的 AppUpdateNotice
+ * [POS]: components 的更新交互出口，将主进程状态机投影为用户确认界面
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import {
   ArrowDownToLine,
   CheckCircle2,
@@ -45,6 +51,7 @@ function ReleaseNotes({ value }: { value: string | null }) {
 }
 
 export function AppUpdateNotice() {
+  const platformState = useApp((store) => store.state);
   const update = useApp((state) => state.appUpdate);
   const download = useApp((state) => state.downloadAppUpdate);
   const install = useApp((state) => state.installAppUpdate);
@@ -181,7 +188,7 @@ export function AppUpdateNotice() {
                 {failed && (
                   <button className="btn" type="button" onClick={() => void openDownload()}>
                     <ArrowDownToLine size={13} />
-                    直接下载 DMG
+                    直接下载 {platformState?.platform.manualUpdatePackageLabel ?? "安装包"}
                   </button>
                 )}
                 {downloaded ? (

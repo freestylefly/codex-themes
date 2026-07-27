@@ -1,17 +1,14 @@
 /**
- * Tests for the AI theme pipeline (plan §13.2 / §13.4):
- *   - Theme Recipe runtime validation: positive/negative cases, unknown
- *     keys/enums, range checks — mirrors the strict JSON Schema.
- *   - Theme Synthesizer: valid recipe + image → ThemeDraftInput; invalid
- *     inputs rejected.
- *   - CodexAppServerClient against a fake JSONL app-server: handshake,
- *     half/stuck packets, non-JSON lines, out-of-order responses, unknown
- *     notifications, timeouts, error mapping and process exit.
+ * [INPUT]: 依赖 AI Recipe、主题合成、App Server 客户端与伪 JSONL 进程
+ * [OUTPUT]: 验证多轮生成、审批、协议乱序、异常映射与进程退出回归
+ * [POS]: electron/ai 的端到端单元门禁，覆盖 AI 主题流水线的关键状态转换
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
+import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -273,8 +270,17 @@ describe("CodexAppServerClient", () => {
     await fs.rm(dir, { recursive: true, force: true });
   });
 
+
+  function createClient(): CodexAppServerClient {
+    return new CodexAppServerClient(() =>
+      spawn(process.execPath, [serverPath], {
+        stdio: ["pipe", "pipe", "pipe"],
+        env: { ...process.env },
+      }),
+    );
+  }
   async function connect(): Promise<CodexAppServerClient> {
-    const client = new CodexAppServerClient();
+    const client = createClient();
     await client.connect(serverPath);
     return client;
   }
@@ -286,7 +292,7 @@ describe("CodexAppServerClient", () => {
   });
 
   it("surfaces unknown notifications without crashing", async () => {
-    const client = new CodexAppServerClient();
+    const client = createClient();
     const seen: string[] = [];
     client.on("notification", (method: string) => seen.push(method));
     await client.connect(serverPath);

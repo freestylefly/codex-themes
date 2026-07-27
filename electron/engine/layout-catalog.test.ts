@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖内置主题清单与 Renderer 布局目录
+ * [OUTPUT]: 验证布局族完整性、隐藏规则与代表主题资源存在
+ * [POS]: engine 的布局目录回归门禁，防止资源优化破坏主题入口
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -56,7 +62,7 @@ describe("layout catalog", () => {
         hero?: string;
         galleryVisible?: boolean;
       };
-      const isPaletteOnly = manifest.hero === "background.png";
+      const isPaletteOnly = manifest.hero === "background.webp";
       assert.equal(
         manifest.galleryVisible !== false,
         !isPaletteOnly,
@@ -76,7 +82,7 @@ describe("layout catalog", () => {
     assert.equal(new Set(representativeIds).size, representativeIds.length);
 
     for (const item of LAYOUT_CATALOG) {
-      const previewPath = path.resolve("assets", "presets", item.representativeThemeId, "preview.png");
+      const previewPath = path.resolve("assets", "presets", item.representativeThemeId, "preview.webp");
       assert.ok(fs.existsSync(previewPath), `${item.id} is missing ${previewPath}`);
 
       const themeJson = JSON.parse(
