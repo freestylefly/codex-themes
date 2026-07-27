@@ -17,6 +17,7 @@
   <p>
     <img alt="Version" src="https://img.shields.io/github/v/release/freestylefly/codex-themes?display_name=tag&style=flat-square&color=E8B04B" />
     <img alt="macOS Apple Silicon" src="https://img.shields.io/badge/macOS-Apple%20Silicon-111111?style=flat-square&logo=apple" />
+    <img alt="Windows 11 x64" src="https://img.shields.io/badge/Windows%2011-x64-0078D4?style=flat-square&logo=windows11" />
     <img alt="Electron" src="https://img.shields.io/badge/Electron-43-47848F?style=flat-square&logo=electron" />
     <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-2EA44F?style=flat-square" /></a>
   </p>
@@ -26,7 +27,7 @@
 
 ## 把灵感变成可以使用的 Codex 主题
 
-Codex Themes 是一套完整的 macOS 主题平台：从官方精选、可视化自定义和本地 AI 创作，到社区投稿、人工审核、积分解锁与创作者收益，都在同一个客户端里完成。
+Codex Themes 是一套完整的桌面主题平台：从官方精选、可视化自定义和本地 AI 创作，到社区投稿、人工审核、积分解锁与创作者收益，都在同一个客户端里完成。macOS Apple Silicon 与 Windows 11 x64 均已完成对应平台的运行、客户端与安装交付验证。
 
 它不会修改 Codex 安装包。主题通过本机 CDP（Chrome DevTools Protocol）作为纯视觉层应用，并且可以随时一键恢复官方外观。
 
@@ -143,19 +144,20 @@ AI 主题工作室不是一次性生成器。它会按设置生成准确数量�
 
 ## 下载与安装
 
-当前公开版以 [GitHub Latest Release](https://github.com/freestylefly/codex-themes/releases/latest) 为准，支持 Apple 芯片 Mac（M1–M4）。
+当前公开稳定安装以 [GitHub Latest Release](https://github.com/freestylefly/codex-themes/releases/latest) 为准，支持 Apple 芯片 Mac（M1–M4）与 Windows 11 x64。Windows 版要求使用 Microsoft Store Codex，当前不支持 Windows 10、Windows ARM64 或其他 Codex 安装来源。
 
 ### 使用前请保持两个应用为最新版
 
-1. **先更新官方 Codex**：请从官方渠道安装或升级到最新版 ChatGPT / Codex 桌面应用，并确认左上角可以切换到 `Codex`。旧版 Codex 可能缺少当前主题依赖的界面结构，也可能出现布局或文字兼容问题。
-2. **再安装最新版 Codex Themes**：始终通过官网或 GitHub Latest Release 获取最新版。客户端发现新版本后会显示更新入口；如果自动安装受 macOS 限制，请下载最新版 DMG 覆盖安装。
-3. **两边都要持续更新**：Codex 界面会持续迭代，Codex Themes 也会同步提供兼容修复。遇到显示异常时，请先确认 Codex 与 Codex Themes 都已升级到最新版，再重新应用主题。
+1. **先更新官方 Codex**：macOS 请从官方渠道安装或升级 ChatGPT / Codex；Windows 必须使用 Microsoft Store 包 `OpenAI.Codex`（包族 `OpenAI.Codex_2p2nqsd0c76g0`）。两端都要确认可以进入 `Codex` 模式。
+2. **再安装最新版 Codex Themes**：始终通过官网或 GitHub Latest Release 获取最新版。macOS 自动安装受限时，请下载最新版 DMG 覆盖安装；Windows 请下载 x64 NSIS 安装包。
+3. **两边都要持续更新**：Codex 界面会持续迭代，Codex Themes 也会同步提供兼容修复。遇到显示异常时，请先确认两个应用都是最新版，再重新应用主题。
 
 - [下载最新版 DMG 安装包](https://theme.codexguide.ai/api/v1/downloads/latest?format=dmg)
 - [下载最新版 ZIP 便携包](https://theme.codexguide.ai/api/v1/downloads/latest?format=zip)
+- [下载最新版 Windows x64 安装包](https://theme.codexguide.ai/api/v1/downloads/latest?format=exe)
 - [查看最新版本与更新说明](https://github.com/freestylefly/codex-themes/releases/latest)
 
-安装包目前尚未签名或公证。首次打开如果被 macOS 阻止，请前往「系统设置 → 隐私与安全性」并选择「仍要打开」。
+macOS 安装包目前尚未签名或公证。首次打开如果被 macOS 阻止，请前往「系统设置 → 隐私与安全性」并选择「仍要打开」。Windows 安装包同样尚未代码签名，SmartScreen 可能显示“Windows 已保护你的电脑”；请只使用官网或官方 GitHub Release 的安装包，核对来源后选择“更多信息 → 仍要运行”。生产发布仍需要由 CI 提供代码签名证书。
 
 ### 提示“Codex Themes.app 已损坏”怎么办
 
@@ -198,11 +200,11 @@ Codex Themes 不只是一个 Electron 换肤工具，也包含 Astro 官网、Ve
 
 ### 1. 准备环境
 
-- macOS 与 Apple 芯片 Mac
+- macOS 13+ 与 Apple 芯片 Mac，或 Windows 11 x64
 - [Node.js](https://nodejs.org/) >= 22
-- Codex 桌面端，默认安装在 `/Applications/ChatGPT.app`
+- Codex 桌面端：macOS 默认位于 `/Applications/ChatGPT.app`；Windows 必须安装 Microsoft Store 包 `OpenAI.Codex`
 - Git
-- AI 生成会自动复用最新版官方 ChatGPT / Codex 桌面应用内置的 Codex CLI；也可以手动选择独立 [Codex CLI](https://developers.openai.com/codex/cli) >= 0.144.0
+- AI 生成：macOS 可自动复用已验证桌面应用内置的 Codex CLI；Windows 不使用 Store 包内的 `resources/codex.exe`，需要手动选择或安装独立 [Codex CLI](https://developers.openai.com/codex/cli) >= 0.144.0。两端都会优先使用手动选择的路径。
 - 可选：[Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)，部署社区功能需要
 - 可选：[Vercel CLI](https://vercel.com/docs/cli)，本地调试或部署官网与 API 需要
 
@@ -416,22 +418,25 @@ npm run build:web
 生成未签名的 Apple Silicon macOS 安装包：
 
 ```bash
-npm run dist
+npm run dist:mac
 ```
 
-产物位于 `release/`，包含 DMG、ZIP 和自动更新元数据。只生成未打包目录时使用：
+生成 Windows x64 激活辅助程序、未签名 NSIS 安装包与更新元数据：
 
 ```bash
-npm run dist:dir
+npm run build:windows-helper
+npm run dist:win
 ```
+
+产物位于 `release/`。macOS 包含 DMG、ZIP 与 `latest-mac.yml`；Windows 包含 `Codex-Themes-<version>-win-x64.exe`、blockmap 与 `latest.yml`。只生成对应平台的未打包目录时使用 `npm run dist:mac:dir` 或 `npm run dist:win:dir`。
 
 发布新版本前：
 
 1. 同步修改 `package.json` 与 `package-lock.json` 中的版本。
 2. 确认 `electron-builder.yml` 的 GitHub owner / repo 指向你的 Fork。
 3. 运行完整检查并打包。
-4. 创建同版本 Git tag 与正式 GitHub Release（非 Draft / Prerelease），上传 `release/` 中的 DMG、ZIP 和更新元数据。
-5. 确认官网的 DMG 与 ZIP 下载入口均跳转到新 Release。官网会实时解析 GitHub Latest Release，不需要为版本号单独重新部署。
+4. 创建同版本 Git tag 与正式 GitHub Release（非 Draft / Prerelease），上传 `release/` 中对应平台的 DMG、ZIP、`Codex-Themes-<version>-win-x64.exe`、blockmap 和更新元数据。
+5. 确认官网各下载入口只解析本仓库 Latest Release 中的精确平台文件名；Windows 发布还必须保持 NSIS 安装、升级、协议/文件关联和卸载冒烟通过。
 
 还可以运行真实机器冒烟测试：
 
@@ -450,7 +455,8 @@ npm run typecheck    # 主进程、服务端、渲染进程与官网类型检查
 npm test             # 单元测试
 npm run build        # 构建客户端
 npm run build:web    # 构建官网
-npm run dist         # 生成 DMG + ZIP 到 release/
+npm run dist:mac     # 生成 macOS DMG + ZIP 到 release/
+npm run dist:win     # 生成 Windows x64 NSIS + 更新元数据到 release/
 ```
 
 ## 安全边界

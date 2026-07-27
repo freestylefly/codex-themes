@@ -1,33 +1,29 @@
 /**
- * Auth service: Supabase Auth wrapper for the Electron main process.
- *
- * Responsibilities:
- * - hold the Supabase client (anon key only, no service role);
- * - manage the current session and refresh it before expiry;
- * - persist tokens via AuthTokenStore (safeStorage encrypted);
- * - expose email OTP, GitHub OAuth+PKCE, sign-out;
- * - emit auth state changes for the renderer.
+ * [INPUT]: 依赖 Supabase Auth、EncryptedAuthStorage、旧令牌迁移器与系统浏览器打开函数
+ * [OUTPUT]: 对外提供 OAuth 单飞、回调、会话恢复/刷新/登出和 AuthState 事件
+ * [POS]: electron/auth 的业务深模块，隐藏 PKCE、令牌和网络错误分类，Renderer 只消费状态机
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { EventEmitter } from "node:events";
 import { createClient, type AuthError, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import type { AuthProvider, AuthState, AuthUserSummary } from "../shared/types";
-import { AuthTokenStore } from "./store";
+import { parseAuthCallbackUrl } from "../deep-links";
+import { AuthTokenStore, type AuthStorage } from "./store";
+
+const OAUTH_TIMEOUT_MS = 10 * 60_000;
+const REFRESH_RETRY_MS = 30_000;
 
 export interface AuthClientOptions {
   supabaseUrl: string;
   supabaseAnonKey: string;
-  tokenStore: AuthTokenStore;
-  /** Called with the OAuth authorization URL when starting GitHub sign-in. */
-  onOpenExternalUrl(url: string): void;
+  storage: AuthStorage;
+  legacyTokenStore?: AuthTokenStore;
+  client?: SupabaseClient;
+  /** Called with the OAuth authorization URL; rejection is shown to the user. */
+  onOpenExternalUrl(url: string): Promise<void>;
   /** Called when a code exchange completes so the main process can drain pending auth URLs. */
   onAuthUrlHandled?(): void;
-}
-
-function envOrThrow(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`缺少环境变量 ${name}。`);
-  return value;
 }
 
 function providerFromSession(session: Session): AuthProvider {
@@ -35,17 +31,6 @@ function providerFromSession(session: Session): AuthProvider {
   if (provider === "google") return "google";
   if (provider === "github") return "github";
   return "email";
-}
-
-export function createSupabaseClient(): SupabaseClient {
-  return createClient(envOrThrow("SUPABASE_URL"), envOrThrow("SUPABASE_ANON_KEY"), {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-      flowType: "pkce",
-    },
-  });
 }
 
 function toAuthUser(session: Session): AuthUserSummary {
@@ -92,59 +77,76 @@ function toAuthState(
   status: AuthState["status"],
   session: Session | null,
   error: string | null = null,
+  pendingProvider: "github" | "google" | null = null,
 ): AuthState {
   return {
     status,
     user: session ? toAuthUser(session) : null,
     entitlementCount: 0,
+    pendingProvider,
     error,
   };
 }
 
 export class AuthClient extends EventEmitter {
   private client: SupabaseClient;
-  private tokenStore: AuthTokenStore;
-  private onOpenExternalUrl: (url: string) => void;
+  private legacyTokenStore?: AuthTokenStore;
+  private onOpenExternalUrl: (url: string) => Promise<void>;
   private onAuthUrlHandled?: () => void;
   private supabaseUrl: string;
   private supabaseAnonKey: string;
   private currentSession: Session | null = null;
   private currentState: AuthState = toAuthState("loading", null);
   private refreshTimer: NodeJS.Timeout | null = null;
+  private oauthTimer: NodeJS.Timeout | null = null;
+  private pendingOAuth: {
+    provider: "github" | "google";
+    url: string;
+    expiresAt: number;
+  } | null = null;
 
   constructor(opts: AuthClientOptions) {
     super();
-    this.client = createClient(opts.supabaseUrl, opts.supabaseAnonKey, {
+    this.client = opts.client ?? createClient(opts.supabaseUrl, opts.supabaseAnonKey, {
       auth: {
         autoRefreshToken: false,
-        persistSession: false,
+        persistSession: true,
         detectSessionInUrl: false,
         flowType: "pkce",
+        storage: opts.storage,
       },
     });
     this.supabaseUrl = opts.supabaseUrl;
     this.supabaseAnonKey = opts.supabaseAnonKey;
-    this.tokenStore = opts.tokenStore;
+    this.legacyTokenStore = opts.legacyTokenStore;
     this.onOpenExternalUrl = opts.onOpenExternalUrl;
     this.onAuthUrlHandled = opts.onAuthUrlHandled;
   }
 
   async init(): Promise<void> {
-    const tokens = await this.tokenStore.load();
-    if (!tokens) {
+    try {
+      const existing = await this.client.auth.getSession();
+      if (existing.data.session) {
+        this.applySession(existing.data.session);
+        return;
+      }
+
+      const tokens = await this.legacyTokenStore?.load();
+      if (tokens) {
+        const migrated = await this.client.auth.setSession({
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
+        });
+        if (migrated.data.session && !migrated.error) {
+          this.applySession(migrated.data.session);
+          await this.legacyTokenStore?.clear();
+          return;
+        }
+      }
       this.setState(toAuthState("unauthenticated", null));
-      return;
+    } catch (error) {
+      this.setState(toAuthState("error", null, `无法读取登录状态:${(error as Error).message}`));
     }
-    const { data, error } = await this.client.auth.setSession({
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-    });
-    if (error || !data.session) {
-      await this.tokenStore.clear();
-      this.setState(toAuthState("unauthenticated", null));
-      return;
-    }
-    this.applySession(data.session, tokens.provider);
   }
 
   getState(): AuthState {
@@ -178,6 +180,21 @@ export class AuthClient extends EventEmitter {
     provider: "github" | "google",
   ): Promise<{ ok: boolean; error?: string; url?: string }> {
     const providerName = provider === "google" ? "Google" : "GitHub";
+    if (this.pendingOAuth && this.pendingOAuth.expiresAt > Date.now()) {
+      if (this.pendingOAuth.provider !== provider) {
+        return { ok: false, error: `已有 ${this.pendingOAuth.provider === "google" ? "Google" : "GitHub"} 登录正在进行。` };
+      }
+      try {
+        await this.onOpenExternalUrl(this.pendingOAuth.url);
+        return { ok: true, url: this.pendingOAuth.url };
+      } catch (error) {
+        const message = `无法打开系统浏览器:${(error as Error).message}`;
+        this.setState(toAuthState("error", null, message));
+        return { ok: false, error: message };
+      }
+    }
+    this.clearPendingOAuth();
+
     try {
       const response = await fetch(`${this.supabaseUrl}/auth/v1/settings`, {
         headers: { apikey: this.supabaseAnonKey },
@@ -206,22 +223,43 @@ export class AuthClient extends EventEmitter {
       },
     });
     if (error || !data.url) return { ok: false, error: formatAuthError(error) };
-    this.onOpenExternalUrl(data.url);
-    return { ok: true, url: data.url };
+    this.pendingOAuth = {
+      provider,
+      url: data.url,
+      expiresAt: Date.now() + OAUTH_TIMEOUT_MS,
+    };
+    this.setState(toAuthState("authenticating", null, null, provider));
+    this.scheduleOAuthTimeout();
+    try {
+      await this.onOpenExternalUrl(data.url);
+      return { ok: true, url: data.url };
+    } catch (openError) {
+      this.clearPendingOAuth();
+      const message = `无法打开系统浏览器:${(openError as Error).message}`;
+      this.setState(toAuthState("error", null, message));
+      return { ok: false, error: message };
+    }
   }
 
   /** Called when the OS hands us codexthemes://auth/callback?code=... */
   async handleAuthCallback(url: string): Promise<void> {
     try {
-      const parsed = new URL(url);
-      const code = parsed.searchParams.get("code");
-      if (!code) return;
-      const { data, error } = await this.client.auth.exchangeCodeForSession(code);
-      if (error || !data.session) {
-        this.setState({ ...this.currentState, status: "error", error: formatAuthError(error) });
+      const callback = parseAuthCallbackUrl(url);
+      if (!callback || this.currentSession) return;
+      if (callback.error) {
+        this.clearPendingOAuth();
+        this.setState(toAuthState("error", null, formatOAuthCallbackError(callback.error)));
         return;
       }
-      await this.applySession(data.session, providerFromSession(data.session));
+      if (!callback.code) return;
+      const { data, error } = await this.client.auth.exchangeCodeForSession(callback.code);
+      if (error || !data.session) {
+        this.clearPendingOAuth();
+        this.setState(toAuthState("error", null, formatAuthError(error)));
+        return;
+      }
+      this.clearPendingOAuth();
+      this.applySession(data.session);
     } finally {
       this.onAuthUrlHandled?.();
     }
@@ -229,6 +267,7 @@ export class AuthClient extends EventEmitter {
 
   async signOut(): Promise<{ ok: boolean; error?: string }> {
     this.clearRefreshTimer();
+    this.clearPendingOAuth();
     try {
       // A desktop "退出登录" should only end this installation's session.
       // Supabase defaults to `global`, which unnecessarily signs out every
@@ -242,7 +281,6 @@ export class AuthClient extends EventEmitter {
       // fails. The access token is no longer available to this app, and the
       // server-issued token will expire normally.
       this.currentSession = null;
-      await this.tokenStore.clear().catch(() => {});
       this.setState(toAuthState("unauthenticated", null));
     }
     return { ok: true };
@@ -251,24 +289,28 @@ export class AuthClient extends EventEmitter {
   private async refreshSession(): Promise<void> {
     const refreshToken = this.currentSession?.refresh_token;
     if (!refreshToken) return;
-    const { data, error } = await this.client.auth.refreshSession({ refresh_token: refreshToken });
-    if (error || !data.session) {
-      await this.tokenStore.clear();
-      this.setState(toAuthState("unauthenticated", null));
-      return;
+    try {
+      const { data, error } = await this.client.auth.refreshSession({ refresh_token: refreshToken });
+      if (error || !data.session) {
+        if (isPermanentSessionError(error)) {
+          await this.client.auth.signOut({ scope: "local" }).catch(() => {});
+          this.currentSession = null;
+          this.setState(toAuthState("unauthenticated", null, "登录状态已失效,请重新登录。"));
+          return;
+        }
+        this.scheduleRefreshRetry();
+        this.setState(toAuthState("authenticated", this.currentSession, "网络暂不可用,登录状态将在连接恢复后刷新。"));
+        return;
+      }
+      this.applySession(data.session);
+    } catch {
+      this.scheduleRefreshRetry();
+      this.setState(toAuthState("authenticated", this.currentSession, "网络暂不可用,登录状态将在连接恢复后刷新。"));
     }
-    const provider = this.currentState.user?.provider ?? providerFromSession(data.session);
-    await this.applySession(data.session, provider);
   }
 
-  private async applySession(session: Session, provider: AuthProvider): Promise<void> {
+  private applySession(session: Session): void {
     this.currentSession = session;
-    await this.tokenStore.save({
-      accessToken: session.access_token,
-      refreshToken: session.refresh_token,
-      expiresAt: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
-      provider,
-    });
     this.scheduleRefresh(session);
     this.setState(toAuthState("authenticated", session));
   }
@@ -291,6 +333,29 @@ export class AuthClient extends EventEmitter {
     }
   }
 
+  private scheduleRefreshRetry(): void {
+    this.clearRefreshTimer();
+    this.refreshTimer = setTimeout(() => {
+      void this.refreshSession();
+    }, REFRESH_RETRY_MS);
+  }
+
+  private scheduleOAuthTimeout(): void {
+    if (this.oauthTimer) clearTimeout(this.oauthTimer);
+    this.oauthTimer = setTimeout(() => {
+      this.clearPendingOAuth();
+      this.setState(toAuthState("error", null, "登录等待已超时,请重新发起授权。"));
+    }, OAUTH_TIMEOUT_MS);
+  }
+
+  private clearPendingOAuth(): void {
+    this.pendingOAuth = null;
+    if (this.oauthTimer) {
+      clearTimeout(this.oauthTimer);
+      this.oauthTimer = null;
+    }
+  }
+
   private setState(state: AuthState): void {
     this.currentState = state;
     this.emit("authChanged", state);
@@ -304,4 +369,17 @@ function formatAuthError(error: AuthError | null): string {
   if (message.includes("email")) return "邮箱格式不正确。";
   if (message.includes("rate")) return "请求过于频繁,请稍后再试。";
   return error.message || "登录失败,请重试。";
+}
+
+function formatOAuthCallbackError(error: string): string {
+  const normalized = error.toLowerCase();
+  if (normalized.includes("access_denied")) return "登录已取消。";
+  return `登录失败:${error}`;
+}
+
+function isPermanentSessionError(error: AuthError | null): boolean {
+  if (!error) return false;
+  const message = error.message?.toLowerCase() ?? "";
+  return [400, 401, 403].includes(error.status ?? 0)
+    && /(refresh token|invalid.*token|session.*(expired|missing|invalid)|jwt)/.test(message);
 }

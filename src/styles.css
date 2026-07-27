@@ -1,8 +1,8 @@
-/* Codex Themes — design system.
- * A quiet, premium dark shell with warm cream accents. The manager app stays
- * intentionally darker than the themes it applies so the theme previews pop.
- * Inspired by the layered gradients, big radius and soft colored shadows of
- * Fei-Away/Codex-Dream-Skin.
+/*
+ * [INPUT]: 依赖 App/Page/Component 语义类名与平台/侧栏状态类
+ * [OUTPUT]: 提供完整 Renderer 设计系统、三种窗口密度和短窗口可达性规则
+ * [POS]: src 的单一视觉实现，响应式行为以 CSS 为主并保持业务组件无尺寸分支
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 :root {
@@ -127,6 +127,41 @@ body {
   pointer-events: none;
 }
 
+.platform-windows .titlebar {
+  padding-right: 138px;
+}
+
+.platform-windows .status-card {
+  right: 150px;
+}
+
+@media (max-width: 840px) {
+  .platform-windows .titlebar {
+    justify-content: flex-start;
+    padding-left: 16px;
+    padding-right: 138px;
+  }
+
+  .platform-windows .status-card {
+    right: 142px;
+    width: 50px;
+    padding-inline: 8px;
+    justify-content: center;
+  }
+
+  .platform-windows .status-card .status-row {
+    flex: none;
+    width: 7px;
+  }
+
+  .platform-windows .status-card .status-prefix,
+  .platform-windows .status-card .grow,
+  .platform-windows .status-card .status-watcher,
+  .platform-windows .status-card .status-divider {
+    display: none;
+  }
+}
+
 .sidebar {
   grid-area: sidebar;
   position: relative;
@@ -177,6 +212,11 @@ body {
   color: var(--accent-strong);
   background: var(--panel-solid);
   border-color: rgba(232, 176, 75, 0.38);
+}
+
+.sidebar-toggle:disabled {
+  opacity: 0.62;
+  cursor: default;
 }
 
 .sidebar-toggle:focus-visible {
@@ -704,6 +744,44 @@ body {
   background: transparent;
 }
 
+@media (max-height: 600px) {
+  .sidebar {
+    gap: 2px;
+    padding-block: 8px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .sidebar-toggle {
+    right: 2px;
+  }
+
+  .sidebar-resizer {
+    right: 0;
+  }
+
+  .brand {
+    padding-bottom: 8px;
+  }
+
+  .brand-sub,
+  .app-update-notice__copy,
+  .app-update-notice__dot {
+    display: none;
+  }
+
+  .app-update-notice {
+    justify-content: center;
+    min-height: 34px;
+    margin-bottom: 2px;
+    padding-block: 4px;
+  }
+
+  .nav-item {
+    padding-block: 7px;
+  }
+}
+
 @media (max-width: 1000px) {
   .status-watcher {
     display: none;
@@ -713,6 +791,10 @@ body {
 .page {
   padding: 28px 32px 44px;
   max-width: 1180px;
+}
+
+.gallery-page {
+  max-width: none;
 }
 
 .page-header {
@@ -851,38 +933,6 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
   gap: 18px;
-}
-
-.theme-grid--curated-presets {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.theme-grid--curated-presets > .theme-card:nth-child(9):nth-last-child(2) {
-  grid-column: 2;
-}
-
-@media (max-width: 1180px) {
-  .theme-grid--curated-presets {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .theme-grid--curated-presets > .theme-card:nth-child(9):nth-last-child(2) {
-    grid-column: auto;
-  }
-
-  .theme-grid--curated-presets > .theme-card:nth-child(10):last-child {
-    grid-column: 2;
-  }
-}
-
-@media (max-width: 760px) {
-  .theme-grid--curated-presets {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .theme-grid--curated-presets > .theme-card:nth-child(10):last-child {
-    grid-column: auto;
-  }
 }
 
 .theme-card {
@@ -5829,6 +5879,8 @@ body {
 .modal {
   width: 440px;
   max-width: calc(100vw - 60px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   background: var(--panel-solid);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
@@ -6316,7 +6368,7 @@ body {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 840px) {
   .onboarding {
     position: absolute;
     min-height: 100%;
@@ -6808,7 +6860,7 @@ input[type="range"] {
   min-width: 150px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 840px) {
   .theme-preview-backdrop {
     padding: 12px;
   }
@@ -8075,7 +8127,7 @@ input[type="range"] {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 840px) {
   .ai-studio-workspace {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -10294,7 +10346,7 @@ input[type="range"] {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 840px) {
   .creator-workspace-header,
   .creator-library-toolbar,
   .creator-inspector-titlebar {
@@ -11258,5 +11310,44 @@ input[type="range"] {
 
   .ai-version-card {
     min-width: 150px;
+  }
+}
+
+@media (max-width: 840px) {
+  .page {
+    padding: 20px 16px 32px;
+  }
+
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .page-actions,
+  .account-creator-actions,
+  .submission-actions,
+  .modal-actions,
+  .modal-footer,
+  .row-actions,
+  .marketplace-toolbar,
+  .admin-section-head,
+  .admin-review-controls,
+  .admin-adjust-form {
+    flex-wrap: wrap;
+  }
+
+  .creator-workspace-grid,
+  .point-pack-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketplace-search,
+  .admin-review-controls input {
+    min-width: 0;
   }
 }

@@ -9,8 +9,8 @@
   "description": "旧书页里夹着的一片干花。",
   "tagline": "旧书页里夹着的一片干花。",
   "tags": [],
-  "hero": "background.png",
-  "preview": "preview.png",
+  "hero": "background.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f5f0ec",
     "panel": "#ffffff",

@@ -1,6 +1,8 @@
 /**
- * Centralized filesystem locations. Assets live next to the repo in dev and
- * inside the packaged resources directory in production (extraResources).
+ * [INPUT]: 依赖 Electron app 路径、Node 文件系统与开发/打包资源目录约定
+ * [OUTPUT]: 提供 AppPaths 及开发、直启 dist、打包状态下的统一路径解析
+ * [POS]: Electron 组合根的唯一文件系统位置来源，隔离运行模式差异
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { app } from "electron";
@@ -15,6 +17,7 @@ export interface AppPaths {
   presetsRoot: string;
   trayIconPath: string;
   skillsRoot: string;
+  windowsHelperPath: string;
   /** userData-derived locations. */
   userDataRoot: string;
   userThemesRoot: string;
@@ -114,8 +117,13 @@ export async function resolveAppPaths(): Promise<AppPaths> {
     assetsRoot,
     injectDir: path.join(assetsRoot, "inject"),
     presetsRoot: path.join(assetsRoot, "presets"),
-    trayIconPath: path.join(assetsRoot, "tray", "iconTemplate.png"),
+    trayIconPath: path.join(
+      assetsRoot,
+      "tray",
+      process.platform === "win32" ? "iconWindows.png" : "iconTemplate.png",
+    ),
     skillsRoot: path.join(assetsRoot, "skills", "generate-codex-theme"),
+    windowsHelperPath: path.join(assetsRoot, "windows", "codex-activator.exe"),
     userDataRoot,
     userThemesRoot: path.join(userDataRoot, "themes"),
     purchasedThemesRoot: path.join(userDataRoot, "purchased-themes"),

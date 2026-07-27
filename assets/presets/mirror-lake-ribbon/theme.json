@@ -13,10 +13,10 @@
     "丝绢",
     "同人"
   ],
-  "hero": "hero.png",
-  "wallpaper": "wallpaper.png",
-  "stamp": "stamp.png",
-  "preview": "preview.png",
+  "hero": "hero.webp",
+  "wallpaper": "wallpaper.webp",
+  "stamp": "stamp.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f6eee8",
     "panel": "#fffaf4",

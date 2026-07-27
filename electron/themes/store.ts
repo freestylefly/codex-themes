@@ -1,7 +1,8 @@
 /**
- * Local theme library: bundled presets + user themes on disk.
- * Supports schema v1 (legacy) and schema v2 (structured); both are normalized
- * to NormalizedTheme before being used by the engine or renderer.
+ * [INPUT]: 依赖主题规范化、安全包规则、AdmZip、Sharp 与本地主题目录
+ * [OUTPUT]: 提供预设/自定义/已购主题的加载、检查、原子导入导出和资源解析
+ * [POS]: electron/themes 的持久化核心，向引擎与 Renderer 提供统一 NormalizedTheme
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import fs from "node:fs/promises";
@@ -9,6 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import AdmZip from "adm-zip";
+import sharp from "sharp";
 import { nativeImage } from "electron";
 import type {
   CustomThemeInput,
@@ -506,19 +508,22 @@ export class ThemeStore {
           if (isAnimatedImage(entry.entryName, data)) {
             throw new Error(`不允许动画图片:${entry.entryName}`);
           }
+          // Electron's Windows nativeImage decoder does not support every
+          // package format (notably some valid WebP files). Decode metadata
+          // from the ZIP bytes with the same cross-platform library used by
+          // the server; Buffer input also avoids locking the temp file.
+          const metadata = await sharp(data, {
+            animated: false,
+            limitInputPixels: MAX_IMAGE_SIDE * MAX_IMAGE_SIDE,
+          }).metadata();
+          if (!metadata.width || !metadata.height) {
+            throw new Error(`无法解码图片:${entry.entryName}`);
+          }
+          if (metadata.width > MAX_IMAGE_SIDE || metadata.height > MAX_IMAGE_SIDE) {
+            throw new Error(`图片边长超过 ${MAX_IMAGE_SIDE}px:${entry.entryName}`);
+          }
         }
         await fs.writeFile(path.join(tempDir, entry.entryName), data, { mode: 0o600 });
-      }
-
-      // Decode + dimension check on the extracted images.
-      for (const entry of entries) {
-        if (!isImageEntry(entry.entryName)) continue;
-        const image = nativeImage.createFromPath(path.join(tempDir, entry.entryName));
-        if (image.isEmpty()) throw new Error(`无法解码图片:${entry.entryName}`);
-        const { width, height } = image.getSize();
-        if (width > MAX_IMAGE_SIDE || height > MAX_IMAGE_SIDE) {
-          throw new Error(`图片边长超过 ${MAX_IMAGE_SIDE}px:${entry.entryName}`);
-        }
       }
 
       const { warnings } = normalizeTheme(raw, { local: true });

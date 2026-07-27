@@ -1,7 +1,8 @@
 /**
- * Shared contracts between main process, preload and renderer.
- * Keep this file dependency-free and types-only (plus tiny const enums),
- * it is imported from both Node (electron/) and browser (src/) code.
+ * [INPUT]: 不依赖运行时模块，仅承载主进程、preload 与 Renderer 的共同语义
+ * [OUTPUT]: 对外提供主题、认证、交易、AI、平台、更新和 CodexThemesWindowApi 类型
+ * [POS]: Electron 跨上下文的唯一类型契约，保持 dependency-free 以阻止 Node 实现泄漏到浏览器
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 /** ---------------------------------------------------------------------- */
@@ -262,13 +263,20 @@ export interface AuthUserSummary {
   createdAt: string;
 }
 
-export type AuthStateStatus = "loading" | "unauthenticated" | "authenticated" | "error";
+export type AuthStateStatus =
+  | "disabled"
+  | "loading"
+  | "unauthenticated"
+  | "authenticating"
+  | "authenticated"
+  | "error";
 
 export interface AuthState {
   status: AuthStateStatus;
   user: AuthUserSummary | null;
   /** Count of purchased themes, surfaced in the account card. */
   entitlementCount: number;
+  pendingProvider: "github" | "google" | null;
   error: string | null;
 }
 
@@ -539,6 +547,13 @@ export interface ThemeSummary {
 /** Runtime / app state                                                   */
 /** ---------------------------------------------------------------------- */
 
+export interface DesktopPlatformMetadata {
+  os: "macos" | "windows";
+  displayLabel: string;
+  desktopInstallHint: string;
+  manualUpdatePackageLabel: string;
+}
+
 export interface CodexDesktopStatus {
   installed: boolean;
   bundlePath: string | null;
@@ -561,6 +576,7 @@ export interface CodexCliStatus {
 }
 
 export interface AppState {
+  platform: DesktopPlatformMetadata;
   codexDesktop: CodexDesktopStatus;
   codexCli: CodexCliStatus;
   activeThemeId: string | null;

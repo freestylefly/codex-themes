@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 WebTheme 目录结构与中英文内容字典
+ * [OUTPUT]: 提供 Locale、路由本地化、页面文案和主题内容投影
+ * [POS]: web/src/lib 的单一本地化边界，组件只消费已归一化文案
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import type { WebTheme } from "./themes";
 
 export type Locale = "zh" | "en";
@@ -93,7 +99,7 @@ export const copy = {
     navHow: "使用方法",
     navFaq: "常见问题",
     navCommunity: "交流群",
-    download: "下载 Mac 版",
+    download: "下载客户端",
     useTheme: "使用该主题",
     viewTheme: "查看主题",
     allThemes: "查看全部主题",
@@ -106,7 +112,7 @@ export const copy = {
     navHow: "How it works",
     navFaq: "FAQ",
     navCommunity: "Community",
-    download: "Download for Mac",
+    download: "Download app",
     useTheme: "Use this theme",
     viewTheme: "View theme",
     allThemes: "View all themes",

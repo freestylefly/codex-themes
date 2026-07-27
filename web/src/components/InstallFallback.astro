@@ -1,6 +1,12 @@
 ---
-import { DOWNLOAD_URL } from "../config";
-import type { Locale } from "../lib/i18n";
+/**
+ * [INPUT]: 依赖下载页路径、Locale 与本地化路由工具
+ * [OUTPUT]: 提供深链未唤起客户端时的可访问下载回退弹窗
+ * [POS]: Web components 的协议启动失败恢复入口
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+import { DOWNLOAD_PAGE_PATH } from "../config";
+import { href, type Locale } from "../lib/i18n";
 const { locale } = Astro.props as { locale: Locale };
 ---
 
@@ -15,20 +21,20 @@ const { locale } = Astro.props as { locale: Locale };
     </h2>
     <p>
       {locale === "zh"
-        ? "目前支持 Apple 芯片 Mac。安装完成后回到这里，再点击一次即可直接定位主题。"
-        : "Apple silicon Macs are supported today. Install the app, return here, and try the theme again."}
+        ? "目前支持 Windows 11 x64 与 Apple 芯片 Mac。安装完成后回到这里，再点击一次即可直接定位主题。"
+        : "Windows 11 x64 and Apple silicon Macs are supported. Install the app, return here, and try the theme again."}
     </p>
     <div class="modal-download-note">
-      <strong>{locale === "zh" ? "macOS 测试版" : "macOS Beta"}</strong>
+      <strong>{locale === "zh" ? "Windows 与 macOS" : "Windows and macOS"}</strong>
       <span>
         {locale === "zh"
-          ? "当前构建尚未签名，首次打开需在「隐私与安全性」中允许。"
-          : "The current build is unsigned. Allow it once in Privacy & Security."}
+          ? "在下载页选择对应安装包，并查看当前签名与首次打开说明。"
+          : "Choose your platform on the download page and review the current signing and first-launch guidance."}
       </span>
     </div>
     <div class="modal-button-row">
-      <a class="button button-blue" href={DOWNLOAD_URL}>
-        {locale === "zh" ? "下载 Apple 芯片版" : "Download for Apple silicon"}
+      <a class="button button-blue" href={href(locale, DOWNLOAD_PAGE_PATH)}>
+        {locale === "zh" ? "选择安装包" : "Choose a download"}
       </a>
       <button class="button button-light" type="button" data-install-retry>
         {locale === "zh" ? "安装后重试" : "Try again"}

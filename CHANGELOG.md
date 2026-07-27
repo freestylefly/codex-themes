@@ -1,5 +1,19 @@
 # Changelog
 
+## 未发布
+
+### 新增
+
+- 新增 Windows 11 x64 平台适配：严格发现 Microsoft Store `OpenAI.Codex` 包，通过保留 Package Identity 的 AUMID 激活传递 CDP 参数，并校验监听进程的包族与进程树归属。
+- 新增 Windows x64 激活辅助程序、原生窗口/托盘/深链/文件关联、Windows 独立 Codex CLI 定位、平台更新元数据和 NSIS 构建目标。
+- 官网下载 API 与页面支持精确选择 `Codex-Themes-<version>-win-x64.exe`，排除 blockmap 和非官方仓库资源，并明确 Windows 11 x64 平台要求与 SmartScreen/签名状态。
+
+### 验证
+
+- Windows 平台、认证、CLI、深链、主题与安装器静态门禁已纳入自动化；当前 195 项测试、类型检查、桌面/Web 构建均通过。
+- Windows 解包目录和未签名 NSIS 已通过依赖白名单与体积门禁；真机主题/窗口、账号、支付及签名结果仍需使用预发布凭据与正式证书验收。
+- Windows Sandbox 安装、`0.2.9 → 0.2.10` 升级、自动更新和卸载生命周期尚未对本次代码重新执行，完成前不得宣称稳定版发布通过。
+
 ## 0.2.9 — 2026-07-25
 
 本次版本补齐蓝窗信使主题工作台缺失的原生能力，并让右侧好友栏可以收起、真正作为快捷入口。

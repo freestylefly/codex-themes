@@ -9,8 +9,8 @@
   "description": "像清晨窗户上的一层薄雾。",
   "tagline": "像清晨窗户上的一层薄雾。",
   "tags": [],
-  "hero": "background.png",
-  "preview": "preview.png",
+  "hero": "background.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f4f7f8",
     "panel": "#ffffff",

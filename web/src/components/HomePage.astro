@@ -1,4 +1,10 @@
 ---
+/**
+ * [INPUT]: 依赖产品截图、主题目录、Locale、BaseLayout 与展示组件
+ * [OUTPUT]: 提供官网首页的产品能力、主题画廊和下载入口
+ * [POS]: Web components 的首页组合根，聚合静态内容而不承载服务端业务
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import { Image } from "astro:assets";
 import { ArrowLeft, ArrowRight, Palette, ShieldCheck, Sparkles, Wand2 } from "lucide-astro";
 import aiStudioClient from "../assets/product/ai-studio-client.jpg";
@@ -6,7 +12,7 @@ import customThemeClient from "../assets/product/custom-theme-client.jpg";
 import themeGalleryClient from "../assets/product/theme-gallery-client.jpg";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ThemeCard from "./ThemeCard.astro";
-import { DOWNLOAD_URL } from "../config";
+import { DOWNLOAD_PAGE_PATH } from "../config";
 import { copy, href, localizeTheme, type Locale } from "../lib/i18n";
 import { themes } from "../lib/themes";
 
@@ -306,7 +312,7 @@ const description =
       <h2>{locale === "zh" ? "先从蓝窗信使开始。" : "Start with Blue Window."}</h2>
       <p>{locale === "zh" ? `下载后即可使用 ${themes.length} 款精选内置主题，也可以创建自己的主题。` : `Get ${themes.length} curated built-in themes, then create a workspace that is entirely yours.`}</p>
     </div>
-    <a class="button button-blue" href={DOWNLOAD_URL}>{t.download}</a>
+    <a class="button button-blue" href={href(locale, DOWNLOAD_PAGE_PATH)}>{t.download}</a>
   </section>
 
   <section class="faq-section section-shell" id="faq">

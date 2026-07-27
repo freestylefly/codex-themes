@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 Zustand 应用状态、业务页面、通用弹窗和窗口/localStorage 浏览器能力
+ * [OUTPUT]: 对外提供响应式 App 壳层、导航、侧栏折叠/调宽和页面选择
+ * [POS]: Renderer 顶层布局，宽度策略只在此决定，业务页面不感知 Electron 平台细节
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import {
   LayoutGrid,
   Loader2,
@@ -62,6 +68,7 @@ function getStoredSidebarWidth(): number {
 
 export function App() {
   const ready = useApp((s) => s.ready);
+  const state = useApp((s) => s.state);
   const page = useApp((s) => s.page);
   const setPage = useApp((s) => s.setPage);
   const settings = useApp((s) => s.settings);
@@ -79,7 +86,7 @@ export function App() {
   const [sidebarResizing, setSidebarResizing] = useState(false);
   const sidebarWidthRef = useRef(sidebarWidth);
   const resizePointerId = useRef<number | null>(null);
-  const sidebarCollapsed = sidebarPreference ?? compactWindow;
+  const sidebarCollapsed = compactWindow || (sidebarPreference ?? false);
 
   useEffect(() => {
     void init();
@@ -105,6 +112,7 @@ export function App() {
 
   const isAuthenticated = auth?.status === "authenticated";
   const toggleSidebar = () => {
+    if (compactWindow) return;
     const nextValue = !sidebarCollapsed;
     setSidebarPreference(nextValue);
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(nextValue));
@@ -162,7 +170,7 @@ export function App() {
 
   return (
     <div
-      className={`app-shell${sidebarCollapsed ? " sidebar-collapsed" : ""}${sidebarResizing ? " sidebar-resizing" : ""}`}
+      className={`app-shell platform-${state?.platform.os ?? "macos"}${sidebarCollapsed ? " sidebar-collapsed" : ""}${sidebarResizing ? " sidebar-resizing" : ""}`}
       style={shellStyle}
     >
       <div className="titlebar">
@@ -173,8 +181,9 @@ export function App() {
         <button
           className="sidebar-toggle"
           onClick={toggleSidebar}
+          disabled={compactWindow}
           aria-label={sidebarCollapsed ? "展开左侧导航" : "折叠左侧导航"}
-          title={sidebarCollapsed ? "展开导航" : "折叠导航"}
+          title={compactWindow ? "窄窗口下导航保持折叠" : sidebarCollapsed ? "展开导航" : "折叠导航"}
         >
           {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
         </button>

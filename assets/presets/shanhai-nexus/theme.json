@@ -13,10 +13,10 @@
     "深色",
     "幻想"
   ],
-  "hero": "hero.png",
-  "wallpaper": "wallpaper-v2.png",
-  "stamp": "stamp.png",
-  "preview": "preview.png",
+  "hero": "hero.webp",
+  "wallpaper": "wallpaper-v2.webp",
+  "stamp": "stamp.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#07131a",
     "panel": "#0b1c22",

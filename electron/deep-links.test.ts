@@ -1,4 +1,10 @@
 import { describe, it } from "node:test";
+/**
+ * [INPUT]: 依赖 node:test 与深链白名单解析器
+ * [OUTPUT]: 验证主题、OAuth 成功/失败和支付深链的信任边界
+ * [POS]: electron 深链入口回归门禁，覆盖外部不可信 URL 形态
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import assert from "node:assert/strict";
 import { parseOpenThemeUrl, parseAuthCallbackUrl, parsePaymentResultUrl } from "./deep-links";
 
@@ -51,6 +57,7 @@ describe("parseAuthCallbackUrl", () => {
     assert.deepEqual(parseAuthCallbackUrl("codexthemes://auth/callback?code=abc123"), {
       type: "auth-callback",
       code: "abc123",
+      error: null,
       state: null,
     });
   });
@@ -59,7 +66,17 @@ describe("parseAuthCallbackUrl", () => {
     assert.deepEqual(parseAuthCallbackUrl("codexthemes://auth/callback?code=abc&state=xyz"), {
       type: "auth-callback",
       code: "abc",
+      error: null,
       state: "xyz",
+    });
+  });
+
+  it("accepts an OAuth cancellation callback", () => {
+    assert.deepEqual(parseAuthCallbackUrl("codexthemes://auth/callback?error=access_denied"), {
+      type: "auth-callback",
+      code: null,
+      error: "access_denied",
+      state: null,
     });
   });
 

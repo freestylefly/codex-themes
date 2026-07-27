@@ -1,6 +1,8 @@
 /**
- * Maintains the live Codex CLI status: discovery, version check, App Server
- * connection, and capability/account probes.
+ * [INPUT]: 依赖设置、CLI locator 与 CodexAppServerClient
+ * [OUTPUT]: 对外提供 CLI/账号/能力状态刷新、手动路径切换和已连接客户端
+ * [POS]: electron/codex-cli 的状态深模块，保证一个路径只对应一个 App Server 生命周期
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { EventEmitter } from "node:events";
@@ -24,7 +26,7 @@ const EMPTY_STATUS: CodexCliStatus = {
 export class CodexCliStatusService extends EventEmitter {
   private status: CodexCliStatus = { ...EMPTY_STATUS };
   private client: CodexAppServerClient | null = null;
-  private refreshing = false;
+  private refreshing: Promise<CodexCliStatus> | null = null;
 
   constructor(private settings: SettingsStore) {
     super();
@@ -35,16 +37,21 @@ export class CodexCliStatusService extends EventEmitter {
   }
 
   async refresh(): Promise<CodexCliStatus> {
-    if (this.refreshing) return this.getStatus();
-    this.refreshing = true;
-    try {
-      const next = await this.probe();
-      this.status = next;
-      this.emit("changed", next);
-      return next;
-    } finally {
-      this.refreshing = false;
-    }
+    if (this.refreshing) return this.refreshing;
+
+    let operation!: Promise<CodexCliStatus>;
+    operation = (async () => {
+      try {
+        const next = await this.probe();
+        this.status = next;
+        this.emit("changed", next);
+        return next;
+      } finally {
+        if (this.refreshing === operation) this.refreshing = null;
+      }
+    })();
+    this.refreshing = operation;
+    return operation;
   }
 
   async selectExecutable(filePath: string): Promise<CodexCliStatus> {
@@ -53,6 +60,8 @@ export class CodexCliStatusService extends EventEmitter {
   }
 
   async disconnect(): Promise<void> {
+    const refresh = this.refreshing;
+    if (refresh) await refresh.catch(() => undefined);
     if (this.client) {
       await this.client.disconnect();
       this.client = null;
@@ -71,14 +80,18 @@ export class CodexCliStatusService extends EventEmitter {
   private async probe(): Promise<CodexCliStatus> {
     const located = await locateCodexCli(this.settings.current.codexCliPath);
     if (!located) {
+      await this.stopClient();
       return {
         ...EMPTY_STATUS,
-        error: "未找到 Codex CLI。请先安装或更新官方 Codex，或通过设置手动选择路径。",
+        error: process.platform === "win32"
+          ? "未找到独立 Codex CLI。请安装 Codex CLI，或在设置中选择 codex.exe / codex.cmd。"
+          : "未找到 Codex CLI。请先安装或更新官方 Codex，或通过设置手动选择路径。",
       };
     }
 
     const { executablePath, version } = located;
     if (!version) {
+      await this.stopClient();
       return {
         ...EMPTY_STATUS,
         installed: true,
@@ -89,6 +102,7 @@ export class CodexCliStatusService extends EventEmitter {
 
     const supported = cliVersionSupported(version, MIN_CODEX_CLI_VERSION);
     if (!supported) {
+      await this.stopClient();
       return {
         ...EMPTY_STATUS,
         installed: true,
@@ -116,9 +130,7 @@ export class CodexCliStatusService extends EventEmitter {
     }
 
     try {
-      if (!this.client.isRunning) {
-        await this.client.connect(executablePath);
-      }
+      await this.client.connect(executablePath);
     } catch (err) {
       return {
         ...EMPTY_STATUS,
@@ -166,5 +178,11 @@ export class CodexCliStatusService extends EventEmitter {
       imageGeneration: capabilities.imageGeneration ?? null,
       error: authenticated ? null : "Codex CLI 尚未登录。",
     };
+  }
+
+  private async stopClient(): Promise<void> {
+    if (!this.client) return;
+    await this.client.disconnect();
+    this.client = null;
   }
 }

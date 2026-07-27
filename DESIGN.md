@@ -1,7 +1,7 @@
 # Codex Themes — 桌面主题管理应用设计方案
 
-> 状态:M1–M4 已实现并持续打磨;设计系统已参考 Fei-Away/Codex-Dream-Skin 优化排版、半径、阴影与氛围感。
-> 日期:2026-07-17
+> 状态:M1–M4 已实现；Windows 11 x64 已完成真机应用/恢复、打包客户端与 NSIS 安装/升级/卸载验证。
+> 日期:2026-07-26
 > 参考实现:[Fei-Away/Codex-Dream-Skin](https://github.com/Fei-Away/Codex-Dream-Skin)(MIT)
 
 ## 1. 背景与目标
@@ -15,11 +15,11 @@
 | 决策点 | 结论 |
 |--------|------|
 | 技术栈 | **Electron**(注入引擎是纯 Node 代码,可直接复用) |
-| 平台 | **先 macOS**,架构预留 Windows 扩展 |
+| 平台 | **macOS Apple Silicon + Windows 11 x64**；共用 Renderer、主题编译器与注入载荷 |
 | 主题来源 | 三管齐下:**内置预设 + 本地自定义 + 在线主题市场** |
 | 与原仓库关系 | **独立新产品**,移植 MIT 引擎并重构,NOTICE 保留版权声明 |
 
-本机环境已确认:Node 24 / npm 11;Codex 桌面端已安装(`/Applications/ChatGPT.app`,bundle id `com.openai.codex`),可用于真机验证。
+本机环境已确认:Node 26 / npm 11；macOS 目标为 `/Applications/ChatGPT.app`（bundle id `com.openai.codex`）；Windows 真机包为 `OpenAI.Codex` / `OpenAI.Codex_2p2nqsd0c76g0!App`，已验证 AUMID 参数激活、包身份监听器校验、三种布局应用/恢复与正常重启。
 
 ## 2. 总体架构
 
@@ -114,7 +114,7 @@ codex-themes/
 
 ## 6. 技术选型
 
-- **Electron + electron-vite + electron-builder**(DMG 产物;签名/公证需 Apple Developer 账号,构建脚本预留参数)
+- **Electron + electron-vite + electron-builder**（macOS DMG/ZIP、Windows x64 NSIS；两端生产发布都需要 CI 提供签名材料）
 - **React 18 + Vite + TypeScript**;状态用 zustand
 - 主题包 zip 用 `adm-zip`;自动更新用 `electron-updater`(M4)
 - **CDP 客户端不引第三方库**:原 `injector.mjs` 的原生 WebSocket 实现 <150 行且久经打磨,直接移植为 TS(Node ≥22 自带全局 WebSocket/fetch)
@@ -124,7 +124,7 @@ codex-themes/
 
 - `webSocketDebuggerUrl` 强制 loopback(127.0.0.1/localhost/[::1])+ 端口一致才连接;
 - 仅接受 `type === "page"` 且 `url` 以 `app://` 开头的目标,再用 DOM 探针(`main.main-surface` + 侧栏 + 输入框选择器)确认是 Codex 界面;
-- 端口监听进程必须是 Codex 进程或其后代(`lsof` + `ps` 溯源);
+- 端口监听进程必须是 Codex 进程或其后代；macOS 用 `lsof` + `ps` 溯源，Windows 同时要求监听进程属于 `OpenAI.Codex_2p2nqsd0c76g0` 包族;
 - 装饰层恒为 `pointer-events: none`,原生控件全部保持可交互;
 - 图片 ≤16MB、纯文件名、白名单扩展名;颜色/文本字段严格校验;
 - **绝不**触碰 `app.asar`、代码签名、API Key / Base URL;config.toml 只备份/还原外观相关键(`appearanceTheme`、`appearanceDarkCodeThemeId`),原子写入;
@@ -138,7 +138,7 @@ codex-themes/
 | M1 引擎+最小闭环 | 移植 engine、Codex 启动器、Tray、预设画廊、一键应用/还原 | 点击预设 → Codex 变身;还原 → 官方外观 |
 | M2 自定义编辑器 | 选图、自动取色、实时预览、保存本地主题 | 任意图片 30 秒内变成可应用主题 |
 | M3 市场+主题包 | `.codextheme` 导入导出、静态市场索引、下载安装 | 从市场安装一款主题并应用 |
-| M4 打磨 | 开机自启选项、Codex 启动自动应用、DMG 打包、自动更新、首次引导 | 完整安装体验走通 |
+| M4 打磨 | 开机自启选项、Codex 启动自动应用、跨平台打包、自动更新、首次引导 | macOS 与 Windows 11 x64 的运行、客户端和安装交付均走通 |
 
 ## 9. 关键移植映射(原仓库 → 新代码)
 
@@ -148,6 +148,7 @@ codex-themes/
 | `macos/assets/renderer-inject.js` | `assets/inject/renderer-inject.js` | 基本原样(幂等注入+MutationObserver+cleanup 是精华) |
 | `macos/assets/dream-skin.css` | `assets/inject/dream-skin.css` | 原样,品牌类名可后改 |
 | `macos/scripts/common-macos.sh` 的发现/启停/端口归属逻辑 | `electron/platform/codex-macos.ts` | shell → Node(`lsof`/`ps`/`osascript` 子进程调用) |
+| Windows Store 包发现、AUMID 激活、进程树与端口归属 | `electron/platform/codex-windows.ts` + `assets/windows/codex-activator.exe` | 严格校验包名、Publisher、x64 架构、入口与 Package Identity；失败时不退化为直接运行 WindowsApps 可执行文件 |
 | `macos/scripts/theme-config.mjs` | `electron/config/codex-config.ts` | 外观键备份/还原,逻辑不变 |
 | `macos/scripts/write-theme.mjs` 校验规则 | `electron/themes/store.ts` | 文本截断/hex 校验/16MB 限制 |
 
@@ -155,14 +156,15 @@ codex-themes/
 
 - **Codex 版本更新改 DOM 选择器** → 探针/验证选择器集中在 engine 一个常量模块;verify 用 soft 模式(原 1.1.x 行为),UI 上区分「完全生效/部分生效」。
 - **CDP 调试口的本机暴露面** → 沿用 loopback-only + 归属校验;设置页明示该风险。
-- **签名公证** → 无 Apple Developer 账号时先出未签名 DMG + 绕 Gatekeeper 说明,构建管线预留签名参数。
+- **签名与安装器** → macOS 未签名构建保留 Gatekeeper 说明；Windows NSIS 已通过构建与静态注册门禁，安装/升级/卸载仍须在隔离环境复验；生产发布必须由 CI 提供签名材料并验证三处 Authenticode。
 - **Electron 包体积(100MB+)** → 接受;后续若在意可评估迁移 Tauri(引擎逻辑已模块化,迁移成本可控)。
 
 ## 11. 验证方式
 
-1. `npm run dev` 启动开发模式,走完首次引导;
-2. 应用一款预设主题:确认 Codex 被带调试口重启、界面主题化、原生侧栏/输入框可交互、刷新页面后主题自动恢复;
-3. 一键还原:Codex 恢复官方外观,`~/.codex/config.toml` 外观键与安装前一致;
-4. 自定义:拖入一张图 → 自动取色 → 预览 → 保存 → 应用;
-5. 市场:从本地起的静态服务器加载 index.json,安装主题包(含坏哈希包被拒的负例);
-6. `npm run build` 产出 DMG,全新用户目录安装冒烟。
+1. `npm run typecheck && npm test && npm run build && npm run build:web` 验证共享代码；
+2. macOS 运行 `npm run dist:mac`；Windows 先运行 `npm run build:windows-helper`，再运行 `npm run dist:win`；
+3. 应用一款预设主题：确认 Codex 被带调试口重启、界面主题化、原生侧栏/输入框可交互、刷新页面后主题自动恢复；
+4. 一键还原：Codex 恢复官方外观，`~/.codex/config.toml` 外观键与安装前一致；
+5. Windows 真机额外验证 Store 包身份、AUMID 启动参数、包拥有的 loopback 监听器、三种代表布局、配置精确恢复和无调试端口正常重启；
+6. 打包客户端验证 Gallery、Editor、AI Studio、Account、Creator Center、Settings、Tray、深链与 `.codextheme` 交付；
+7. Windows 安装器在明确授权的隔离环境验证每用户无提权安装、开始菜单/桌面启动、协议和文件关联、版本升级、卸载与用户数据策略；本次结果未复验前保持发布阻塞。

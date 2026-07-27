@@ -9,8 +9,8 @@
   "description": "雨后石阶上的青苔色。",
   "tagline": "雨后石阶上的青苔色。",
   "tags": [],
-  "hero": "background.png",
-  "preview": "preview.png",
+  "hero": "background.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f2f4ef",
     "panel": "#ffffff",

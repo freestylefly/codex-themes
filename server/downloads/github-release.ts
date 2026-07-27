@@ -1,4 +1,10 @@
-export type DownloadFormat = "dmg" | "zip";
+/**
+ * [INPUT]: 依赖 GitHub Releases REST 响应与允许的桌面安装包格式
+ * [OUTPUT]: 提供最新版官方制品解析、来源校验与下载元数据
+ * [POS]: server/downloads 的下载解析核心，拒绝跨仓库和跨标签制品
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+export type DownloadFormat = "dmg" | "zip" | "exe";
 
 export interface ReleaseDownload {
   name: string;
@@ -22,7 +28,7 @@ const RELEASE_DOWNLOAD_PREFIX = `https://github.com/${REPOSITORY}/releases/downl
 
 export function parseDownloadFormat(value: string | string[] | undefined): DownloadFormat | null {
   const format = Array.isArray(value) ? value[0] : value;
-  return format === "dmg" || format === "zip" ? format : null;
+  return format === "dmg" || format === "zip" || format === "exe" ? format : null;
 }
 
 export function selectReleaseDownload(
@@ -37,20 +43,17 @@ export function selectReleaseDownload(
   const version = release.tag_name.startsWith("v")
     ? release.tag_name.slice(1)
     : release.tag_name;
-  const expectedName = `Codex-Themes-${version}-mac-arm64.${format}`;
+  const platformSuffix = format === "exe" ? "win-x64.exe" : `mac-arm64.${format}`;
+  const expectedName = `Codex-Themes-${version}-${platformSuffix}`;
   const assets = release.assets.filter(
     (asset): asset is GitHubReleaseAsset => Boolean(asset && typeof asset === "object"),
   );
-  const candidates = assets.filter(
-    (asset) =>
-      typeof asset.name === "string" &&
-      typeof asset.browser_download_url === "string" &&
-      asset.name.endsWith(`-mac-arm64.${format}`) &&
-      asset.browser_download_url.startsWith(RELEASE_DOWNLOAD_PREFIX),
+  const expectedUrl = `${RELEASE_DOWNLOAD_PREFIX}${release.tag_name}/${expectedName}`;
+  const asset = assets.find(
+    (candidate) =>
+      candidate.name === expectedName &&
+      candidate.browser_download_url === expectedUrl,
   );
-  const asset = candidates.find((candidate) => candidate.name === expectedName)
-    ?? (candidates.length === 1 ? candidates[0] : undefined);
-
   if (
     !asset ||
     typeof asset.name !== "string" ||
@@ -83,10 +86,11 @@ export async function fetchLatestReleaseDownload(
   if (!response.ok) {
     throw new Error(`GitHub latest release request failed with ${response.status}`);
   }
-
   const download = selectReleaseDownload(await response.json(), format);
+
   if (!download) {
-    throw new Error(`GitHub latest release does not contain a macOS arm64 ${format} asset`);
+    const platformLabel = format === "exe" ? "Windows x64" : "macOS arm64";
+    throw new Error(`GitHub latest release does not contain a ${platformLabel} ${format} asset`);
   }
   return download;
 }

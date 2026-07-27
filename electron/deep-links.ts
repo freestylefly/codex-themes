@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖标准 URL 解析与共享 OpenThemeAction 类型
+ * [OUTPUT]: 对外提供 codexthemes 协议常量及主题、OAuth、支付动作白名单解析
+ * [POS]: 外部浏览器/操作系统进入主进程的深链信任边界，拒绝未声明形态与超长输入
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import type { OpenThemeAction } from "./shared/types";
 
 export const CODEX_THEMES_PROTOCOL = "codexthemes:";
@@ -6,7 +12,8 @@ const THEME_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export interface AuthCallbackAction {
   type: "auth-callback";
-  code: string;
+  code: string | null;
+  error: string | null;
   state: string | null;
 }
 
@@ -55,8 +62,15 @@ function parseDeepLink(raw: string): DeepLinkAction | null {
     if (url.hostname === "auth") {
       if (url.pathname !== "/callback") return null;
       const code = url.searchParams.get("code");
-      if (!code) return null;
-      return { type: "auth-callback", code, state: url.searchParams.get("state") };
+      const oauthError = url.searchParams.get("error_description") ?? url.searchParams.get("error");
+      if (Boolean(code) === Boolean(oauthError)) return null;
+      if (oauthError && oauthError.length > 240) return null;
+      return {
+        type: "auth-callback",
+        code,
+        error: oauthError,
+        state: url.searchParams.get("state"),
+      };
     }
 
     if (url.hostname === "payment") {

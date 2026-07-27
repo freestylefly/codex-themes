@@ -1,7 +1,8 @@
 /**
- * Theme package safety tests (plan §13.6): entry whitelist and traversal
- * rules, animated-image detection, and the ThemeStore inspect/import path
- * against crafted zips (file count, unknown files, traversal, atomicity).
+ * [INPUT]: 依赖 package-safety、ThemeStore、AdmZip 与临时文件系统夹具
+ * [OUTPUT]: 验证主题包白名单、遍历防护、动画检测和原子导入
+ * [POS]: electron/engine 的主题包信任边界回归门禁
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { describe, it, before, after } from "node:test";
@@ -87,6 +88,7 @@ describe("ThemeStore package inspection", () => {
   let store: ThemeStore;
   let purchasedRoot: string;
   let heroPng: Buffer;
+  let heroWebp: Buffer;
   let themeJson: string;
 
   before(async () => {
@@ -101,10 +103,9 @@ describe("ThemeStore package inspection", () => {
       fs.mkdir(path.join(root, "user"), { recursive: true }),
       fs.mkdir(purchasedRoot, { recursive: true }),
     ]);
-    // Minimal static PNG-shaped payload (decode is stubbed in tests).
-    heroPng = Buffer.concat([
-      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-      Buffer.alloc(64),
+    [heroPng, heroWebp] = await Promise.all([
+      fs.readFile(path.resolve("assets/build/icon.png")),
+      fs.readFile(path.resolve("assets/presets/neon-star-hunter/hero.webp")),
     ]);
     themeJson = JSON.stringify({
       schemaVersion: 2,
@@ -230,6 +231,14 @@ describe("ThemeStore package inspection", () => {
     assert.ok(path.basename(inspected.tempDir).startsWith("codex-theme-inspect-"));
     await store.discardInspection(inspected.tempDir);
     await assert.rejects(() => fs.stat(inspected.tempDir));
+  });
+
+  it("accepts a static WebP package on Windows", async () => {
+    const webpThemeJson = JSON.stringify({ ...JSON.parse(themeJson), hero: "hero.webp" });
+    const zipPath = makeZip({ "theme.json": webpThemeJson, "hero.webp": heroWebp });
+    const inspected = await store.inspectThemePackage(zipPath);
+    assert.equal(inspected.summary.id, "pkg-test");
+    await store.discardInspection(inspected.tempDir);
   });
 
   it("rejects packages with unknown files", async () => {

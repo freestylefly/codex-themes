@@ -13,10 +13,10 @@
     "浅蓝",
     "高密度"
   ],
-  "hero": "mascot.png",
-  "wallpaper": "background-v2.png",
-  "stamp": "stamp.png",
-  "preview": "preview.png",
+  "hero": "mascot.webp",
+  "wallpaper": "background-v2.webp",
+  "stamp": "stamp.webp",
+  "preview": "preview.webp",
   "priceCents": 990,
   "catalogOnly": true,
   "light": {

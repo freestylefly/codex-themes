@@ -9,8 +9,8 @@
   "description": "紫夜限定，一盏台灯的温柔。",
   "tagline": "紫夜限定，一盏台灯的温柔。",
   "tags": [],
-  "hero": "background.png",
-  "preview": "preview.png",
+  "hero": "background.webp",
+  "preview": "preview.webp",
   "light": {
     "background": "#f4f0f5",
     "panel": "#ffffff",

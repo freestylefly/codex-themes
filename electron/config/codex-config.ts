@@ -1,8 +1,8 @@
 /**
- * Backup/restore of the appearance-related keys in ~/.codex/config.toml.
- * Ported from theme-config.mjs (MIT). Only [desktop] section keys
- * appearanceTheme / appearanceDarkCodeThemeId are touched; writes are atomic
- * and file modes are preserved.
+ * [INPUT]: 依赖 Node 文件系统与 Codex config.toml 的 desktop 外观键
+ * [OUTPUT]: 提供外观配置的原子读取、备份、写入与精确恢复能力
+ * [POS]: electron/config 的安全配置边界，只修改已声明键并保留文件权限
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import fs from "node:fs/promises";
@@ -86,7 +86,7 @@ export async function backupAppearanceKeys(configPath: string, backupPath: strin
   }
   const backup: ThemeBackup = {
     schemaVersion: 1,
-    platform: "darwin",
+    platform: process.platform,
     createdAt: new Date().toISOString(),
     configPath,
     values,

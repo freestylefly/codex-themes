@@ -1,6 +1,8 @@
 /**
- * Renderer state (zustand): mirrors the main-process AppState, keeps the
- * theme list, the log ring buffer, toasts, and the apply/restart flow.
+ * [INPUT]: 依赖 preload 类型化接口、Zustand 与共享桌面/认证/交易/AI 契约
+ * [OUTPUT]: 对外提供 useApp 状态、跨页面业务动作、通知和 IPC 事件归并
+ * [POS]: Renderer 业务状态深模块，页面不直接组合多条 IPC 或缓存主进程秘密
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { create } from "zustand";
@@ -646,7 +648,13 @@ export const useApp = create<AppStore>((set, get) => ({
     const result = await api.authSignOut();
     if (result.ok) {
       set({
-        auth: { status: "unauthenticated", user: null, entitlementCount: 0, error: null },
+        auth: {
+          status: "unauthenticated",
+          user: null,
+          entitlementCount: 0,
+          pendingProvider: null,
+          error: null,
+        },
         entitlements: [],
         profile: null,
         wallet: null,

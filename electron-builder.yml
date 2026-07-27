@@ -1,11 +1,22 @@
+# [INPUT]: 依赖 dist、主题/注入资源、sharp 原生运行时与平台签名环境
+# [OUTPUT]: 生成 macOS DMG/ZIP、Windows x64 NSIS 和 electron-updater 元数据
+# [POS]: 桌面发布配置，Windows 协议/文件关联交由 installer.nsh 单点管理
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 appId: com.codexthemes.app
 productName: Codex Themes
 directories:
   output: release
   buildResources: assets/build
+afterExtract: scripts/trim-electron-runtime.mjs
+afterPack: scripts/sign-windows-helper.mjs
 files:
   - dist/**
   - package.json
+  - "!node_modules/**"
+  - node_modules/sharp/**
+  - node_modules/@img/**
+  - node_modules/detect-libc/**
+  - node_modules/semver/**
   - "!**/.env*"
   - "!**/*.enc"
 extraResources:
@@ -13,21 +24,29 @@ extraResources:
     to: assets/inject
   - from: assets/presets
     to: assets/presets
+    filter:
+      - "**/*"
+      - "!**/*.png"
   - from: assets/skills
     to: assets/skills
   - from: assets/tray
     to: assets/tray
-asarUnpack: []
-fileAssociations:
-  - ext: codextheme
-    name: Codex Theme Package
-    description: Codex Themes package
-    role: Editor
-    isPackage: true
-protocols:
-  - name: Codex Themes
-    schemes:
-      - codexthemes
+asarUnpack:
+  - node_modules/sharp/**
+  - node_modules/@img/**
+win:
+  icon: assets/build/icon.ico
+  electronLanguages:
+    - en-US
+    - zh-CN
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: Codex-Themes-${version}-win-x64.${ext}
+  extraResources:
+    - from: assets/windows/codex-activator.exe
+      to: assets/windows/codex-activator.exe
 mac:
   category: public.app-category.utilities
   icon: assets/presets/blue-window-messenger/mascot.png
@@ -36,6 +55,23 @@ mac:
     - zip
   hardenedRuntime: false
   identity: null
+  fileAssociations:
+    - ext: codextheme
+      name: Codex Theme Package
+      description: Codex Themes package
+      role: Editor
+      isPackage: true
+  protocols:
+    - name: Codex Themes
+      schemes:
+        - codexthemes
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Codex Themes
 dmg:
   artifactName: Codex-Themes-${version}-mac-${arch}.${ext}
 artifactName: Codex-Themes-${version}-${os}-${arch}.${ext}

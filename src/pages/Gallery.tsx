@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖全局应用状态、社区目录与主题包导入 API，复用主题卡片和预览弹窗
+ * [OUTPUT]: 对外提供 Gallery 页面，统一承接主题筛选、解锁、下载、导入与应用入口
+ * [POS]: pages 的主题目录主视图，以流式网格消费全部可用内容宽度
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 import { FolderOpen, RotateCcw, Search, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ThemeCard } from "../components/ThemeCard";
@@ -149,7 +155,7 @@ export function Gallery() {
   };
 
   return (
-    <div className="page">
+    <div className="page gallery-page">
       <div className="page-header">
         <div>
           <h1 className="page-title">主题画廊</h1>
