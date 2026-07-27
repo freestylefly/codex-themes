@@ -23,6 +23,11 @@ import type { OpenThemeAction } from "./shared/types";
 import type { PaymentResultAction } from "./deep-links";
 import { AuthClient } from "./auth/client";
 import { AuthTokenStore } from "./auth/store";
+import {
+  DEFAULT_COMMERCE_API_URL,
+  DEFAULT_SUPABASE_PUBLISHABLE_KEY,
+  DEFAULT_SUPABASE_URL,
+} from "./commerce/config";
 import { CommerceService } from "./commerce/service";
 
 // Files launched before the app is ready (double-click / drag to Dock).
@@ -247,9 +252,10 @@ app.whenReady().then(async () => {
   void store.cleanupWorkDirs().catch(() => {});
   controller = new ThemeController(paths, store, settings);
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-  const commerceApiUrl = process.env.VITE_COMMERCE_API_URL ?? "https://codex-themes.vercel.app";
+  const supabaseUrl = process.env.VITE_SUPABASE_URL ?? DEFAULT_SUPABASE_URL;
+  const supabaseAnonKey =
+    process.env.VITE_SUPABASE_ANON_KEY ?? DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+  const commerceApiUrl = process.env.VITE_COMMERCE_API_URL ?? DEFAULT_COMMERCE_API_URL;
 
   if (supabaseUrl && supabaseAnonKey) {
     authClient = new AuthClient({

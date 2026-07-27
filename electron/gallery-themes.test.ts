@@ -6,7 +6,11 @@ import type {
   ThemeSource,
   ThemeSummary,
 } from "../electron/shared/types";
-import { mergeGalleryThemes } from "../src/galleryThemes";
+import {
+  getThemePointsActionLabel,
+  getThemePurchaseState,
+  mergeGalleryThemes,
+} from "../src/galleryThemes";
 
 function localTheme(id: string, source: ThemeSource): ThemeSummary {
   return {
@@ -121,5 +125,36 @@ describe("mergeGalleryThemes", () => {
       "blue-window-messenger",
       "my-theme",
     ]);
+  });
+});
+
+describe("paid theme purchase state", () => {
+  it("shows the configured points price after the catalog loads", () => {
+    const product = catalogProduct("blue-window-messenger");
+
+    assert.equal(
+      getThemePurchaseState({ catalogOnly: true, product }, false),
+      "available",
+    );
+    assert.equal(getThemePointsActionLabel(product), "99 积分");
+    assert.equal(getThemePointsActionLabel(product, true), "99 积分解锁");
+  });
+
+  it("never presents a catalog-only theme as free when product data is missing", () => {
+    assert.equal(
+      getThemePurchaseState({ catalogOnly: true, product: undefined }, false),
+      "unavailable",
+    );
+    assert.equal(getThemePointsActionLabel(undefined), "商品暂不可用");
+  });
+
+  it("keeps genuinely free catalog products unlockable", () => {
+    const product = { ...catalogProduct("free-theme"), priceCents: 0, pricePoints: 0 };
+
+    assert.equal(
+      getThemePurchaseState({ catalogOnly: true, product }, false),
+      "available",
+    );
+    assert.equal(getThemePointsActionLabel(product, true), "免费解锁");
   });
 });

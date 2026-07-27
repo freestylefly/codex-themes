@@ -1,4 +1,5 @@
 import { Coins, CreditCard, ExternalLink, Play } from "lucide-react";
+import { getThemePointsActionLabel, getThemePurchaseState } from "../galleryThemes";
 import { useApp } from "../store";
 
 /** Requires a second, explicit click before a website deep link applies a theme. */
@@ -19,7 +20,7 @@ export function OpenThemeModal() {
   const isOwned = entitlements.some(
     (entitlement) => entitlement.themeId === pendingId && entitlement.status === "active",
   );
-  const requiresPurchase = (Boolean(theme.catalogOnly) || Boolean(product)) && !isOwned;
+  const purchaseState = getThemePurchaseState({ catalogOnly: theme.catalogOnly, product }, isOwned);
   const priceText = product?.priceCents ? `¥${(product.priceCents / 100).toFixed(2)}` : null;
 
   return (
@@ -37,22 +38,24 @@ export function OpenThemeModal() {
           从官网打开主题
         </div>
         <div className="modal-body">
-          {requiresPurchase
+          {purchaseState === "available"
             ? `「${theme.name}」需要先解锁。${product?.pricePoints ? `可使用 ${product.pricePoints} 积分` : "可免费解锁"}${priceText ? `，也可通过支付宝支付 ${priceText}` : ""}。`
-            : `是否将「${theme.name}」应用到 Codex？应用前仍会检查 Codex 的运行状态，如需重启会再次征求你的确认。`}
+            : purchaseState === "unavailable"
+              ? `「${theme.name}」的商品信息暂时无法加载，请稍后重试。`
+              : `是否将「${theme.name}」应用到 Codex？应用前仍会检查 Codex 的运行状态，如需重启会再次征求你的确认。`}
         </div>
         <div className="modal-actions">
           <button className="btn" onClick={cancel}>
             暂不使用
           </button>
-          {requiresPurchase ? (
+          {purchaseState === "available" ? (
             <>
               <button className="btn btn-primary" onClick={() => {
                 cancel();
                 void unlockTheme(pendingId);
               }}>
                 <Coins size={13} />
-                {product?.pricePoints ? `${product.pricePoints} 积分解锁` : "免费解锁"}
+                {getThemePointsActionLabel(product, true)}
               </button>
               {product && product.priceCents > 0 && (
                 <button className="btn btn-secondary" onClick={() => {
@@ -63,6 +66,11 @@ export function OpenThemeModal() {
                 </button>
               )}
             </>
+          ) : purchaseState === "unavailable" ? (
+            <button className="btn btn-primary" disabled title="商品信息加载失败，请稍后重试">
+              <Coins size={13} />
+              商品暂不可用
+            </button>
           ) : (
             <button className="btn btn-primary" onClick={() => void confirm()}>
               <Play size={13} />应用该主题

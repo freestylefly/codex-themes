@@ -727,6 +727,11 @@ export const useApp = create<AppStore>((set, get) => ({
       set({ page: "account" });
       return;
     }
+    if (!get().catalog.some((product) => product.id === themeId)) {
+      get().toast("err", "商品信息尚未加载，请稍后刷新后重试。");
+      void get().refreshCatalog();
+      return;
+    }
     set({ purchasingThemeId: themeId });
     try {
       await api.commerceUnlockTheme(themeId);
@@ -755,6 +760,11 @@ export const useApp = create<AppStore>((set, get) => ({
     if (!auth || auth.status !== "authenticated") {
       get().toast("info", "请先登录账号。");
       set({ page: "account" });
+      return;
+    }
+    if (!get().catalog.some((product) => product.id === themeId)) {
+      get().toast("err", "商品信息尚未加载，请稍后刷新后重试。");
+      void get().refreshCatalog();
       return;
     }
     set({ purchasingThemeId: themeId });

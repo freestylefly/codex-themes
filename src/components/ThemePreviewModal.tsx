@@ -1,6 +1,7 @@
 import { Check, Coins, CreditCard, Loader2, Play, Download, X } from "lucide-react";
 import { useEffect } from "react";
 import type { CommerceThemeSummary } from "../../electron/shared/types";
+import { getThemePointsActionLabel, getThemePurchaseState } from "../galleryThemes";
 import { useApp } from "../store";
 
 const SOURCE_LABEL = { preset: "内置预设", custom: "我的主题", imported: "已导入", purchased: "已购主题" } as const;
@@ -25,7 +26,7 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onAlipay, onDown
     ? theme.local?.source === "purchased"
     : Boolean(theme.local);
   const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;
-  const catalogOnly = theme.catalogOnly && !isOwned;
+  const purchaseState = getThemePurchaseState(theme, isOwned);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -77,7 +78,7 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onAlipay, onDown
                 {theme.product.pricePoints > 0 ? `${theme.product.pricePoints} 积分` : "免费"}
               </span>
             )}
-            {catalogOnly && !theme.product && (
+            {purchaseState === "unavailable" && (
               <span className="badge badge-paid">付费</span>
             )}
           </div>
@@ -89,14 +90,14 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onAlipay, onDown
             <span className="btn-active">
               <Check size={13} strokeWidth={2.5} />当前主题
             </span>
-          ) : isPaid && !isOwned ? (
+          ) : purchaseState === "available" ? (
             <div className="marketplace-actions">
               <button type="button" className="btn btn-primary" onClick={() => {
                 onClose();
                 onPurchase?.();
               }}>
                 <Coins size={14} strokeWidth={2.5} />
-                {theme.product?.pricePoints ? `${theme.product.pricePoints} 积分解锁` : "免费解锁"}
+                {getThemePointsActionLabel(theme.product, true)}
               </button>
               {theme.product && theme.product.priceCents > 0 && (
                 <button type="button" className="btn btn-secondary" onClick={() => {
@@ -108,13 +109,15 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onAlipay, onDown
                 </button>
               )}
             </div>
-          ) : catalogOnly ? (
-            <button type="button" className="btn btn-primary" onClick={() => {
-              onClose();
-              onPurchase?.();
-            }}>
+          ) : purchaseState === "unavailable" ? (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled
+              title="商品信息加载失败，请稍后重试"
+            >
               <Coins size={14} strokeWidth={2.5} />
-              解锁
+              商品暂不可用
             </button>
           ) : isOwned && !isInstalled ? (
             <button type="button" className="btn btn-primary" onClick={() => {

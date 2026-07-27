@@ -34,6 +34,29 @@ const SOURCE_PRIORITY: Record<ThemeSummary["source"], number> = {
   purchased: 3,
 };
 
+export type ThemePurchaseState = "available" | "unavailable" | "not-required";
+
+export function getThemePurchaseState(
+  theme: Pick<CommerceThemeSummary, "catalogOnly" | "product">,
+  isOwned: boolean,
+): ThemePurchaseState {
+  if (isOwned) return "not-required";
+  if (theme.product) return "available";
+  if (theme.catalogOnly) return "unavailable";
+  return "not-required";
+}
+
+export function getThemePointsActionLabel(
+  product: ThemeProduct | undefined,
+  includeUnlock = false,
+): string {
+  if (!product) return "商品暂不可用";
+  if (product.pricePoints > 0) {
+    return `${product.pricePoints} 积分${includeUnlock ? "解锁" : ""}`;
+  }
+  return "免费解锁";
+}
+
 function rankFor(theme: ThemeSummary): number {
   return FEATURED_PRESET_RANK.get(theme.id) ?? Number.MAX_SAFE_INTEGER;
 }

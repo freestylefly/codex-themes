@@ -2,6 +2,7 @@ import { Check, Coins, Copy, CreditCard, Download, Loader2, Lock, Maximize2, Pen
 import type { CommerceThemeSummary } from "../../electron/shared/types";
 import { useApp } from "../store";
 import { api } from "../api";
+import { getThemePointsActionLabel, getThemePurchaseState } from "../galleryThemes";
 
 const SOURCE_LABEL = { preset: "预设", custom: "自定义", imported: "导入", purchased: "已购" } as const;
 
@@ -43,7 +44,7 @@ export function ThemeCard({
   const isLimitedEdition = theme.id === "moonlit-immortal";
   const isPopular = theme.id === "blue-window-messenger";
   const hasUpdate = isInstalled && theme.local && theme.product && theme.local.version !== theme.product.version;
-  const catalogOnly = theme.catalogOnly && !isOwned;
+  const purchaseState = getThemePurchaseState(theme, isOwned);
 
   const onDelete = async () => {
     if (!theme.local) return;
@@ -81,7 +82,7 @@ export function ThemeCard({
       );
     }
 
-    if (!isOwned && (isMarketplace || catalogOnly)) {
+    if (purchaseState === "available") {
       return (
         <div className="marketplace-actions">
           <button
@@ -90,7 +91,7 @@ export function ThemeCard({
             onClick={() => onPurchase?.()}
           >
             {isPurchasing ? <Loader2 size={13} className="spin" /> : <Coins size={13} strokeWidth={2.5} />}
-            {theme.product?.pricePoints ? `${theme.product.pricePoints} 积分` : "免费解锁"}
+            {getThemePointsActionLabel(theme.product)}
           </button>
           {theme.product && theme.product.priceCents > 0 && (
             <button
@@ -103,6 +104,15 @@ export function ThemeCard({
             </button>
           )}
         </div>
+      );
+    }
+
+    if (purchaseState === "unavailable") {
+      return (
+        <button className="btn btn-primary" disabled title="商品信息加载失败，请稍后重试">
+          <Coins size={13} strokeWidth={2.5} />
+          商品暂不可用
+        </button>
       );
     }
 
