@@ -15,11 +15,16 @@ import {
   normalizeReleaseNotes,
   releaseUrlForVersion,
 } from "./updater-state";
+import {
+  prepareUpdateInstall,
+  UpdateInstallGate,
+} from "./update-install";
 
 const { autoUpdater } = electronUpdater;
 
 const UPDATE_CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const FIRST_UPDATE_CHECK_DELAY_MS = 5_000;
+const UPDATE_PREPARATION_TIMEOUT_MS = 5_000;
 const LATEST_RELEASE_URL =
   "https://github.com/freestylefly/codex-themes/releases/latest";
 const LATEST_DMG_URL =
@@ -69,12 +74,14 @@ export class AppUpdaterService extends EventEmitter {
   private started = false;
   private checking = false;
   private downloading = false;
+  private readonly installGate = new UpdateInstallGate();
   private checkTimer: ReturnType<typeof setTimeout> | null = null;
   private intervalTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private readonly getWindow: () => BrowserWindow | null,
     private readonly log: Logger,
+    private readonly prepareInstall: () => Promise<void> = async () => {},
   ) {
     super();
   }
@@ -89,6 +96,7 @@ export class AppUpdaterService extends EventEmitter {
 
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = false;
+    autoUpdater.autoRunAppAfterInstall = true;
     autoUpdater.fullChangelog = false;
 
     autoUpdater.on("checking-for-update", () => {
@@ -133,6 +141,7 @@ export class AppUpdaterService extends EventEmitter {
     });
     autoUpdater.on("error", (error) => {
       this.downloading = false;
+      this.installGate.release();
       this.log("warn", `自动更新失败:${error.message}`);
       this.patchState({
         status: "error",
@@ -209,13 +218,42 @@ export class AppUpdaterService extends EventEmitter {
     return this.getState();
   }
 
-  installUpdate(): { ok: boolean; error?: string } {
+  async installUpdate(): Promise<{ ok: boolean; error?: string }> {
     if (this.state.status !== "downloaded") {
+      if (this.state.status === "installing") return { ok: true };
       return { ok: false, error: "更新尚未下载完成。" };
     }
-    this.log("info", `正在安装 Codex Themes v${this.state.availableVersion}。`);
-    autoUpdater.quitAndInstall();
-    return { ok: true };
+    if (!this.installGate.tryClaim()) return { ok: true };
+
+    this.patchState({ status: "installing", error: null });
+    this.log("info", "正在停止后台服务并准备安装更新…");
+    const preparation = await prepareUpdateInstall(
+      this.prepareInstall,
+      UPDATE_PREPARATION_TIMEOUT_MS,
+    );
+    if (preparation.status === "timed-out") {
+      this.log("warn", "更新安装前的后台清理超时，将继续重启安装。");
+    } else if (preparation.status === "failed") {
+      this.log(
+        "warn",
+        `更新安装前的后台清理失败，将继续重启安装：${preparation.error.message}`,
+      );
+    }
+
+    try {
+      this.log("info", `正在安装 Codex Themes v${this.state.availableVersion}。`);
+      autoUpdater.quitAndInstall();
+      return { ok: true };
+    } catch (error) {
+      this.installGate.release();
+      const message = error instanceof Error ? error.message : String(error);
+      this.log("warn", `启动更新安装失败：${message}`);
+      this.patchState({
+        status: "downloaded",
+        error: "无法启动更新安装，请稍后重试。",
+      });
+      return { ok: false, error: "无法启动更新安装，请稍后重试。" };
+    }
   }
 
   async openReleasePage(): Promise<void> {
@@ -299,8 +337,9 @@ export class AppUpdaterService extends EventEmitter {
 export function initAutoUpdater(
   getWindow: () => BrowserWindow | null,
   log: Logger,
+  prepareInstall?: () => Promise<void>,
 ): AppUpdaterService {
-  const updater = new AppUpdaterService(getWindow, log);
+  const updater = new AppUpdaterService(getWindow, log, prepareInstall);
   updater.start();
   return updater;
 }

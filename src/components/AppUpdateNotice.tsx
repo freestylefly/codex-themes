@@ -54,21 +54,26 @@ export function AppUpdateNotice() {
 
   if (
     !update?.availableVersion ||
-    !["available", "downloading", "downloaded", "error"].includes(update.status)
+    !["available", "downloading", "downloaded", "installing", "error"].includes(update.status)
   ) {
     return null;
   }
 
   const progress = Math.round(update.progressPercent ?? 0);
   const downloaded = update.status === "downloaded";
+  const installing = update.status === "installing";
   const downloading = update.status === "downloading";
   const failed = update.status === "error";
-  const noticeTitle = downloaded
+  const noticeTitle = installing
+    ? `正在安装 v${update.availableVersion}`
+    : downloaded
     ? `v${update.availableVersion} 可安装`
     : downloading
       ? `正在下载 v${update.availableVersion}`
       : `发现新版本 v${update.availableVersion}`;
-  const noticeDetail = downloaded
+  const noticeDetail = installing
+    ? "正在关闭客户端并完成更新"
+    : downloaded
     ? "点击查看并重启安装"
     : downloading
       ? `${progress}% · ${formatBytes(update.transferredBytes)} / ${formatBytes(update.totalBytes)}`
@@ -86,7 +91,7 @@ export function AppUpdateNotice() {
         title={`${noticeTitle} · ${noticeDetail}`}
       >
         <span className="app-update-notice__icon" aria-hidden="true">
-          {downloading ? <Loader2 className="spin" size={15} /> : downloaded ? <CheckCircle2 size={15} /> : <Rocket size={15} />}
+          {downloading || installing ? <Loader2 className="spin" size={15} /> : downloaded ? <CheckCircle2 size={15} /> : <Rocket size={15} />}
         </span>
         <span className="app-update-notice__copy">
           <strong>{noticeTitle}</strong>
@@ -132,7 +137,9 @@ export function AppUpdateNotice() {
               <div className="modal-body update-modal__body">
                 <div className="update-modal__summary">
                   <span className={`update-status-badge is-${update.status}`}>
-                    {downloaded
+                    {installing
+                      ? "正在重启安装"
+                      : downloaded
                       ? "已下载，等待安装"
                       : downloading
                         ? `正在下载 ${progress}%`
@@ -184,10 +191,15 @@ export function AppUpdateNotice() {
                     直接下载 DMG
                   </button>
                 )}
-                {downloaded ? (
-                  <button className="btn btn-primary" type="button" onClick={() => void install()}>
-                    <RefreshCw size={13} />
-                    重启并安装
+                {downloaded || installing ? (
+                  <button
+                    className="btn btn-primary"
+                    type="button"
+                    disabled={installing}
+                    onClick={() => void install()}
+                  >
+                    {installing ? <Loader2 className="spin" size={13} /> : <RefreshCw size={13} />}
+                    {installing ? "正在重启…" : "重启并安装"}
                   </button>
                 ) : (
                   <button

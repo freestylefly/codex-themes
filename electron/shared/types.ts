@@ -924,6 +924,7 @@ export type AppUpdateStatus =
   | "available"
   | "downloading"
   | "downloaded"
+  | "installing"
   | "error";
 
 export interface AppUpdateState {

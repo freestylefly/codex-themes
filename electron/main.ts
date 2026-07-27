@@ -7,7 +7,16 @@
  * refresh — the user is told this in the Settings page and quit dialog.
  */
 
-import { app, BrowserWindow, dialog, nativeImage, net, protocol, shell } from "electron";
+import {
+  app,
+  autoUpdater as nativeAutoUpdater,
+  BrowserWindow,
+  dialog,
+  nativeImage,
+  net,
+  protocol,
+  shell,
+} from "electron";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { resolveAppPaths, type AppPaths } from "./paths";
@@ -95,10 +104,18 @@ if (process.defaultApp && process.argv[1]) {
 
 let mainWindow: BrowserWindow | null = null;
 let quitting = false;
+let quitRequestPending = false;
 let controller: ThemeController;
 let themeStore: ThemeStore | null = null;
 let authClient: AuthClient | null = null;
 let commerceService: CommerceService | null = null;
+
+// Native updaters close windows before app.before-quit. Mark this dedicated
+// quit path early so the tray close handler cannot hide the window and keep
+// ShipIt waiting forever.
+nativeAutoUpdater.on("before-quit-for-update", () => {
+  quitting = true;
+});
 
 async function reconcilePayment(payment: PaymentResultAction): Promise<void> {
   if (!commerceService) {
@@ -309,6 +326,7 @@ app.whenReady().then(async () => {
   const updater = initAutoUpdater(
     () => mainWindow,
     (level, message) => controller.emit("log", { at: new Date().toISOString(), level, message }),
+    () => controller.shutdown({ cleanup: false }),
   );
 
   registerIpc({
@@ -378,23 +396,32 @@ app.whenReady().then(async () => {
 
 /** Confirm quit when a theme is live: the skin fades on Codex's next refresh. */
 async function requestQuit(): Promise<void> {
+  if (quitting || quitRequestPending) return;
+  quitRequestPending = true;
   const state = controller.getState();
-  if (state.activeThemeId && mainWindow) {
-    const { response } = await dialog.showMessageBox(mainWindow, {
-      type: "info",
-      title: "退出 Codex Themes",
-      message: "退出后注入守护将停止",
-      detail:
-        "当前主题已在 Codex 中生效。退出本应用后,主题会保留到 Codex 下次刷新或重启;届时将恢复官方外观,直到你再次打开本应用。",
-      buttons: ["退出", "取消"],
-      defaultId: 0,
-      cancelId: 1,
-    });
-    if (response !== 0) return;
+  try {
+    if (state.activeThemeId && mainWindow) {
+      const { response } = await dialog.showMessageBox(mainWindow, {
+        type: "info",
+        title: "退出 Codex Themes",
+        message: "退出后注入守护将停止",
+        detail:
+          "当前主题已在 Codex 中生效。退出本应用后,主题会保留到 Codex 下次刷新或重启;届时将恢复官方外观,直到你再次打开本应用。",
+        buttons: ["退出", "取消"],
+        defaultId: 0,
+        cancelId: 1,
+      });
+      if (response !== 0) return;
+    }
+    quitting = true;
+    try {
+      await controller.shutdown({ cleanup: false });
+    } finally {
+      app.quit();
+    }
+  } finally {
+    if (!quitting) quitRequestPending = false;
   }
-  quitting = true;
-  await controller.shutdown({ cleanup: false });
-  app.quit();
 }
 
 app.on("before-quit", (event) => {

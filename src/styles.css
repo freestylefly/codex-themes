@@ -291,7 +291,8 @@ body {
   transform: translateY(-1px);
 }
 
-.app-update-notice.is-downloaded {
+.app-update-notice.is-downloaded,
+.app-update-notice.is-installing {
   color: #a7f3d0;
   border-color: rgba(52, 211, 153, 0.34);
   background: linear-gradient(135deg, rgba(13, 87, 65, 0.5), rgba(22, 52, 43, 0.62));
@@ -511,7 +512,8 @@ body {
   font-weight: 650;
 }
 
-.update-status-badge.is-downloaded {
+.update-status-badge.is-downloaded,
+.update-status-badge.is-installing {
   color: #a7f3d0;
   background: rgba(52, 211, 153, 0.1);
   border-color: rgba(52, 211, 153, 0.24);
