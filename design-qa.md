@@ -49,6 +49,67 @@
 ## Final result
 
 final result: passed
+
+---
+
+# macOS DMG Installer Design QA
+
+## Evidence
+
+- Source visual truth: `/Users/canghe/.codex/generated_images/019f9db6-bbd7-77c1-a111-ae14a241f76f/call_h1QV53g0oGOXhOt6UFBf7ZCx.png`
+- Source pixels: `1516 × 1038`
+- Production background: `assets/dmg/background.png`
+- Production background pixels: `960 × 600`
+- Initial mounted capture: `/tmp/codex-themes-dmg-qa-1.png`
+- Intermediate mounted captures: `/tmp/codex-themes-dmg-qa-2.png`, `/tmp/codex-themes-dmg-qa-3.png`
+- Final mounted capture: `/tmp/codex-themes-dmg-qa-final.png`
+- Final implementation pixels: `960 × 600`
+- Full-view comparison: `/tmp/codex-themes-dmg-design-compare-full.png`
+- Focused installation-stage comparison: `/tmp/codex-themes-dmg-design-compare-focus.png`
+- Native window configuration: `960 × 600` points, `128 px` Finder icons, `15 px` Finder labels
+- Density normalization: the source concept was resized to `960 px` wide for full-view comparison. The mounted Finder capture was recorded at `1x`.
+- State: unsigned local ARM64 QA build mounted read-only as `Codex Themes`, with the real app bundle and `/Applications` shortcut visible.
+
+## Full-view Comparison
+
+The mounted implementation preserves the selected direction's centered brand lockup, Chinese editorial headline, faint theme-gallery reflections, blue-to-gold orbital portal, left-to-right particle path, and clearly separated app and Applications targets. The production window uses the real Finder-rendered objects and native macOS title bar.
+
+A single pale glass installation stage was added during QA. This intentional constraint keeps Finder's dark file labels readable on current macOS while allowing the portal and particle path to remain visible.
+
+## Focused Evidence
+
+The focused comparison confirms that the two real Finder objects align with the portal endpoints, the arrow points directly to Applications, the `拖入安装` instruction stays centered, and both labels remain readable. The Finder shortcut badge and application icon are native package output rather than raster elements baked into the background.
+
+## Required Fidelity Surfaces
+
+- Fonts and typography: the Chinese serif headline, soft-gray subtitle, gold brand lockup, and installation caption retain the selected hierarchy and remain sharp at the final window size.
+- Spacing and layout rhythm: the `240 / 720` icon centers create a balanced transfer path with clear space around both draggable objects. The title and installation stage do not collide.
+- Colors and visual tokens: midnight navy, cobalt blue, warm gold, white display type, and cool glass match the selected design direction. The glass stage supplies sufficient contrast for native black Finder labels.
+- Image quality and asset fidelity: the generated portal background remains crisp at `960 × 600`; the mounted app icon, Applications folder, alias badge, and labels are produced by macOS Finder.
+- Copy and content: `Codex Themes`, `开启你的 Codex 主题宇宙`, `拖动一次，立即进入`, and `拖入安装` are preserved. Finder displays the installed bundle as `Codex Themes`.
+
+## Interaction Checks
+
+- The mounted volume contains exactly the Codex Themes app bundle and Applications shortcut.
+- The Applications shortcut resolves to `/Applications`.
+- The real app bundle and shortcut are both exposed as Finder-openable objects.
+- The QA build mounts read-only and opens at the configured size with the configured icon coordinates.
+- Copying the app was intentionally not performed during QA to avoid overwriting the user's installed application.
+
+## Comparison History
+
+1. The first mounted capture found a P2 label-contrast issue: Finder rendered both filenames in dark text over the midnight background.
+2. Two atmospheric-glow revisions improved the lower composition but remained below the native label baselines, so the P2 issue stayed open.
+3. A single translucent glass installation stage replaced the isolated glows. The final mounted capture shows both native labels clearly and resolves the P2 issue.
+4. Final full-view and focused comparisons show no actionable P0, P1, or P2 findings.
+
+## Follow-up Polish
+
+- P3: A future application-icon pass could enlarge the robot within the macOS squircle to match the concept's stronger mascot presence.
+- P3: The glass stage slightly reduces the orbital contrast compared with the generated concept; the trade-off improves native Finder label readability.
+
+final result: passed
+
 ---
 
 # AI 主题连续创作与多候选 Design QA

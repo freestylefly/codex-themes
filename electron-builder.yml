@@ -42,6 +42,21 @@ mac:
   notarize: true
 dmg:
   artifactName: Codex-Themes-${version}-mac-${arch}.${ext}
+  title: Codex Themes
+  background: assets/dmg/background.png
+  iconSize: 128
+  iconTextSize: 15
+  window:
+    width: 960
+    height: 600
+  contents:
+    - x: 240
+      y: 350
+      type: file
+    - x: 720
+      y: 350
+      type: link
+      path: /Applications
 win:
   icon: assets/build/icon.png
   target:
