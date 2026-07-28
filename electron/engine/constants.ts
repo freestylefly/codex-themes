@@ -4,16 +4,18 @@
  */
 
 /** Bumped whenever the injected payload format changes. */
-export const SKIN_VERSION = "1.0.2";
+export const SKIN_VERSION = "1.1.0";
 
 export const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 export const MAX_ART_BYTES = 16 * 1024 * 1024;
+export const MAX_MOTION_BYTES = 12 * 1024 * 1024;
 
 /** First port tried when launching Codex with CDP; scan upwards if busy. */
 export const PREFERRED_CDP_PORT = 9341;
 
 export const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp"]);
+export const MOTION_EXTENSIONS = new Set([".mp4", ".webm"]);
 
 /** Standard preview image dimensions generated on export (fit within). */
 export const PREVIEW_WIDTH = 1200;

@@ -5,6 +5,7 @@ import { compileTheme } from "../../electron/engine/compiler";
 import { RetroMessengerPreview } from "./RetroMessengerPreview";
 import { SilkScrollPreview } from "./SilkScrollPreview";
 import { MoonlitImmortalPreview } from "./MoonlitImmortalPreview";
+import { CinematicLivePreview } from "./CinematicLivePreview";
 import { CodexPreviewHeader, CodexPreviewSidebar } from "./CodexPreviewChrome";
 
 export interface PreviewCanvasProps {
@@ -33,6 +34,10 @@ export function PreviewCanvas({ theme, heroUrl, wallpaperUrl, stampUrl, fidelity
 
   if (theme.layout === "silk-scroll") {
     return <SilkScrollPreview theme={theme} heroUrl={heroUrl} wallpaperUrl={wallpaperUrl} stampUrl={stampUrl} page="home" />;
+  }
+
+  if (theme.layout === "cinematic-live") {
+    return <CinematicLivePreview theme={theme} heroUrl={heroUrl} page="home" />;
   }
 
   if (theme.id === "moonlit-immortal") {

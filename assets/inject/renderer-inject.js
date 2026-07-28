@@ -1,10 +1,12 @@
-((cssText, artDataUrl, wallpaperDataUrl, stampDataUrl, themeConfig, initialVars, version) => {
+((cssText, artDataUrl, wallpaperDataUrl, stampDataUrl, motionDataUrl, motionPosterDataUrl, themeConfig, initialVars, version) => {
   const STATE_KEY = "__CODEX_DREAM_SKIN_STATE__";
   const DISABLED_KEY = "__CODEX_DREAM_SKIN_DISABLED__";
   const STYLE_ID = "codex-dream-skin-style";
   const CHROME_ID = "codex-dream-skin-chrome";
   const MOONLIT_WELCOME_ID = "codex-dream-skin-moonlit-welcome";
   const BLUE_WINDOW_HOME_ID = "codex-dream-skin-blue-window-home";
+  const MOTION_ID = "codex-dream-skin-motion";
+  const CINEMATIC_UI_ID = "codex-dream-skin-cinematic-ui";
   const SHELL_ATTR = "data-dream-shell";
   const VERSION = version || "1.0.0";
   const THEME = themeConfig && typeof themeConfig === "object" ? themeConfig : {};
@@ -14,10 +16,13 @@
   const PRESERVE_NATIVE_LAYOUT = !CUSTOM_HOME_THEME_IDS.has(THEME.id);
   const isActiveHomeSurface = __DREAM_SKIN_HOME_CLASSIFIER__;
   const WALLPAPER_URL = wallpaperDataUrl || null;
+  const MOTION_DATA_URL = motionDataUrl || null;
+  const MOTION_POSTER_DATA_URL = motionPosterDataUrl || artDataUrl || null;
   const LAYOUT_CLASSES = [
     "dream-banner",
     "split-studio",
     "full-canvas",
+    "cinematic-live",
     "terminal-grid",
     "paper-board",
     "minimal-focus",
@@ -34,9 +39,21 @@
   if (previous?.mediaHandler && previous?.mediaQuery) {
     try { previous.mediaQuery.removeEventListener("change", previous.mediaHandler); } catch {}
   }
+  if (previous?.reducedMotionHandler && previous?.reducedMotionQuery) {
+    try { previous.reducedMotionQuery.removeEventListener("change", previous.reducedMotionHandler); } catch {}
+  }
+  if (previous?.visibilityHandler) document.removeEventListener("visibilitychange", previous.visibilityHandler);
+  if (previous?.focusHandler) window.removeEventListener("focus", previous.focusHandler);
+  if (previous?.blurHandler) window.removeEventListener("blur", previous.blurHandler);
   if (previous?.artUrl) URL.revokeObjectURL(previous.artUrl);
   if (previous?.wallpaperUrl) URL.revokeObjectURL(previous.wallpaperUrl);
   if (previous?.stampUrl && previous.stampUrl !== previous.artUrl) URL.revokeObjectURL(previous.stampUrl);
+  if (previous?.motionUrl) URL.revokeObjectURL(previous.motionUrl);
+  if (previous?.motionPosterUrl && previous.motionPosterUrl !== previous.artUrl) {
+    URL.revokeObjectURL(previous.motionPosterUrl);
+  }
+  document.getElementById(MOTION_ID)?.remove();
+  document.getElementById(CINEMATIC_UI_ID)?.remove();
 
   const dataUrlToBlobUrl = (dataUrl) => {
     if (!dataUrl) return null;
@@ -51,6 +68,8 @@
   const artUrl = dataUrlToBlobUrl(artDataUrl);
   const wallpaperUrl = dataUrlToBlobUrl(WALLPAPER_URL);
   const stampUrl = dataUrlToBlobUrl(stampDataUrl) || artUrl;
+  const motionUrl = dataUrlToBlobUrl(MOTION_DATA_URL);
+  const motionPosterUrl = dataUrlToBlobUrl(MOTION_POSTER_DATA_URL) || artUrl;
 
   const cssString = (value) => JSON.stringify(String(value ?? ""));
 
@@ -670,6 +689,131 @@
     });
   };
 
+  const syncCinematicPlayback = () => {
+    const layer = document.getElementById(MOTION_ID);
+    const video = layer?.querySelector("video");
+    if (!(video instanceof HTMLVideoElement)) return;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const shouldPause =
+      document.hidden ||
+      !document.hasFocus() ||
+      reduceMotion ||
+      layer?.getAttribute("data-motion-error") === "true";
+    if (shouldPause) {
+      video.pause();
+      return;
+    }
+    if (video.paused) {
+      video.play().catch(() => {
+        layer?.setAttribute("data-motion-error", "true");
+      });
+    }
+  };
+
+  /**
+   * Cinematic Live keeps the Codex message list and composer intact, then
+   * frames them with a full-window motion layer and a small home-only control
+   * surface. The visible buttons focus the native composer or replay the loop.
+   */
+  const ensureCinematicLive = (shellMain, home) => {
+    const enabled = THEME.layout === "cinematic-live" && shellMain && document.body;
+    if (!enabled) {
+      document.getElementById(MOTION_ID)?.remove();
+      document.getElementById(CINEMATIC_UI_ID)?.remove();
+      return;
+    }
+
+    let layer = document.getElementById(MOTION_ID);
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.id = MOTION_ID;
+      layer.setAttribute("aria-hidden", "true");
+      layer.innerHTML = `
+        <div class="dream-skin-cinematic-poster"></div>
+        <video class="dream-skin-cinematic-video" autoplay muted loop playsinline preload="metadata"></video>
+        <div class="dream-skin-cinematic-shade"></div>`;
+      document.body.appendChild(layer);
+
+      const poster = layer.querySelector(".dream-skin-cinematic-poster");
+      if (poster && motionPosterUrl) {
+        poster.style.backgroundImage = `url("${motionPosterUrl}")`;
+      }
+      const video = layer.querySelector("video");
+      if (video instanceof HTMLVideoElement) {
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        if (motionPosterUrl) video.poster = motionPosterUrl;
+        if (motionUrl) {
+          video.src = motionUrl;
+        } else {
+          layer.setAttribute("data-motion-error", "true");
+        }
+        video.addEventListener("loadeddata", () => {
+          layer?.removeAttribute("data-motion-error");
+          syncCinematicPlayback();
+        });
+        video.addEventListener("error", () => {
+          layer?.setAttribute("data-motion-error", "true");
+          video.pause();
+        });
+      }
+    }
+
+    let ui = document.getElementById(CINEMATIC_UI_ID);
+    if (!ui) {
+      ui = document.createElement("section");
+      ui.id = CINEMATIC_UI_ID;
+      ui.setAttribute("aria-label", "夜语伴生主题控制");
+      ui.innerHTML = `
+        <header class="dream-skin-cinematic-topline">
+          <span><i></i> OBJECT LIVE</span>
+          <b>NIGHTBOUND COMPANION</b>
+        </header>
+        <div class="dream-skin-cinematic-transcript">
+          <small>LIVE TRANSCRIPT</small>
+          <p>夜语伴生已就绪。告诉我你想完成的任务。</p>
+        </div>
+        <div class="dream-skin-cinematic-actions">
+          <button type="button" data-cinematic-action="start">
+            <span>开始对话</span><i>ENTER</i>
+          </button>
+          <button type="button" data-cinematic-action="replay">重播氛围</button>
+        </div>`;
+      document.body.appendChild(ui);
+
+      ui.querySelector('[data-cinematic-action="start"]')?.addEventListener("click", () => {
+        const composer =
+          shellMain.querySelector(".composer-surface-chrome textarea") ||
+          shellMain.querySelector('.composer-surface-chrome [contenteditable="true"]') ||
+          shellMain.querySelector("textarea") ||
+          shellMain.querySelector('[contenteditable="true"]');
+        if (composer instanceof HTMLElement) {
+          composer.focus();
+          composer.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+      });
+      ui.querySelector('[data-cinematic-action="replay"]')?.addEventListener("click", () => {
+        const video = document.querySelector(`#${MOTION_ID} video`);
+        if (!(video instanceof HTMLVideoElement)) return;
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      });
+    }
+
+    const shellBox = shellMain.getBoundingClientRect();
+    for (const node of [layer, ui]) {
+      if (!(node instanceof HTMLElement)) continue;
+      node.style.left = `${Math.round(shellBox.left)}px`;
+      node.style.top = `${Math.round(shellBox.top)}px`;
+      node.style.width = `${Math.round(shellBox.width)}px`;
+      node.style.height = `${Math.round(shellBox.height)}px`;
+    }
+    ui.classList.toggle("is-home", Boolean(home));
+    ui.classList.toggle("is-task", !home);
+    syncCinematicPlayback();
+  };
+
   /**
    * Remove only the visual layer while keeping the observer and blob URLs
    * alive. This lets a manual ChatGPT/Work -> Codex switch restore the theme
@@ -694,6 +838,8 @@
     document.querySelectorAll(".dream-skin-home-shell").forEach((node) => node.classList.remove("dream-skin-home-shell"));
     document.getElementById(MOONLIT_WELCOME_ID)?.remove();
     document.getElementById(BLUE_WINDOW_HOME_ID)?.remove();
+    document.getElementById(MOTION_ID)?.remove();
+    document.getElementById(CINEMATIC_UI_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
     document.getElementById(CHROME_ID)?.remove();
   };
@@ -771,13 +917,18 @@
     const visibleTaskContent = shellMain
       ? [
           ...shellMain.querySelectorAll(
-            '[data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
+            '.thread-scroll-container, [data-message-author-role], article, .message, [data-testid*="conversation-turn"]',
           ),
         ].some(isRenderedElement)
       : false;
     const home = homeCandidates.find((candidate) => {
-      const visibleThemeHome = THEME.id === "blue-window-messenger" &&
+      const visibleBlueWindowHome = THEME.id === "blue-window-messenger" &&
         isRenderedElement(candidate.querySelector(`:scope > #${BLUE_WINDOW_HOME_ID}`));
+      const cinematicUi = document.getElementById(CINEMATIC_UI_ID);
+      const visibleCinematicHome = THEME.layout === "cinematic-live" &&
+        cinematicUi?.classList.contains("is-home") &&
+        isRenderedElement(cinematicUi);
+      const visibleThemeHome = visibleBlueWindowHome || Boolean(visibleCinematicHome);
       return isActiveHomeSurface({
         withinShell: candidate === shellMain || Boolean(shellMain?.contains(candidate)),
         connected: candidate.isConnected,
@@ -796,7 +947,11 @@
     ensureMoonlitWelcome(layoutHome);
     ensureBlueWindowHome(layoutHome);
 
-    if (!shellMain || !document.body) return;
+    if (!shellMain || !document.body) {
+      ensureCinematicLive(null, null);
+      return;
+    }
+    ensureCinematicLive(shellMain, home);
     shellMain.classList.toggle("dream-skin-home-shell", Boolean(home));
     let chrome = document.getElementById(CHROME_ID);
     const chromeIsCurrent = Boolean(
@@ -966,9 +1121,19 @@
     if (state?.mediaHandler && state?.mediaQuery) {
       try { state.mediaQuery.removeEventListener("change", state.mediaHandler); } catch {}
     }
+    if (state?.reducedMotionHandler && state?.reducedMotionQuery) {
+      try { state.reducedMotionQuery.removeEventListener("change", state.reducedMotionHandler); } catch {}
+    }
+    if (state?.visibilityHandler) document.removeEventListener("visibilitychange", state.visibilityHandler);
+    if (state?.focusHandler) window.removeEventListener("focus", state.focusHandler);
+    if (state?.blurHandler) window.removeEventListener("blur", state.blurHandler);
     if (state?.artUrl) URL.revokeObjectURL(state.artUrl);
     if (state?.wallpaperUrl) URL.revokeObjectURL(state.wallpaperUrl);
     if (state?.stampUrl && state.stampUrl !== state.artUrl) URL.revokeObjectURL(state.stampUrl);
+    if (state?.motionUrl) URL.revokeObjectURL(state.motionUrl);
+    if (state?.motionPosterUrl && state.motionPosterUrl !== state.artUrl) {
+      URL.revokeObjectURL(state.motionPosterUrl);
+    }
     delete window[STATE_KEY];
     return true;
   };
@@ -1001,6 +1166,20 @@
     mediaQuery.addEventListener("change", mediaHandler);
   } catch {}
 
+  let reducedMotionQuery = null;
+  let reducedMotionHandler = null;
+  try {
+    reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    reducedMotionHandler = syncCinematicPlayback;
+    reducedMotionQuery.addEventListener("change", reducedMotionHandler);
+  } catch {}
+  const visibilityHandler = syncCinematicPlayback;
+  const focusHandler = syncCinematicPlayback;
+  const blurHandler = syncCinematicPlayback;
+  document.addEventListener("visibilitychange", visibilityHandler);
+  window.addEventListener("focus", focusHandler);
+  window.addEventListener("blur", blurHandler);
+
   window[STATE_KEY] = {
     ensure,
     cleanup,
@@ -1010,9 +1189,16 @@
     resizeHandler,
     mediaQuery,
     mediaHandler,
+    reducedMotionQuery,
+    reducedMotionHandler,
+    visibilityHandler,
+    focusHandler,
+    blurHandler,
     artUrl,
     wallpaperUrl,
     stampUrl,
+    motionUrl,
+    motionPosterUrl,
     version: VERSION,
     themeId: THEME.id || "custom",
     detectShellMode,
@@ -1021,4 +1207,4 @@
   };
   ensure();
   return { installed: true, version: VERSION, themeId: THEME.id || "custom", shell: detectShellMode() };
-})(__DREAM_SKIN_CSS_JSON__, __DREAM_SKIN_ART_JSON__, __DREAM_SKIN_WALLPAPER_JSON__, __DREAM_SKIN_STAMP_JSON__, __DREAM_SKIN_THEME_JSON__, __DREAM_SKIN_VARS_JSON__, __DREAM_SKIN_VERSION_JSON__)
+})(__DREAM_SKIN_CSS_JSON__, __DREAM_SKIN_ART_JSON__, __DREAM_SKIN_WALLPAPER_JSON__, __DREAM_SKIN_STAMP_JSON__, __DREAM_SKIN_MOTION_JSON__, __DREAM_SKIN_MOTION_POSTER_JSON__, __DREAM_SKIN_THEME_JSON__, __DREAM_SKIN_VARS_JSON__, __DREAM_SKIN_VERSION_JSON__)

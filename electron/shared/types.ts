@@ -44,6 +44,7 @@ export const LAYOUT_KINDS = [
   "dream-banner",
   "split-studio",
   "full-canvas",
+  "cinematic-live",
   "terminal-grid",
   "paper-board",
   "minimal-focus",
@@ -113,6 +114,9 @@ export interface ThemeConfigV2 {
   wallpaper?: string;
   stamp?: string;
   preview?: string;
+  /** Optional muted loop video and its static fallback poster. */
+  motionBackground?: string;
+  motionPoster?: string;
 
   /** Palettes. */
   light: ThemePalette;
@@ -174,6 +178,8 @@ export interface NormalizedResources {
   wallpaper?: string;
   stamp?: string;
   preview?: string;
+  motionBackground?: string;
+  motionPoster?: string;
 }
 
 export interface NormalizedHero {

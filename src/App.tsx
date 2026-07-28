@@ -14,6 +14,7 @@ import {
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import defaultCreatorAvatar from "./assets/creator-default-avatar.webp";
 import { AppUpdateNotice } from "./components/AppUpdateNotice";
+import { AuthRequiredModal } from "./components/AuthRequiredModal";
 import { ConfirmRestartModal } from "./components/ConfirmRestartModal";
 import { OpenThemeModal } from "./components/OpenThemeModal";
 import { StatusCard } from "./components/StatusCard";
@@ -267,6 +268,7 @@ export function App() {
         {page === "settings" && <Settings />}
         {page === "account" && <Account />}
       </main>
+      <AuthRequiredModal />
       <ConfirmRestartModal />
       <OpenThemeModal />
       <Toasts />

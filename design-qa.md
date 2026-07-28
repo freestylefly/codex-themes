@@ -1048,3 +1048,82 @@ No actionable P0, P1, or P2 visual differences remain.
 - P3: consider a crop-position editor in a later avatar iteration; the current upload uses a safe centered square crop.
 
 final result: passed
+
+---
+
+# 夜语伴生动态主题 Design QA
+
+## 对照基准
+
+- source visual truth: `/Users/canghe/Library/Containers/at.EternalStorms.Yoink/Data/Documents/YoinkPromisedFiles.noIndex/yoinkFilePromiseCreationFolder5A5D4DF2-C63E-4204-9126-3720C298456C/add5A5D4DF2-C63E-4204-9126-3720C298456C/c4d87ae0baf2a3935b7b98d4ecf4794a.mp4`
+- source frame: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-reference-frame.png`
+- implementation screenshot: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-1280x800-home-final.png`
+- full-view comparison: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-reference-vs-implementation.png`
+- focused comparison: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-focused-reference-vs-implementation.png`
+- viewport: 1280 × 800 CSS px
+- source pixels: 1280 × 800
+- implementation pixels: 1280 × 800
+- density normalization: source、实现和 CSS 视口均为 1×，无需缩放
+- state: Codex 项目首页，夜语伴生主题已启用，原生输入框保持可用
+
+## Full-view comparison evidence
+
+整体构图与参考保持一致：导航位于左侧，半透明对话面板和圆形入口位于左中区域，成年女性角色固定在右侧，输入区位于底部。原创角色采用黑色细肩带低领吊带，露肤比例较高，同时保留完整遮挡。左侧安全区足以容纳对话和操作控件，人物没有压住核心文本。
+
+## Focused region comparison evidence
+
+局部对照覆盖 `LIVE TRANSCRIPT`、圆形“开始对话”、重播按钮、项目工具条、输入框顶部区域和角色边缘。实现中的中文正文更清晰，按钮和输入框维持统一的青绿色玻璃质感，项目工具条已消除浅色模式泄漏。
+
+## Required fidelity surfaces
+
+- Fonts and typography: 使用系统字体与窄字距英文标签，标题、正文和微型状态文字层级清楚；中文正文在深色背景下保持可读。
+- Spacing and layout rhythm: 1280 × 800 与 1512 × 982 下保持左侧对话安全区和右侧人物比例；860 × 800 下任务区扩展到可用宽度。
+- Colors and visual tokens: 深蓝黑背景、低饱和青绿色描边、半透明玻璃面板与参考方向一致；首页工具条和任务页浅色 token 已覆盖。
+- Image quality and asset fidelity: 原创成年女性角色、右侧构图、细肩带低领吊带和夜色电影光效符合视觉目标；H.264 视频清晰，无音轨，静态封面与视频首帧衔接自然。
+- Copy and content: `LIVE TRANSCRIPT`、“开始对话”、“重播氛围”和主题名均已落地；原生项目、权限、模型和输入控件继续显示。
+
+## Comparison history
+
+1. P1 首页状态在连续检测中振荡。
+   - Earlier evidence: 主题隐藏原生标题和建议卡片后，下一次检测读取到 `opacity: 0` 与 `height: 0`，首页类会被移除。
+   - Fix: 将可见的主题控制层纳入 `visibleThemeHome`，任务内容仍拥有更高判定优先级。
+   - Post-fix evidence: 1512 × 982 与 1280 × 800 下连续五次检测均保持 `home: true`、`ui: is-home`。
+
+2. P1 任务页原生内容曾被动态背景层遮挡，浅色文字 token 影响可读性。
+   - Earlier evidence: 任务消息、文件变更卡片和输入框落在错误层级，部分文字与背景接近。
+   - Fix: 提升原生 Codex 主界面层级，任务主表面改为半透明，并补齐消息、菜单、代码和输入框的深色 token。
+   - Post-fix evidence: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-1280x800-task-final.png`
+
+3. P2 新版任务页缺少旧消息标记。
+   - Earlier evidence: 当前 Codex 任务 DOM 没有 `article`、`.message` 或 `data-message-author-role`，稳定标记为 `.thread-scroll-container`。
+   - Fix: 将 `.thread-scroll-container` 加入任务内容检测。
+   - Post-fix evidence: 连续四次检测均保持 `home: false`、`ui: is-task`，随后返回首页连续五次保持首页状态。
+
+4. P2 首页项目工具条沿用浅色背景。
+   - Earlier evidence: `--color-token-side-bar-background` 计算值为 `#f6f6f6`。
+   - Fix: 为 `cinematic-live` 首页补齐工具条、文字、边框和悬停 token。
+   - Post-fix evidence: 计算值为 `rgba(3, 12, 16, 0.7)`，最终首页截图中项目栏与输入框视觉一致。
+
+## Responsive and interaction checks
+
+- 1512 × 982 首页: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-1512x982-home-final.png`
+- 1280 × 800 任务页: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-1280x800-task-final.png`
+- 860 × 800 任务页: `/Users/canghe/responsibilty/canghe/codex-themes/tmp/design-qa/nightbound-860x800-task-final.png`
+- 小于 900 px 时视频隐藏，静态封面显示。
+- “开始对话”将焦点交给原生 ProseMirror 输入区。
+- “重播氛围”将视频进度归零。
+- 视频恢复测试从 0 秒推进至 0.98 秒；恢复隐藏状态后再次暂停。
+- 开启减少动态效果后视频隐藏、封面显示。
+- 附件按钮可见，模型选择器可打开，任务滚动从 `0` 移动到 `-420` 后恢复。
+- 单一视频实例检查通过。
+- 运行时错误检查结果为 0。
+
+## Findings
+
+- 未发现仍需处理的 P0、P1 或 P2 问题。
+
+## Follow-up polish
+
+- P3: 顶部工具栏与主画面交界处的 1 px 高亮边缘比参考更亮，后续可以继续降低分隔线亮度。
+
+final result: passed

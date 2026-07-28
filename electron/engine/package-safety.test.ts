@@ -15,6 +15,7 @@ import {
   isAllowedPackageEntry,
   isAnimatedPng,
   isAnimatedWebp,
+  isValidMotionFile,
   isUnsafeEntryPath,
 } from "./package-safety";
 import { ThemeStore } from "../themes/store";
@@ -22,7 +23,7 @@ import type { ThemeDraftInput } from "../shared/types";
 
 describe("package entry rules", () => {
   it("accepts the documented package layout", () => {
-    for (const name of ["theme.json", "hero.png", "wallpaper.webp", "stamp.jpg", "preview.png", "background.png", "README.md", "LICENSE"]) {
+    for (const name of ["theme.json", "hero.png", "wallpaper.webp", "stamp.jpg", "preview.png", "background.png", "motion-poster.webp", "motion.mp4", "motion.webm", "README.md", "LICENSE"]) {
       assert.ok(isAllowedPackageEntry(name), name);
     }
   });
@@ -38,6 +39,19 @@ describe("package entry rules", () => {
       assert.ok(isUnsafeEntryPath(name), JSON.stringify(name));
     }
     assert.ok(!isUnsafeEntryPath("hero.png"));
+  });
+});
+
+describe("motion asset detection", () => {
+  it("recognizes MP4 and WebM container signatures", () => {
+    const mp4 = Buffer.alloc(24);
+    mp4.writeUInt32BE(24, 0);
+    mp4.write("ftyp", 4, "ascii");
+    const webm = Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0x9f, 0x42]);
+
+    assert.equal(isValidMotionFile("motion.mp4", mp4), true);
+    assert.equal(isValidMotionFile("motion.webm", webm), true);
+    assert.equal(isValidMotionFile("motion.mp4", Buffer.from("not-video")), false);
   });
 });
 
@@ -230,6 +244,36 @@ describe("ThemeStore package inspection", () => {
     assert.ok(path.basename(inspected.tempDir).startsWith("codex-theme-inspect-"));
     await store.discardInspection(inspected.tempDir);
     await assert.rejects(() => fs.stat(inspected.tempDir));
+  });
+
+  it("accepts a package with a valid motion background", async () => {
+    const mp4 = Buffer.alloc(32);
+    mp4.writeUInt32BE(32, 0);
+    mp4.write("ftyp", 4, "ascii");
+    const manifest = JSON.stringify({
+      ...JSON.parse(themeJson),
+      layout: "cinematic-live",
+      motionBackground: "motion.mp4",
+      motionPoster: "hero.png",
+    });
+    const inspected = await store.inspectThemePackage(
+      makeZip({ "theme.json": manifest, "hero.png": heroPng, "motion.mp4": mp4 }),
+    );
+    assert.equal(inspected.summary.layout, "cinematic-live");
+    await store.discardInspection(inspected.tempDir);
+  });
+
+  it("rejects a motion file with an invalid container signature", async () => {
+    const manifest = JSON.stringify({
+      ...JSON.parse(themeJson),
+      motionBackground: "motion.mp4",
+    });
+    const zipPath = makeZip({
+      "theme.json": manifest,
+      "hero.png": heroPng,
+      "motion.mp4": Buffer.from("not-an-mp4"),
+    });
+    await assert.rejects(() => store.inspectThemePackage(zipPath), /无法识别视频格式/);
   });
 
   it("rejects packages with unknown files", async () => {

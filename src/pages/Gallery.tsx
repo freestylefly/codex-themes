@@ -30,6 +30,7 @@ export function Gallery() {
   const refreshCatalog = useApp((s) => s.refreshCatalog);
   const refreshEntitlements = useApp((s) => s.refreshEntitlements);
   const toast = useApp((s) => s.toast);
+  const showAuthPrompt = useApp((s) => s.showAuthPrompt);
   const restore = useApp((s) => s.restore);
   const apply = useApp((s) => s.apply);
   const purchaseTheme = useApp((s) => s.purchaseTheme);
@@ -128,7 +129,7 @@ export function Gallery() {
   const handleUnlock = async (theme: CommerceThemeSummary) => {
     if (!theme.product) return;
     if (auth?.status !== "authenticated") {
-      toast("info", "请先登录账号。");
+      showAuthPrompt();
       return;
     }
     await unlockTheme(theme.id);
@@ -137,7 +138,7 @@ export function Gallery() {
   const handleAlipay = async (theme: CommerceThemeSummary) => {
     if (!theme.product || theme.product.priceCents <= 0) return;
     if (auth?.status !== "authenticated") {
-      toast("info", "请先登录账号。");
+      showAuthPrompt();
       return;
     }
     await purchaseTheme(theme.id);

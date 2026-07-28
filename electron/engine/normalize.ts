@@ -265,6 +265,12 @@ function normalizeV2(raw: ThemeConfigV2, warnings: string[]): NormalizedTheme {
     wallpaper: raw.wallpaper ? pickString(raw.wallpaper, "") || undefined : undefined,
     stamp: raw.stamp ? pickString(raw.stamp, "") || undefined : undefined,
     preview: raw.preview ? pickString(raw.preview, "") || undefined : undefined,
+    motionBackground: raw.motionBackground
+      ? pickString(raw.motionBackground, "") || undefined
+      : undefined,
+    motionPoster: raw.motionPoster
+      ? pickString(raw.motionPoster, "") || undefined
+      : undefined,
   };
 
   return {
@@ -282,7 +288,7 @@ function normalizeV2(raw: ThemeConfigV2, warnings: string[]): NormalizedTheme {
     dark,
     layout: pickEnum(
       raw.layout,
-      ["dream-banner", "split-studio", "full-canvas", "terminal-grid", "paper-board", "minimal-focus", "retro-messenger", "silk-scroll"],
+      ["dream-banner", "split-studio", "full-canvas", "cinematic-live", "terminal-grid", "paper-board", "minimal-focus", "retro-messenger", "silk-scroll"],
       "dream-banner",
     ),
     hero: {
