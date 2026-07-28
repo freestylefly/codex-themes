@@ -132,8 +132,8 @@ const allThemes: WebTheme[] = Object.entries(manifestModules)
     return a.name.localeCompare(b.name, "zh-CN");
   });
 
-if (allThemes.length !== 20 || new Set(allThemes.map((theme) => theme.id)).size !== allThemes.length) {
-  throw new Error(`Expected 20 unique built-in themes, received ${allThemes.length}.`);
+if (allThemes.length !== 21 || new Set(allThemes.map((theme) => theme.id)).size !== allThemes.length) {
+  throw new Error(`Expected 21 unique built-in themes, received ${allThemes.length}.`);
 }
 
 export const themes = allThemes.filter((theme) => theme.galleryVisible);
