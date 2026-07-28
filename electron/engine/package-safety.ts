@@ -10,13 +10,15 @@ export const MAX_PACKAGE_BYTES = 24 * 1024 * 1024;
 export const MAX_UNPACKED_BYTES = 32 * 1024 * 1024;
 export const MAX_PACKAGE_FILES = 16;
 export const MAX_TOTAL_IMAGE_BYTES = 20 * 1024 * 1024;
+export const MAX_TOTAL_MOTION_BYTES = 12 * 1024 * 1024;
 export const MAX_IMAGE_SIDE = 8192;
 
-/** Root-only whitelist: config, docs, and the known image slots. */
+/** Root-only whitelist: config, docs, known image slots, and one motion asset. */
 const PACKAGE_NAME_RE =
-  /^(?:theme\.json|README\.md|LICENSE|(?:hero|wallpaper|stamp|preview|background)\.(?:png|jpe?g|webp))$/;
+  /^(?:theme\.json|README\.md|LICENSE|(?:hero|wallpaper|stamp|preview|background|motion-poster)\.(?:png|jpe?g|webp)|motion\.(?:mp4|webm))$/;
 
 const IMAGE_NAME_RE = /\.(?:png|jpe?g|webp)$/i;
+const MOTION_NAME_RE = /\.(?:mp4|webm)$/i;
 
 export function isAllowedPackageEntry(name: string): boolean {
   return PACKAGE_NAME_RE.test(name);
@@ -24,6 +26,10 @@ export function isAllowedPackageEntry(name: string): boolean {
 
 export function isImageEntry(name: string): boolean {
   return IMAGE_NAME_RE.test(name);
+}
+
+export function isMotionEntry(name: string): boolean {
+  return MOTION_NAME_RE.test(name);
 }
 
 /** True when the entry name tries to escape the package root. */
@@ -68,5 +74,23 @@ export function isAnimatedImage(name: string, buf: Buffer): boolean {
   const lower = name.toLowerCase();
   if (lower.endsWith(".png")) return isAnimatedPng(buf);
   if (lower.endsWith(".webp")) return isAnimatedWebp(buf);
+  return false;
+}
+
+/** Minimal container signature validation before the browser attempts decode. */
+export function isValidMotionFile(name: string, buf: Buffer): boolean {
+  const lower = name.toLowerCase();
+  if (lower.endsWith(".mp4")) {
+    return buf.length >= 12 && buf.toString("ascii", 4, 8) === "ftyp";
+  }
+  if (lower.endsWith(".webm")) {
+    return (
+      buf.length >= 4 &&
+      buf[0] === 0x1a &&
+      buf[1] === 0x45 &&
+      buf[2] === 0xdf &&
+      buf[3] === 0xa3
+    );
+  }
   return false;
 }

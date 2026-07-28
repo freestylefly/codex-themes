@@ -127,6 +127,20 @@ describe("normalizeTheme", () => {
     assert.equal(compiled.variables["--ds-layout"], "silk-scroll");
   });
 
+  it("preserves cinematic motion resources", () => {
+    const { theme } = normalizeTheme({
+      ...minimalV2,
+      layout: "cinematic-live",
+      motionBackground: "motion.mp4",
+      motionPoster: "motion-poster.webp",
+    });
+    const compiled = compileTheme(theme);
+    assert.equal(theme.layout, "cinematic-live");
+    assert.equal(theme.resources.motionBackground, "motion.mp4");
+    assert.equal(theme.resources.motionPoster, "motion-poster.webp");
+    assert.ok(compiled.classes.includes("codex-dream-skin--cinematic-live"));
+  });
+
   it("auto-derives a dark palette when missing", () => {
     const v2 = { ...minimalV2, dark: undefined };
     const { theme } = normalizeTheme(v2);
@@ -399,5 +413,23 @@ describe("loadTheme", () => {
       assert.doesNotThrow(() => new Function(built.payload));
       assert.ok(!built.payload.includes("__DREAM_SKIN_ART_JSON__"));
     }
+  });
+
+  it("embeds the Nightbound Companion video and fallback poster", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/nightbound-companion",
+    );
+    assert.equal(built.theme.layout, "cinematic-live");
+    assert.equal(built.theme.resources.motionBackground, "motion.mp4");
+    assert.equal(built.theme.resources.motionPoster, "motion-poster.webp");
+    assert.ok(built.payload.includes("data:video/mp4;base64,"));
+    assert.ok(built.payload.includes("dream-skin-cinematic-video"));
+    assert.ok(built.payload.includes("visibleCinematicHome"));
+    assert.ok(built.payload.includes(".thread-scroll-container"));
+    assert.ok(built.payload.includes("prefers-reduced-motion: reduce"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_MOTION_JSON__"));
+    assert.ok(!built.payload.includes("__DREAM_SKIN_MOTION_POSTER_JSON__"));
+    assert.doesNotThrow(() => new Function(built.payload));
   });
 });

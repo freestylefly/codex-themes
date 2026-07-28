@@ -22,17 +22,27 @@ import type { NormalizedTheme } from "../shared/types";
 import { loadTheme } from "../engine/payload";
 import { normalizeTheme, validateContrast, deriveDarkPalette } from "../engine/normalize";
 import { compileTheme } from "../engine/compiler";
-import { IMAGE_EXTENSIONS, MAX_ART_BYTES, SKIN_VERSION, PREVIEW_WIDTH, PREVIEW_HEIGHT } from "../engine/constants";
+import {
+  IMAGE_EXTENSIONS,
+  MAX_ART_BYTES,
+  MAX_MOTION_BYTES,
+  SKIN_VERSION,
+  PREVIEW_WIDTH,
+  PREVIEW_HEIGHT,
+} from "../engine/constants";
 import {
   MAX_IMAGE_SIDE,
   MAX_PACKAGE_BYTES,
   MAX_PACKAGE_FILES,
   MAX_TOTAL_IMAGE_BYTES,
+  MAX_TOTAL_MOTION_BYTES,
   MAX_UNPACKED_BYTES,
   isAllowedPackageEntry,
   isAnimatedImage,
   isImageEntry,
+  isMotionEntry,
   isUnsafeEntryPath,
+  isValidMotionFile,
 } from "../engine/package-safety";
 import { deriveShellColors } from "../shared/tone";
 
@@ -465,6 +475,7 @@ export class ThemeStore {
 
     let unpackedBytes = 0;
     let imageBytes = 0;
+    let motionBytes = 0;
     for (const entry of entries) {
       const name = entry.entryName;
       if (isUnsafeEntryPath(name)) {
@@ -479,12 +490,16 @@ export class ThemeStore {
       }
       unpackedBytes += entry.header.size;
       if (isImageEntry(name)) imageBytes += entry.header.size;
+      if (isMotionEntry(name)) motionBytes += entry.header.size;
       if (unpackedBytes > MAX_UNPACKED_BYTES) {
         throw new Error("主题包解压后超过 32MB 上限。");
       }
     }
     if (imageBytes > MAX_TOTAL_IMAGE_BYTES) {
       throw new Error("主题包图片合计超过 20MB 上限。");
+    }
+    if (motionBytes > MAX_TOTAL_MOTION_BYTES) {
+      throw new Error("主题包视频超过 12MB 上限。");
     }
 
     const jsonEntry = zip.getEntry("theme.json");
@@ -505,6 +520,14 @@ export class ThemeStore {
           }
           if (isAnimatedImage(entry.entryName, data)) {
             throw new Error(`不允许动画图片:${entry.entryName}`);
+          }
+        }
+        if (isMotionEntry(entry.entryName)) {
+          if (data.length > MAX_MOTION_BYTES) {
+            throw new Error(`视频超过 12MB 上限:${entry.entryName}`);
+          }
+          if (!isValidMotionFile(entry.entryName, data)) {
+            throw new Error(`无法识别视频格式:${entry.entryName}`);
           }
         }
         await fs.writeFile(path.join(tempDir, entry.entryName), data, { mode: 0o600 });
@@ -933,6 +956,8 @@ function denormalizeToV2(theme: NormalizedTheme): ThemeConfigV2 {
     wallpaper: theme.resources.wallpaper,
     stamp: theme.resources.stamp,
     preview: theme.resources.preview,
+    motionBackground: theme.resources.motionBackground,
+    motionPoster: theme.resources.motionPoster,
     light: theme.light,
     dark: theme.dark,
     layout: theme.layout,

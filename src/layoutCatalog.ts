@@ -34,6 +34,13 @@ const LAYOUT_CATALOG_BY_ID: Record<LayoutKind, LayoutCatalogItem> = {
     guidance: "使用大面积渐变或氛围背景，避免细节压住正文。",
     representativeThemeId: "moonlit-immortal",
   },
+  "cinematic-live": {
+    id: "cinematic-live",
+    name: "电影伴生",
+    description: "动态人物占据右侧，原生对话与任务内容浮在左侧玻璃层中。",
+    guidance: "人物固定在右侧四成区域，左侧保持低细节与高文字对比。",
+    representativeThemeId: "nightbound-companion",
+  },
   "terminal-grid": {
     id: "terminal-grid",
     name: "终端网格",

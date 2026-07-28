@@ -61,6 +61,7 @@ interface AppStore {
   entitlements: ThemeEntitlement[];
   pendingOrderId: string | null;
   purchasingThemeId: string | null;
+  authPromptOpen: boolean;
   profile: CreatorProfile | null;
   wallet: PointWallet | null;
   pointPacks: PointPack[];
@@ -79,6 +80,8 @@ interface AppStore {
   refreshThemes(): Promise<void>;
   toast(kind: Toast["kind"], text: string): void;
   dismissToast(id: number): void;
+  showAuthPrompt(): void;
+  dismissAuthPrompt(): void;
   apply(id: string): Promise<void>;
   confirmRestartAndApply(): Promise<void>;
   cancelRestart(): void;
@@ -199,6 +202,7 @@ export const useApp = create<AppStore>((set, get) => ({
   entitlements: [],
   pendingOrderId: null,
   purchasingThemeId: null,
+  authPromptOpen: false,
   profile: null,
   wallet: null,
   pointPacks: [],
@@ -258,7 +262,11 @@ export const useApp = create<AppStore>((set, get) => ({
       set({ pendingApproval: request });
     });
     api.onAuthChanged((auth) => {
-      set({ auth });
+      set({
+        auth,
+        authPromptOpen:
+          auth.status === "authenticated" ? false : get().authPromptOpen,
+      });
       if (auth.status === "authenticated") {
         void get().refreshEntitlements();
         void get().refreshAccountData();
@@ -366,6 +374,14 @@ export const useApp = create<AppStore>((set, get) => ({
 
   dismissToast(id) {
     set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
+  },
+
+  showAuthPrompt() {
+    set({ authPromptOpen: true });
+  },
+
+  dismissAuthPrompt() {
+    set({ authPromptOpen: false });
   },
 
   async apply(id) {
@@ -723,8 +739,7 @@ export const useApp = create<AppStore>((set, get) => ({
   async unlockTheme(themeId) {
     const auth = get().auth;
     if (!auth || auth.status !== "authenticated") {
-      get().toast("info", "请先登录后解锁主题。");
-      set({ page: "account" });
+      get().showAuthPrompt();
       return;
     }
     if (!get().catalog.some((product) => product.id === themeId)) {
@@ -758,8 +773,7 @@ export const useApp = create<AppStore>((set, get) => ({
   async purchaseTheme(themeId) {
     const auth = get().auth;
     if (!auth || auth.status !== "authenticated") {
-      get().toast("info", "请先登录账号。");
-      set({ page: "account" });
+      get().showAuthPrompt();
       return;
     }
     if (!get().catalog.some((product) => product.id === themeId)) {
@@ -829,8 +843,7 @@ export const useApp = create<AppStore>((set, get) => ({
 
   async buyPointPack(packId) {
     if (get().auth?.status !== "authenticated") {
-      set({ page: "account" });
-      get().toast("info", "请先登录账号。");
+      get().showAuthPrompt();
       return;
     }
     try {

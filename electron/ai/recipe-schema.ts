@@ -32,6 +32,7 @@ export const RECIPE_JSON_SCHEMA = {
         "dream-banner",
         "split-studio",
         "full-canvas",
+        "cinematic-live",
         "terminal-grid",
         "paper-board",
         "minimal-focus",

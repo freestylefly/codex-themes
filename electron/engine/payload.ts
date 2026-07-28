@@ -9,7 +9,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import type { NormalizedTheme, ThemeConfig } from "../shared/types";
-import { IMAGE_EXTENSIONS, MAX_ART_BYTES, SKIN_VERSION } from "./constants";
+import {
+  IMAGE_EXTENSIONS,
+  MAX_ART_BYTES,
+  MAX_MOTION_BYTES,
+  MOTION_EXTENSIONS,
+  SKIN_VERSION,
+} from "./constants";
 import { normalizeTheme } from "./normalize";
 import { compileTheme } from "./compiler";
 import { isActiveHomeSurface } from "./home-detection";
@@ -35,19 +41,28 @@ function fileToDataUrl(file: string): Promise<string> {
         ? "image/jpeg"
         : extension === ".webp"
           ? "image/webp"
+          : extension === ".mp4"
+            ? "video/mp4"
+            : extension === ".webm"
+              ? "video/webm"
           : "image/png";
     return `data:${mime};base64,${buf.toString("base64")}`;
   });
 }
 
-async function resolveResource(themeDir: string, filename: string): Promise<string | null> {
+async function resolveResource(
+  themeDir: string,
+  filename: string,
+  extensions = IMAGE_EXTENSIONS,
+  maxBytes = MAX_ART_BYTES,
+): Promise<string | null> {
   if (path.basename(filename) !== filename) return null;
   const file = path.join(themeDir, filename);
   const extension = path.extname(filename).toLowerCase();
-  if (!IMAGE_EXTENSIONS.has(extension)) return null;
+  if (!extensions.has(extension)) return null;
   try {
     const stat = await fs.stat(file);
-    return stat.isFile() && stat.size > 0 && stat.size <= MAX_ART_BYTES ? file : null;
+    return stat.isFile() && stat.size > 0 && stat.size <= maxBytes ? file : null;
   } catch {
     return null;
   }
@@ -108,6 +123,23 @@ export async function buildPayload(injectAssetsDir: string, themeDir: string): P
     if (stampFile) stampDataUrl = await fileToDataUrl(stampFile);
   }
 
+  let motionDataUrl: string | null = null;
+  if (loaded.theme.resources.motionBackground) {
+    const motionFile = await resolveResource(
+      themeDir,
+      loaded.theme.resources.motionBackground,
+      MOTION_EXTENSIONS,
+      MAX_MOTION_BYTES,
+    );
+    if (motionFile) motionDataUrl = await fileToDataUrl(motionFile);
+  }
+
+  let motionPosterDataUrl: string | null = null;
+  if (loaded.theme.resources.motionPoster) {
+    const posterFile = await resolveResource(themeDir, loaded.theme.resources.motionPoster);
+    if (posterFile) motionPosterDataUrl = await fileToDataUrl(posterFile);
+  }
+
   // Compile initial variables for the light palette. The renderer script
   // recompiles variables itself when Codex switches between light/dark modes.
   const compiled = compileTheme(loaded.theme, { mode: "light" });
@@ -117,6 +149,8 @@ export async function buildPayload(injectAssetsDir: string, themeDir: string): P
     .replace("__DREAM_SKIN_ART_JSON__", JSON.stringify(heroDataUrl))
     .replace("__DREAM_SKIN_WALLPAPER_JSON__", JSON.stringify(wallpaperDataUrl))
     .replace("__DREAM_SKIN_STAMP_JSON__", JSON.stringify(stampDataUrl))
+    .replace("__DREAM_SKIN_MOTION_JSON__", JSON.stringify(motionDataUrl))
+    .replace("__DREAM_SKIN_MOTION_POSTER_JSON__", JSON.stringify(motionPosterDataUrl ?? heroDataUrl))
     .replace("__DREAM_SKIN_THEME_JSON__", JSON.stringify(loaded.theme))
     .replace("__DREAM_SKIN_VARS_JSON__", JSON.stringify(compiled.variables))
     .replace("__DREAM_SKIN_HOME_CLASSIFIER__", isActiveHomeSurface.toString())

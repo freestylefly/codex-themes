@@ -11,6 +11,7 @@ import type {
  * presets are filtered by the main process using theme metadata.
  */
 const FEATURED_PRESET_IDS = [
+  "nightbound-companion",
   "moonlit-immortal",
   "blue-window-messenger",
   "mirror-lake-ribbon",

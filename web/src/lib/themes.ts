@@ -12,6 +12,7 @@ interface ThemeManifest {
   wallpaper?: string;
   wallpaperFocusX?: number;
   wallpaperFocusY?: number;
+  motionPoster?: string;
   priceCents?: number;
 }
 
@@ -53,6 +54,11 @@ const wallpaperModules = import.meta.glob<{ default: ImageMetadata }>(
   { eager: true },
 );
 
+const motionPosterModules = import.meta.glob<{ default: ImageMetadata }>(
+  "../../../assets/presets/*/motion-poster.webp",
+  { eager: true },
+);
+
 function themeIdFromPath(file: string): string | null {
   return file.match(/\/assets\/presets\/([^/]+)\//)?.[1] ?? null;
 }
@@ -64,7 +70,7 @@ const previewById = new Map(
 );
 
 const backdropByPath = new Map(
-  Object.entries({ ...heroModules, ...wallpaperModules }).map(([file, module]) => {
+  Object.entries({ ...heroModules, ...wallpaperModules, ...motionPosterModules }).map(([file, module]) => {
     const id = themeIdFromPath(file);
     const filename = file.split("/").at(-1);
     return [`${id}/${filename}`, module.default] as const;
@@ -79,7 +85,7 @@ const allThemes: WebTheme[] = Object.entries(manifestModules)
     if (!folderId || manifest.id !== folderId || !preview) {
       throw new Error(`Invalid web theme source: ${file}`);
     }
-    const backdropFilename = manifest.wallpaper ?? "hero.png";
+    const backdropFilename = manifest.motionPoster ?? manifest.wallpaper ?? "hero.png";
     const backdropArtwork = backdropByPath.get(`${folderId}/${backdropFilename}`);
     return {
       id: manifest.id,
@@ -104,6 +110,7 @@ const allThemes: WebTheme[] = Object.entries(manifestModules)
   })
   .sort((a, b) => {
     const featuredOrder = [
+      "nightbound-companion",
       "moonlit-immortal",
       "blue-window-messenger",
       "mirror-lake-ribbon",
@@ -125,8 +132,8 @@ const allThemes: WebTheme[] = Object.entries(manifestModules)
     return a.name.localeCompare(b.name, "zh-CN");
   });
 
-if (allThemes.length !== 20 || new Set(allThemes.map((theme) => theme.id)).size !== allThemes.length) {
-  throw new Error(`Expected 20 unique built-in themes, received ${allThemes.length}.`);
+if (allThemes.length !== 21 || new Set(allThemes.map((theme) => theme.id)).size !== allThemes.length) {
+  throw new Error(`Expected 21 unique built-in themes, received ${allThemes.length}.`);
 }
 
 export const themes = allThemes.filter((theme) => theme.galleryVisible);
