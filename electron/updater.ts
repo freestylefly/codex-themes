@@ -19,6 +19,7 @@ import {
   prepareUpdateInstall,
   UpdateInstallGate,
 } from "./update-install";
+import { getUpdatePlatformInfo } from "./updater-platform";
 
 const { autoUpdater } = electronUpdater;
 
@@ -27,13 +28,14 @@ const FIRST_UPDATE_CHECK_DELAY_MS = 5_000;
 const UPDATE_PREPARATION_TIMEOUT_MS = 5_000;
 const LATEST_RELEASE_URL =
   "https://github.com/freestylefly/codex-themes/releases/latest";
-const LATEST_DMG_URL =
-  "https://theme.codexguide.ai/api/v1/downloads/latest?format=dmg";
+const PLATFORM_INFO = getUpdatePlatformInfo();
 
 type Logger = (level: LogLine["level"], message: string) => void;
 
 function initialState(): AppUpdateState {
   return {
+    platform: PLATFORM_INFO.platform,
+    packageLabel: PLATFORM_INFO.packageLabel,
     status: app.isPackaged ? "idle" : "disabled",
     currentVersion: app.getVersion(),
     availableVersion: null,
@@ -146,7 +148,7 @@ export class AppUpdaterService extends EventEmitter {
       this.patchState({
         status: "error",
         error:
-          "自动更新暂时无法完成。你可以重试，或直接下载最新版 DMG 安装包。",
+          `自动更新暂时无法完成。你可以重试，或直接下载最新版 ${PLATFORM_INFO.packageLabel} 安装包。`,
       });
       if (this.state.availableVersion) this.showWindow();
     });
@@ -177,7 +179,7 @@ export class AppUpdaterService extends EventEmitter {
       this.patchState({
         status: "error",
         error: this.state.availableVersion
-          ? "检查更新失败。可以重试，或直接下载最新版 DMG。"
+          ? `检查更新失败。可以重试，或直接下载最新版 ${PLATFORM_INFO.packageLabel}。`
           : "检查更新失败，请稍后重试。",
       });
     } finally {
@@ -210,7 +212,7 @@ export class AppUpdaterService extends EventEmitter {
       this.patchState({
         status: "error",
         error:
-          "自动下载失败。可以重试，或直接下载最新版 DMG 安装包。",
+          `自动下载失败。可以重试，或直接下载最新版 ${PLATFORM_INFO.packageLabel} 安装包。`,
       });
     } finally {
       this.downloading = false;
@@ -261,7 +263,7 @@ export class AppUpdaterService extends EventEmitter {
   }
 
   async openManualDownload(): Promise<void> {
-    await shell.openExternal(LATEST_DMG_URL);
+    await shell.openExternal(PLATFORM_INFO.manualDownloadUrl);
   }
 
   private progressState(progress: ProgressInfo): Partial<AppUpdateState> {

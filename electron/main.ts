@@ -45,6 +45,7 @@ const pendingOpenThemeUrls: string[] = [];
 const pendingOpenThemeActions: OpenThemeAction[] = [];
 const pendingAuthCallbacks: string[] = [];
 const pendingPaymentResults: PaymentResultAction[] = [];
+const ciSmokeTest = process.argv.includes("--ci-smoke-test");
 
 function isCodexthemeFile(file: string): boolean {
   return path.extname(file).toLowerCase() === ".codextheme";
@@ -94,6 +95,10 @@ if (!singleInstance) {
   app.quit();
 }
 
+for (const argument of process.argv) {
+  if (isCodexthemeFile(argument)) pendingOpenFiles.push(argument);
+}
+
 if (process.defaultApp && process.argv[1]) {
   app.setAsDefaultProtocolClient(CODEX_THEMES_PROTOCOL.slice(0, -1), process.execPath, [
     path.resolve(process.argv[1]),
@@ -130,14 +135,23 @@ async function reconcilePayment(payment: PaymentResultAction): Promise<void> {
 }
 
 function createWindow(paths: AppPaths): void {
+  const platformWindowOptions =
+    process.platform === "darwin"
+      ? {
+          titleBarStyle: "hiddenInset" as const,
+          trafficLightPosition: { x: 14, y: 14 },
+        }
+      : {
+          titleBarStyle: "default" as const,
+          icon: path.join(paths.assetsRoot, "build", "icon.png"),
+        };
   mainWindow = new BrowserWindow({
     width: 1120,
     height: 760,
     minWidth: 760,
     minHeight: 620,
     title: "Codex Themes",
-    titleBarStyle: "hiddenInset",
-    trafficLightPosition: { x: 14, y: 14 },
+    ...platformWindowOptions,
     backgroundColor: "#141518",
     show: false,
     webPreferences: {
@@ -148,7 +162,14 @@ function createWindow(paths: AppPaths): void {
     },
   });
 
-  mainWindow.once("ready-to-show", () => mainWindow?.show());
+  mainWindow.once("ready-to-show", () => {
+    if (ciSmokeTest) {
+      console.log("CODEX_THEMES_CI_SMOKE_READY");
+      app.exit(0);
+      return;
+    }
+    mainWindow?.show();
+  });
   mainWindow.on("close", (event) => {
     if (!quitting) {
       event.preventDefault();
@@ -253,6 +274,9 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(async () => {
+  if (process.platform === "win32") {
+    app.setAppUserModelId("com.codexthemes.app");
+  }
   const paths = await resolveAppPaths();
   const settings = new SettingsStore(paths.settingsFile);
   await settings.load();

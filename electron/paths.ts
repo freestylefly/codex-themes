@@ -114,7 +114,9 @@ export async function resolveAppPaths(): Promise<AppPaths> {
     assetsRoot,
     injectDir: path.join(assetsRoot, "inject"),
     presetsRoot: path.join(assetsRoot, "presets"),
-    trayIconPath: path.join(assetsRoot, "tray", "iconTemplate.png"),
+    trayIconPath: process.platform === "darwin"
+      ? path.join(assetsRoot, "tray", "iconTemplate.png")
+      : path.join(assetsRoot, "build", "icon.png"),
     skillsRoot: path.join(assetsRoot, "skills", "generate-codex-theme"),
     userDataRoot,
     userThemesRoot: path.join(userDataRoot, "themes"),

@@ -1,4 +1,12 @@
-export type DownloadFormat = "dmg" | "zip";
+export type DownloadPlatform = "mac" | "win";
+export type DownloadArch = "arm64" | "x64";
+export type DownloadFormat = "dmg" | "zip" | "exe";
+
+export interface DownloadTarget {
+  platform: DownloadPlatform;
+  arch: DownloadArch;
+  format: DownloadFormat;
+}
 
 export interface ReleaseDownload {
   name: string;
@@ -22,12 +30,50 @@ const RELEASE_DOWNLOAD_PREFIX = `https://github.com/${REPOSITORY}/releases/downl
 
 export function parseDownloadFormat(value: string | string[] | undefined): DownloadFormat | null {
   const format = Array.isArray(value) ? value[0] : value;
-  return format === "dmg" || format === "zip" ? format : null;
+  return format === "dmg" || format === "zip" || format === "exe" ? format : null;
+}
+
+function firstQueryValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export function parseDownloadTarget(input: {
+  platform?: string | string[];
+  arch?: string | string[];
+  format?: string | string[];
+}): DownloadTarget | null {
+  const format = parseDownloadFormat(input.format);
+  if (!format) return null;
+  const platformValue = firstQueryValue(input.platform);
+  const archValue = firstQueryValue(input.arch);
+
+  if (!platformValue && !archValue && (format === "dmg" || format === "zip")) {
+    return { platform: "mac", arch: "arm64", format };
+  }
+
+  const platform = platformValue === "mac" || platformValue === "win"
+    ? platformValue
+    : format === "exe" && !platformValue
+      ? "win"
+      : null;
+  const arch = archValue === "arm64" || archValue === "x64"
+    ? archValue
+    : platform === "win" && !archValue
+      ? "x64"
+      : null;
+  if (!platform || !arch) return null;
+  if (platform === "mac" && (format === "dmg" || format === "zip")) {
+    return { platform, arch, format };
+  }
+  if (platform === "win" && arch === "x64" && format === "exe") {
+    return { platform, arch, format };
+  }
+  return null;
 }
 
 export function selectReleaseDownload(
   payload: unknown,
-  format: DownloadFormat,
+  target: DownloadTarget,
 ): ReleaseDownload | null {
   if (!payload || typeof payload !== "object") return null;
 
@@ -37,7 +83,8 @@ export function selectReleaseDownload(
   const version = release.tag_name.startsWith("v")
     ? release.tag_name.slice(1)
     : release.tag_name;
-  const expectedName = `Codex-Themes-${version}-mac-arm64.${format}`;
+  const expectedName =
+    `Codex-Themes-${version}-${target.platform}-${target.arch}.${target.format}`;
   const assets = release.assets.filter(
     (asset): asset is GitHubReleaseAsset => Boolean(asset && typeof asset === "object"),
   );
@@ -45,7 +92,9 @@ export function selectReleaseDownload(
     (asset) =>
       typeof asset.name === "string" &&
       typeof asset.browser_download_url === "string" &&
-      asset.name.endsWith(`-mac-arm64.${format}`) &&
+      asset.name.endsWith(
+        `-${target.platform}-${target.arch}.${target.format}`,
+      ) &&
       asset.browser_download_url.startsWith(RELEASE_DOWNLOAD_PREFIX),
   );
   const asset = candidates.find((candidate) => candidate.name === expectedName)
@@ -67,7 +116,7 @@ export function selectReleaseDownload(
 }
 
 export async function fetchLatestReleaseDownload(
-  format: DownloadFormat,
+  target: DownloadTarget,
   fetchImplementation: typeof fetch = fetch,
 ): Promise<ReleaseDownload> {
   const headers: Record<string, string> = {
@@ -84,9 +133,11 @@ export async function fetchLatestReleaseDownload(
     throw new Error(`GitHub latest release request failed with ${response.status}`);
   }
 
-  const download = selectReleaseDownload(await response.json(), format);
+  const download = selectReleaseDownload(await response.json(), target);
   if (!download) {
-    throw new Error(`GitHub latest release does not contain a macOS arm64 ${format} asset`);
+    throw new Error(
+      `GitHub latest release does not contain a ${target.platform} ${target.arch} ${target.format} asset`,
+    );
   }
   return download;
 }

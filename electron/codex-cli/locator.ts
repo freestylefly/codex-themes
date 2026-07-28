@@ -16,21 +16,34 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { homedir } from "node:os";
 import { promisify } from "node:util";
-import { discoverCodexApp } from "../platform/codex-macos";
+import { createCodexDesktopAdapter } from "../platform";
 
 const execFileAsync = promisify(execFile);
 
-const COMMON_PATHS = [
-  "/opt/homebrew/bin/codex",
-  "/usr/local/bin/codex",
-  path.join(homedir(), ".local", "bin", "codex"),
-];
+function commonPaths(platform: NodeJS.Platform = process.platform): string[] {
+  if (platform === "win32") {
+    const appData = process.env.APPDATA ?? path.join(homedir(), "AppData", "Roaming");
+    const localAppData =
+      process.env.LOCALAPPDATA ?? path.join(homedir(), "AppData", "Local");
+    return [
+      path.join(appData, "npm", "codex.cmd"),
+      path.join(appData, "npm", "codex.exe"),
+      path.join(localAppData, "Programs", "codex", "codex.exe"),
+      path.join(homedir(), ".local", "bin", "codex.exe"),
+    ];
+  }
+  return [
+    "/opt/homebrew/bin/codex",
+    "/usr/local/bin/codex",
+    path.join(homedir(), ".local", "bin", "codex"),
+  ];
+}
 
 async function isExecutable(file: string): Promise<boolean> {
   try {
     const stat = await fs.stat(file);
     if (!stat.isFile()) return false;
-    await fs.access(file, fs.constants.X_OK);
+    await fs.access(file, process.platform === "win32" ? fs.constants.F_OK : fs.constants.X_OK);
     return true;
   } catch {
     return false;
@@ -40,8 +53,13 @@ async function isExecutable(file: string): Promise<boolean> {
 async function findInPath(envPath = process.env.PATH ?? ""): Promise<string | null> {
   const dirs = envPath.split(path.delimiter).filter(Boolean);
   for (const dir of dirs) {
-    const candidate = path.join(dir, "codex");
-    if (await isExecutable(candidate)) return candidate;
+    const names = process.platform === "win32"
+      ? ["codex.exe", "codex.cmd", "codex"]
+      : ["codex"];
+    for (const name of names) {
+      const candidate = path.join(dir, name);
+      if (await isExecutable(candidate)) return candidate;
+    }
   }
   return null;
 }
@@ -61,8 +79,13 @@ export interface LocateCodexCliOptions {
   envPath?: string;
 }
 
-export function bundledCodexCliPath(bundlePath: string): string {
-  return path.join(bundlePath, "Contents", "Resources", "codex");
+export function bundledCodexCliPath(
+  installPath: string,
+  platform: NodeJS.Platform = process.platform,
+): string {
+  return platform === "win32"
+    ? path.win32.join(installPath, "resources", "codex.exe")
+    : path.join(installPath, "Contents", "Resources", "codex");
 }
 
 export async function locateCodexCli(
@@ -77,7 +100,7 @@ export async function locateCodexCli(
 
   if (!executable) {
     const desktopBundlePath = options.desktopBundlePath === undefined
-      ? (await discoverCodexApp())?.bundle ?? null
+      ? (await createCodexDesktopAdapter().discover())?.installPath ?? null
       : options.desktopBundlePath;
     if (desktopBundlePath) {
       const bundled = bundledCodexCliPath(desktopBundlePath);
@@ -86,7 +109,7 @@ export async function locateCodexCli(
   }
 
   if (!executable) {
-    for (const candidate of options.commonPaths ?? COMMON_PATHS) {
+    for (const candidate of options.commonPaths ?? commonPaths()) {
       if (await isExecutable(candidate)) {
         executable = candidate;
         break;

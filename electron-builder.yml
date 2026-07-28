@@ -17,6 +17,8 @@ extraResources:
     to: assets/skills
   - from: assets/tray
     to: assets/tray
+  - from: assets/build
+    to: assets/build
 asarUnpack: []
 fileAssociations:
   - ext: codextheme
@@ -40,10 +42,17 @@ mac:
   notarize: true
 dmg:
   artifactName: Codex-Themes-${version}-mac-${arch}.${ext}
+win:
+  icon: assets/build/icon.png
+  target:
+    - nsis
+nsis:
+  artifactName: Codex-Themes-${version}-win-${arch}.${ext}
+  oneClick: false
+  allowToChangeInstallationDirectory: true
 artifactName: Codex-Themes-${version}-${os}-${arch}.${ext}
 npmRebuild: false
-# Auto-update feed. Packaged builds announce GitHub releases in the app;
-# unsigned macOS builds also expose the direct DMG fallback.
+# Auto-update feed. Packaged builds announce GitHub releases in the app.
 publish:
   provider: github
   owner: freestylefly

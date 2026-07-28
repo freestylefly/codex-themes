@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   fetchLatestReleaseDownload,
-  parseDownloadFormat,
+  parseDownloadTarget,
 } from "../../../server/downloads/github-release.js";
 
 const LATEST_RELEASE_PAGE =
@@ -13,13 +13,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const format = parseDownloadFormat(req.query.format);
-  if (!format) {
-    return res.status(400).json({ error: "format must be dmg or zip" });
+  const target = parseDownloadTarget(req.query);
+  if (!target) {
+    return res.status(400).json({
+      error: "supported targets: mac/arm64 dmg|zip, mac/x64 dmg|zip, win/x64 exe",
+    });
   }
 
   try {
-    const download = await fetchLatestReleaseDownload(format);
+    const download = await fetchLatestReleaseDownload(target);
     // The release tag is correctness-sensitive: serving a stale redirect after
     // publishing a release makes the website advertise the previous package.
     // Keep browsers and Vercel's CDN from caching this response.
