@@ -132,7 +132,7 @@ jobs:
         run: npm run dist:mac:arm64
 
       - name: Upload macOS ARM64 artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: mac-arm64
           compression-level: 0
@@ -234,7 +234,7 @@ jobs:
         run: npm run dist:mac:x64
 
       - name: Upload macOS Intel artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: mac-x64
           compression-level: 0
@@ -337,7 +337,7 @@ jobs:
           }
 
       - name: Upload Windows x64 artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: win-x64
           compression-level: 0
@@ -374,7 +374,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Download platform artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: release
           merge-multiple: true
