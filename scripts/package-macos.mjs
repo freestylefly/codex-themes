@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT_DIR = path.resolve(path.dirname(SCRIPT_PATH), "..");
 
+export const MAC_ARCHES = ["arm64", "x64"];
 export const REQUIRED_ENV_KEYS = [
   "APPLE_ID",
   "APPLE_APP_PWD",
@@ -15,10 +16,23 @@ export const REQUIRED_ENV_KEYS = [
   "MACOS_SIGNING_IDENTITY",
 ];
 
-export function assertAppleSilicon(platform = process.platform, arch = process.arch) {
-  if (platform !== "darwin" || arch !== "arm64") {
+export function parseMacArch(args = process.argv.slice(2)) {
+  const index = args.indexOf("--arch");
+  const arch = index >= 0 ? args[index + 1] : undefined;
+  if (!MAC_ARCHES.includes(arch)) {
+    throw new Error("macOS packaging requires --arch arm64 or --arch x64.");
+  }
+  return arch;
+}
+
+export function assertMacPackagingEnvironment(
+  targetArch,
+  platform = process.platform,
+  runnerArch = process.arch,
+) {
+  if (platform !== "darwin" || runnerArch !== targetArch) {
     throw new Error(
-      `Apple Silicon packaging requires darwin/arm64, received ${platform}/${arch}.`,
+      `macOS ${targetArch} packaging requires darwin/${targetArch}, received ${platform}/${runnerArch}.`,
     );
   }
 }
@@ -38,26 +52,30 @@ export function assertReleaseTag(tag, version) {
   }
 }
 
-export function getArtifactPaths(rootDir, version) {
+export function getMacArtifactPaths(rootDir, version, arch) {
+  if (!MAC_ARCHES.includes(arch)) {
+    throw new Error(`Unsupported macOS architecture: ${arch}.`);
+  }
   const releaseDir = path.join(rootDir, "release");
-  const baseName = `Codex-Themes-${version}-mac-arm64`;
+  const baseName = `Codex-Themes-${version}-mac-${arch}`;
   return {
     releaseDir,
     dmg: path.join(releaseDir, `${baseName}.dmg`),
     dmgBlockmap: path.join(releaseDir, `${baseName}.dmg.blockmap`),
     zip: path.join(releaseDir, `${baseName}.zip`),
     zipBlockmap: path.join(releaseDir, `${baseName}.zip.blockmap`),
-    updateMetadata: path.join(releaseDir, "latest-mac.yml"),
+    generatedMetadata: path.join(releaseDir, "latest-mac.yml"),
+    updateMetadata: path.join(releaseDir, `latest-mac-${arch}.yml`),
   };
 }
 
-export function assertArtifactsExist(artifacts) {
+export function assertArtifactsExist(artifacts, includeGeneratedMetadata = false) {
   const required = [
     artifacts.dmg,
     artifacts.dmgBlockmap,
     artifacts.zip,
     artifacts.zipBlockmap,
-    artifacts.updateMetadata,
+    includeGeneratedMetadata ? artifacts.generatedMetadata : artifacts.updateMetadata,
   ];
   const missing = required.filter((file) => !fs.existsSync(file) || fs.statSync(file).size === 0);
   if (missing.length > 0) {
@@ -89,11 +107,11 @@ function locateUpdateEntry(lines, artifactName) {
   return { shaIndex, sizeIndex };
 }
 
-export function updateDmgMetadata(metadataText, dmgName, sha512, size) {
+export function updateArtifactMetadata(metadataText, artifactName, sha512, size) {
   const hadTrailingNewline = metadataText.endsWith("\n");
   const lines = metadataText.replace(/\r\n/g, "\n").split("\n");
   if (hadTrailingNewline) lines.pop();
-  const { shaIndex, sizeIndex } = locateUpdateEntry(lines, dmgName);
+  const { shaIndex, sizeIndex } = locateUpdateEntry(lines, artifactName);
   const shaIndent = lines[shaIndex].match(/^\s*/)?.[0] ?? "";
   const sizeIndent = lines[sizeIndex].match(/^\s*/)?.[0] ?? "";
   lines[shaIndex] = `${shaIndent}sha512: ${sha512}`;
@@ -110,7 +128,7 @@ export function readUpdateEntry(metadataText, artifactName) {
   };
 }
 
-function sha512File(file) {
+export function sha512File(file) {
   return crypto.createHash("sha512").update(fs.readFileSync(file)).digest("base64");
 }
 
@@ -158,8 +176,9 @@ async function regenerateDmgBlockmap(artifacts) {
   await buildBlockMap(artifacts.dmg, "gzip", artifacts.dmgBlockmap);
 }
 
-export async function main() {
-  assertAppleSilicon();
+export async function main(args = process.argv.slice(2)) {
+  const arch = parseMacArch(args);
+  assertMacPackagingEnvironment(arch);
   assertRequiredEnv();
 
   const packageJson = JSON.parse(
@@ -168,10 +187,16 @@ export async function main() {
   assertReleaseTag(process.env.RELEASE_TAG, packageJson.version);
   assertSigningIdentity(process.env.MACOS_SIGNING_IDENTITY);
 
-  run(process.execPath, ["scripts/build-dist.mjs"]);
+  run(process.execPath, [
+    "scripts/build-dist.mjs",
+    "--platform",
+    "mac",
+    "--arch",
+    arch,
+  ]);
 
-  const artifacts = getArtifactPaths(ROOT_DIR, packageJson.version);
-  assertArtifactsExist(artifacts);
+  const artifacts = getMacArtifactPaths(ROOT_DIR, packageJson.version, arch);
+  assertArtifactsExist(artifacts, true);
 
   run("codesign", [
     "--force",
@@ -212,21 +237,22 @@ export async function main() {
   await regenerateDmgBlockmap(artifacts);
 
   const dmgStat = fs.statSync(artifacts.dmg);
-  const metadata = fs.readFileSync(artifacts.updateMetadata, "utf8");
-  const updatedMetadata = updateDmgMetadata(
+  const metadata = fs.readFileSync(artifacts.generatedMetadata, "utf8");
+  const updatedMetadata = updateArtifactMetadata(
     metadata,
     path.basename(artifacts.dmg),
     sha512File(artifacts.dmg),
     dmgStat.size,
   );
   fs.writeFileSync(artifacts.updateMetadata, updatedMetadata);
+  fs.rmSync(artifacts.generatedMetadata);
 
   assertArtifactsExist(artifacts);
   verifyUpdateMetadata(updatedMetadata, artifacts);
   run("gzip", ["-t", artifacts.dmgBlockmap]);
   run("gzip", ["-t", artifacts.zipBlockmap]);
 
-  console.log(`Apple Silicon release artifacts are ready for v${packageJson.version}.`);
+  console.log(`macOS ${arch} release artifacts are ready for v${packageJson.version}.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === SCRIPT_PATH) {

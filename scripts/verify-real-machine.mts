@@ -151,7 +151,7 @@ async function main(): Promise<void> {
         const install = await discoverCodexApp();
         if (install) {
           await stopCodex(install.executable, { force: true });
-          await launchCodexNormally(install.bundle);
+          await launchCodexNormally(install);
           console.log("Codex 已恢复正常模式。");
         }
       } catch (error) {

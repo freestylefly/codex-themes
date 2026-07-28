@@ -188,7 +188,7 @@ export function AppUpdateNotice() {
                 {failed && (
                   <button className="btn" type="button" onClick={() => void openDownload()}>
                     <ArrowDownToLine size={13} />
-                    直接下载 DMG
+                    直接下载 {update.packageLabel}
                   </button>
                 )}
                 {downloaded || installing ? (

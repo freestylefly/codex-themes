@@ -18,7 +18,7 @@ export class AppTray {
     private quit: () => void,
   ) {
     const image = nativeImage.createFromPath(iconPath);
-    image.setTemplateImage(true);
+    if (process.platform === "darwin") image.setTemplateImage(true);
     this.tray = new Tray(image);
     this.tray.setToolTip("Codex Themes");
     this.state = controller.getState();

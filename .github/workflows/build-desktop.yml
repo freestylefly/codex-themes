@@ -1,0 +1,481 @@
+name: Build desktop releases
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Quality checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Validate release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_version="$(node -p "require('./package.json').version")"
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" && "$GITHUB_REF_NAME" != "v${app_version}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package version v${app_version}."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run type checks
+        run: npm run typecheck
+
+      - name: Build website
+        run: npm run build:web
+
+  mac-arm64:
+    name: macOS ARM64
+    needs: quality
+    runs-on: macos-15
+    timeout-minutes: 70
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Validate native architecture and version
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "arm64"
+          test "$(node -p 'process.arch')" = "arm64"
+          app_version="$(node -p "require('./package.json').version")"
+          echo "APP_VERSION=${app_version}" >> "$GITHUB_ENV"
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            test "$GITHUB_REF_NAME" = "v${app_version}"
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Import macOS signing certificate
+        shell: bash
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          : "${MACOS_CERTIFICATE:?MACOS_CERTIFICATE is required}"
+          : "${MACOS_CERTIFICATE_PWD:?MACOS_CERTIFICATE_PWD is required}"
+          : "${MACOS_SIGNING_IDENTITY:?MACOS_SIGNING_IDENTITY is required}"
+
+          certificate_path="$RUNNER_TEMP/build-certificate.p12"
+          keychain_path="$RUNNER_TEMP/app-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 32)"
+          echo "::add-mask::$keychain_password"
+
+          if ! printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$certificate_path" 2>/dev/null; then
+            printf '%s' "$MACOS_CERTIFICATE" | base64 -D > "$certificate_path"
+          fi
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$certificate_path" \
+            -P "$MACOS_CERTIFICATE_PWD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$keychain_path"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$keychain_password" \
+            "$keychain_path"
+          security list-keychains -d user -s "$keychain_path"
+          security default-keychain -d user -s "$keychain_path"
+          security find-identity -v -p codesigning "$keychain_path" |
+            grep -F "$MACOS_SIGNING_IDENTITY"
+          echo "CSC_KEYCHAIN=${keychain_path}" >> "$GITHUB_ENV"
+
+      - name: Build macOS ARM64 package
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PWD: ${{ secrets.APPLE_APP_PWD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: npm run dist:mac:arm64
+
+      - name: Upload macOS ARM64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-arm64
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-arm64.dmg
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-arm64.dmg.blockmap
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-arm64.zip
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-arm64.zip.blockmap
+            release/latest-mac-arm64.yml
+
+      - name: Clean temporary keychain
+        if: always()
+        shell: bash
+        run: |
+          if [[ -n "${CSC_KEYCHAIN:-}" && -f "$CSC_KEYCHAIN" ]]; then
+            security delete-keychain "$CSC_KEYCHAIN" || true
+          fi
+
+  mac-x64:
+    name: macOS Intel x64
+    needs: quality
+    runs-on: macos-15-intel
+    timeout-minutes: 70
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Validate native architecture and version
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "x86_64"
+          test "$(node -p 'process.arch')" = "x64"
+          app_version="$(node -p "require('./package.json').version")"
+          echo "APP_VERSION=${app_version}" >> "$GITHUB_ENV"
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            test "$GITHUB_REF_NAME" = "v${app_version}"
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Import macOS signing certificate
+        shell: bash
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          : "${MACOS_CERTIFICATE:?MACOS_CERTIFICATE is required}"
+          : "${MACOS_CERTIFICATE_PWD:?MACOS_CERTIFICATE_PWD is required}"
+          : "${MACOS_SIGNING_IDENTITY:?MACOS_SIGNING_IDENTITY is required}"
+
+          certificate_path="$RUNNER_TEMP/build-certificate.p12"
+          keychain_path="$RUNNER_TEMP/app-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 32)"
+          echo "::add-mask::$keychain_password"
+
+          if ! printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$certificate_path" 2>/dev/null; then
+            printf '%s' "$MACOS_CERTIFICATE" | base64 -D > "$certificate_path"
+          fi
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$certificate_path" \
+            -P "$MACOS_CERTIFICATE_PWD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$keychain_path"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$keychain_password" \
+            "$keychain_path"
+          security list-keychains -d user -s "$keychain_path"
+          security default-keychain -d user -s "$keychain_path"
+          security find-identity -v -p codesigning "$keychain_path" |
+            grep -F "$MACOS_SIGNING_IDENTITY"
+          echo "CSC_KEYCHAIN=${keychain_path}" >> "$GITHUB_ENV"
+
+      - name: Build macOS Intel package
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PWD: ${{ secrets.APPLE_APP_PWD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: npm run dist:mac:x64
+
+      - name: Upload macOS Intel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-x64
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-x64.dmg
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-x64.dmg.blockmap
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-x64.zip
+            release/Codex-Themes-${{ env.APP_VERSION }}-mac-x64.zip.blockmap
+            release/latest-mac-x64.yml
+
+      - name: Clean temporary keychain
+        if: always()
+        shell: bash
+        run: |
+          if [[ -n "${CSC_KEYCHAIN:-}" && -f "$CSC_KEYCHAIN" ]]; then
+            security delete-keychain "$CSC_KEYCHAIN" || true
+          fi
+
+  win-x64:
+    name: Windows x64 preview
+    needs: quality
+    runs-on: windows-2025
+    timeout-minutes: 55
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Validate native architecture and version
+        shell: pwsh
+        run: |
+          if ((node -p "process.arch") -ne "x64") {
+            throw "Windows x64 packaging requires an x64 Node.js runtime."
+          }
+          $appVersion = node -p "require('./package.json').version"
+          "APP_VERSION=$appVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          if ($env:GITHUB_REF_TYPE -eq "tag") {
+            if ($env:GITHUB_REF_NAME -ne "v$appVersion") {
+              throw "Tag $env:GITHUB_REF_NAME does not match package version v$appVersion."
+            }
+            "RELEASE_TAG=$env:GITHUB_REF_NAME" |
+              Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          }
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows x64 installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:win:x64
+
+      - name: Smoke test NSIS install and uninstall
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installer = Resolve-Path "release/Codex-Themes-$env:APP_VERSION-win-x64.exe"
+          $installDir = Join-Path $env:RUNNER_TEMP "CodexThemesSmoke"
+          $installedApp = Join-Path $installDir "Codex Themes.exe"
+          try {
+            $install = Start-Process -FilePath $installer `
+              -ArgumentList @("/S", "/D=$installDir") `
+              -Wait -PassThru
+            if ($install.ExitCode -ne 0) {
+              throw "NSIS installer exited with code $($install.ExitCode)."
+            }
+            if (-not (Test-Path -LiteralPath $installedApp -PathType Leaf)) {
+              throw "Installed application was not found."
+            }
+            $smoke = Start-Process -FilePath $installedApp `
+              -ArgumentList "--ci-smoke-test" `
+              -PassThru
+            if (-not $smoke.WaitForExit(60000)) {
+              Stop-Process -Id $smoke.Id -Force
+              throw "Packaged application smoke test timed out."
+            }
+            if ($smoke.ExitCode -ne 0) {
+              throw "Packaged application smoke test exited with code $($smoke.ExitCode)."
+            }
+          }
+          finally {
+            $uninstaller = Get-ChildItem -LiteralPath $installDir `
+              -Filter "Uninstall*.exe" -File -ErrorAction SilentlyContinue |
+              Select-Object -First 1
+            if ($uninstaller) {
+              $uninstall = Start-Process -FilePath $uninstaller.FullName `
+                -ArgumentList "/S" -Wait -PassThru
+              if ($uninstall.ExitCode -ne 0) {
+                throw "NSIS uninstaller exited with code $($uninstall.ExitCode)."
+              }
+            }
+          }
+
+      - name: Upload Windows x64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-x64
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            release/Codex-Themes-${{ env.APP_VERSION }}-win-x64.exe
+            release/Codex-Themes-${{ env.APP_VERSION }}-win-x64.exe.blockmap
+            release/latest.yml
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - mac-arm64
+      - mac-x64
+      - win-x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install metadata dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Download platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Merge and validate update metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_version="$(node -p "require('./package.json').version")"
+          test "$GITHUB_REF_NAME" = "v${app_version}"
+          export APP_VERSION="$app_version"
+          echo "APP_VERSION=${app_version}" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          node scripts/merge-macos-metadata.mjs \
+            --release-dir release \
+            --version "$app_version"
+          node --input-type=module -e '
+            import fs from "node:fs";
+            import {
+              getWindowsArtifactPaths,
+              assertWindowsArtifactsExist,
+              verifyWindowsUpdateMetadata,
+            } from "./scripts/package-windows.mjs";
+            const artifacts = getWindowsArtifactPaths(process.cwd(), process.env.APP_VERSION);
+            assertWindowsArtifactsExist(artifacts);
+            verifyWindowsUpdateMetadata(fs.readFileSync(artifacts.updateMetadata, "utf8"), artifacts);
+          '
+
+      - name: Prepare release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          notes_path="$RUNNER_TEMP/release-notes.md"
+          awk -v version="$APP_VERSION" '
+            $0 ~ "^## " version "([[:space:]]|$)" { capture = 1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > "$notes_path"
+          test -s "$notes_path"
+          echo "RELEASE_NOTES_PATH=${notes_path}" >> "$GITHUB_ENV"
+
+      - name: Publish verified release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="Codex Themes ${RELEASE_TAG}"
+          assets=(
+            "release/Codex-Themes-${APP_VERSION}-mac-arm64.dmg"
+            "release/Codex-Themes-${APP_VERSION}-mac-arm64.dmg.blockmap"
+            "release/Codex-Themes-${APP_VERSION}-mac-arm64.zip"
+            "release/Codex-Themes-${APP_VERSION}-mac-arm64.zip.blockmap"
+            "release/Codex-Themes-${APP_VERSION}-mac-x64.dmg"
+            "release/Codex-Themes-${APP_VERSION}-mac-x64.dmg.blockmap"
+            "release/Codex-Themes-${APP_VERSION}-mac-x64.zip"
+            "release/Codex-Themes-${APP_VERSION}-mac-x64.zip.blockmap"
+            "release/latest-mac.yml"
+            "release/Codex-Themes-${APP_VERSION}-win-x64.exe"
+            "release/Codex-Themes-${APP_VERSION}-win-x64.exe.blockmap"
+            "release/latest.yml"
+          )
+          for asset in "${assets[@]}"; do
+            test -s "$asset"
+          done
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            is_draft="$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft')"
+            if [[ "$is_draft" != "true" ]]; then
+              echo "Release ${RELEASE_TAG} is already public; refusing to replace its assets."
+              exit 1
+            fi
+            while IFS= read -r existing_asset; do
+              [[ -z "$existing_asset" ]] ||
+                gh release delete-asset "$RELEASE_TAG" "$existing_asset" --yes
+            done < <(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')
+            gh release edit "$RELEASE_TAG" \
+              --title "$title" \
+              --notes-file "$RELEASE_NOTES_PATH"
+          else
+            gh release create "$RELEASE_TAG" \
+              --draft \
+              --verify-tag \
+              --title "$title" \
+              --notes-file "$RELEASE_NOTES_PATH"
+          fi
+
+          gh release upload "$RELEASE_TAG" "${assets[@]}"
+
+          expected_assets="$(
+            for asset in "${assets[@]}"; do basename "$asset"; done |
+              LC_ALL=C sort
+          )"
+          actual_assets="$(
+            gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' |
+              LC_ALL=C sort
+          )"
+          if [[ "$actual_assets" != "$expected_assets" ]]; then
+            echo "Release assets do not match the expected 12-file set."
+            diff <(printf '%s\n' "$expected_assets") <(printf '%s\n' "$actual_assets") || true
+            exit 1
+          fi
+
+          gh release edit "$RELEASE_TAG" --draft=false --latest

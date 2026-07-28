@@ -15,20 +15,20 @@ const { locale } = Astro.props as { locale: Locale };
     </h2>
     <p>
       {locale === "zh"
-        ? "目前支持 Apple 芯片 Mac。安装完成后回到这里，再点击一次即可直接定位主题。"
-        : "Apple silicon Macs are supported today. Install the app, return here, and try the theme again."}
+        ? "目前支持 Apple 芯片 Mac、Intel Mac 和 Windows x64。选择对应安装包后，回到这里再次定位主题。"
+        : "Apple silicon Macs, Intel Macs, and Windows x64 are supported. Choose the matching installer, then return here and try again."}
     </p>
     <div class="modal-download-note">
-      <strong>{locale === "zh" ? "macOS 测试版" : "macOS Beta"}</strong>
+      <strong>{locale === "zh" ? "桌面端下载" : "Desktop download"}</strong>
       <span>
         {locale === "zh"
-          ? "当前构建尚未签名，首次打开需在「隐私与安全性」中允许。"
-          : "The current build is unsigned. Allow it once in Privacy & Security."}
+          ? "Windows 版本当前标记为预览版，首次安装可能需要确认 SmartScreen 提示。"
+          : "The Windows build is currently a preview and may require a SmartScreen confirmation."}
       </span>
     </div>
     <div class="modal-button-row">
       <a class="button button-blue" href={DOWNLOAD_URL}>
-        {locale === "zh" ? "下载 Apple 芯片版" : "Download for Apple silicon"}
+        {locale === "zh" ? "选择安装包" : "Choose an installer"}
       </a>
       <button class="button button-light" type="button" data-install-retry>
         {locale === "zh" ? "安装后重试" : "Try again"}

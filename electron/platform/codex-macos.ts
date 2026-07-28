@@ -15,6 +15,7 @@ import { execFile, spawn } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import type { CodexDesktopAdapter, CodexInstall } from "./codex-desktop";
 
 const execFileAsync = promisify(execFile);
 
@@ -25,12 +26,6 @@ export const CODEX_APP_CANDIDATES = [
   "/Applications/ChatGPT.app",
   path.join(os.homedir(), "Applications/ChatGPT.app"),
 ];
-
-export interface CodexInstall {
-  bundle: string;
-  executable: string;
-  version: string;
-}
 
 async function run(file: string, args: string[]): Promise<string> {
   const { stdout } = await execFileAsync(file, args, { maxBuffer: 4 * 1024 * 1024 });
@@ -54,11 +49,11 @@ async function checkCandidate(bundle: string): Promise<CodexInstall | null> {
   if (!executableName) return null;
   const executable = path.join(bundle, "Contents/MacOS", executableName);
   const version = (await plistString(plist, "CFBundleShortVersionString")) ?? "unknown";
-  return { bundle, executable, version };
+  return { platform: "darwin", installPath: bundle, executable, version };
 }
 
 /** Locate the official Codex app bundle; null when not installed. */
-export async function discoverCodexApp(configured?: string): Promise<CodexInstall | null> {
+export async function discoverCodexApp(configured?: string | null): Promise<CodexInstall | null> {
   const candidates = [configured, ...CODEX_APP_CANDIDATES].filter(Boolean) as string[];
   for (const candidate of candidates) {
     const found = await checkCandidate(candidate);
@@ -227,7 +222,7 @@ export async function launchCodexWithCdp(install: CodexInstall, port: number): P
   try {
     await run("/usr/bin/open", [
       "-na",
-      install.bundle,
+      install.installPath,
       "--args",
       "--remote-debugging-address=127.0.0.1",
       `--remote-debugging-port=${port}`,
@@ -251,6 +246,20 @@ export async function openCodexMode(): Promise<void> {
   await run("/usr/bin/open", ["-b", CODEX_BUNDLE_ID, CODEX_NEW_THREAD_URL]);
 }
 
-export async function launchCodexNormally(bundle: string): Promise<void> {
-  await run("/usr/bin/open", ["-na", bundle]);
+export async function launchCodexNormally(install: CodexInstall): Promise<void> {
+  await run("/usr/bin/open", ["-na", install.installPath]);
 }
+
+export const macosCodexDesktopAdapter: CodexDesktopAdapter = {
+  platform: "darwin",
+  displayName: "ChatGPT.app",
+  discover: discoverCodexApp,
+  isRunning: (install) => codexIsRunning(install.executable),
+  stop: (install, opts) => stopCodex(install.executable, opts),
+  selectAvailablePort,
+  verifiedCdpEndpoint: (port, install) => verifiedCdpEndpoint(port, install.executable),
+  waitForCdp: (port, install, timeoutMs) => waitForCdp(port, install.executable, timeoutMs),
+  launchWithCdp: launchCodexWithCdp,
+  openCodexMode,
+  launchNormally: launchCodexNormally,
+};

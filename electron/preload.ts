@@ -46,6 +46,7 @@ const api: CodexThemesApi = {
     ipcRenderer.invoke("themes:apply", id, opts),
   restoreOfficial: () => ipcRenderer.invoke("themes:restoreOfficial"),
   openCodex: () => ipcRenderer.invoke("codex:open"),
+  selectCodexDesktop: () => ipcRenderer.invoke("codex:selectDesktop"),
   saveCustomTheme: (input: CustomThemeInput) => ipcRenderer.invoke("themes:saveCustom", input),
   saveThemeDraft: (input: ThemeDraftInput) => ipcRenderer.invoke("themes:saveDraft", input),
   updateTheme: (id: string, input: ThemeDraftInput) =>

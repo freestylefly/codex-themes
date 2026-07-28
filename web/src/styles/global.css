@@ -1597,9 +1597,14 @@ h3 {
   max-width: 1030px;
 }
 
+.download-card-list {
+  display: grid;
+  margin-top: 66px;
+  gap: 14px;
+}
+
 .download-card {
   display: flex;
-  margin-top: 66px;
   padding: 34px 36px;
   border-top: 1px solid var(--ink);
   border-bottom: 1px solid var(--line);
@@ -1607,6 +1612,24 @@ h3 {
   justify-content: space-between;
   gap: 40px;
   background: rgba(255, 255, 255, 0.52);
+}
+
+.download-card--preview {
+  border-color: rgba(37, 112, 209, 0.45);
+  background: rgba(237, 246, 255, 0.72);
+}
+
+.download-preview-pill {
+  display: inline-flex;
+  margin-bottom: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #125da9;
+  background: #dceeff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .download-card-main {

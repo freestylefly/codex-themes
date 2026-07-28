@@ -31,3 +31,7 @@ export const nativeImage = {
     }),
   }),
 };
+
+export const shell = {
+  openExternal: async (_url: string) => {},
+};

@@ -546,8 +546,9 @@ export interface ThemeSummary {
 /** ---------------------------------------------------------------------- */
 
 export interface CodexDesktopStatus {
+  platform: "darwin" | "win32" | "unsupported";
   installed: boolean;
-  bundlePath: string | null;
+  installPath: string | null;
   version: string | null;
   running: boolean;
   cdpPort: number | null;
@@ -917,6 +918,8 @@ export interface RendererSettings {
   autoApply: boolean;
   /** Absolute path to a user-selected Codex CLI executable, if any. */
   codexCliPath: string | null;
+  /** Absolute path to a verified ChatGPT / Codex desktop executable or bundle. */
+  codexDesktopPath: string | null;
 }
 
 /** ---------------------------------------------------------------------- */
@@ -934,6 +937,8 @@ export type AppUpdateStatus =
   | "error";
 
 export interface AppUpdateState {
+  platform: "mac" | "win" | "unsupported";
+  packageLabel: "DMG" | "EXE" | "安装包";
   status: AppUpdateStatus;
   currentVersion: string;
   availableVersion: string | null;
@@ -986,6 +991,7 @@ export interface CodexThemesApi {
   applyTheme(id: string, opts?: { confirmRestart?: boolean }): Promise<ApplyResult>;
   restoreOfficial(): Promise<{ ok: boolean; error?: string }>;
   openCodex(): Promise<{ ok: boolean; error?: string }>;
+  selectCodexDesktop(): Promise<string | null>;
 
   /** Legacy v1 simple editor save path. */
   saveCustomTheme(input: CustomThemeInput): Promise<ThemeSummary>;

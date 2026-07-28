@@ -86,7 +86,7 @@ export async function backupAppearanceKeys(configPath: string, backupPath: strin
   }
   const backup: ThemeBackup = {
     schemaVersion: 1,
-    platform: "darwin",
+    platform: process.platform,
     createdAt: new Date().toISOString(),
     configPath,
     values,

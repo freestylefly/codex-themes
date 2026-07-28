@@ -21,6 +21,12 @@ export function Settings() {
   if (!state) return null;
 
   const cli = state.codexCli;
+  const desktopPlatform =
+    state.codexDesktop.platform === "win32"
+      ? "Windows"
+      : state.codexDesktop.platform === "darwin"
+        ? "macOS"
+        : "当前系统";
   const cliStatusText = !cli.installed
     ? "未安装"
     : !cli.supported
@@ -88,8 +94,8 @@ export function Settings() {
           <span className="kv-key">安装</span>
           <span className={`kv-value${state.codexDesktop.installed ? "" : " faint"}`}>
             {state.codexDesktop.installed
-              ? `${state.codexDesktop.bundlePath}(v${state.codexDesktop.version})`
-              : "未检测到 ChatGPT.app(bundle id com.openai.codex)"}
+              ? `${state.codexDesktop.installPath}(v${state.codexDesktop.version})`
+              : `未检测到 ${desktopPlatform} ChatGPT / Codex 客户端`}
           </span>
         </div>
         <div className="kv-row">
@@ -111,6 +117,25 @@ export function Settings() {
           </span>
         </div>
         <div className="row-actions">
+          <button
+            className="btn"
+            onClick={async () => {
+              const selected = await api.selectCodexDesktop();
+              if (selected) await updateSettings({ codexDesktopPath: selected });
+            }}
+          >
+            <FolderOpen size={14} />
+            选择客户端
+          </button>
+          {settings?.codexDesktopPath && (
+            <button
+              className="btn"
+              onClick={() => void updateSettings({ codexDesktopPath: "" })}
+            >
+              <RefreshCw size={14} />
+              恢复自动检测
+            </button>
+          )}
           <button className="btn" onClick={() => void api.openCodex()}>
             <FolderOpen size={14} />
             打开 Codex
@@ -160,7 +185,7 @@ export function Settings() {
         <div className="settings-group-title">偏好</div>
         <div className="kv-row">
           <span className="kv-key">开机自动启动</span>
-          <span className="kv-value faint">登录 macOS 后常驻菜单栏</span>
+          <span className="kv-value faint">登录系统后在后台保持运行</span>
           <button
             className={`toggle${settings?.launchAtLogin ? " on" : ""}`}
             onClick={() => void updateSettings({ launchAtLogin: !settings?.launchAtLogin })}

@@ -13,6 +13,8 @@ export interface AppSettings {
   autoApply: boolean;
   /** Absolute path to a user-selected Codex CLI executable, if any. */
   codexCliPath: string | null;
+  /** Absolute path to a verified ChatGPT / Codex desktop executable or bundle. */
+  codexDesktopPath: string | null;
 }
 
 export function defaultSettings(): AppSettings {
@@ -21,6 +23,7 @@ export function defaultSettings(): AppSettings {
     launchAtLogin: false,
     autoApply: false,
     codexCliPath: null,
+    codexDesktopPath: null,
   };
 }
 
@@ -44,6 +47,9 @@ export class SettingsStore {
         ...(typeof raw?.launchAtLogin === "boolean" ? { launchAtLogin: raw.launchAtLogin } : {}),
         ...(typeof raw?.autoApply === "boolean" ? { autoApply: raw.autoApply } : {}),
         ...(typeof raw?.codexCliPath === "string" ? { codexCliPath: raw.codexCliPath } : {}),
+        ...(typeof raw?.codexDesktopPath === "string"
+          ? { codexDesktopPath: raw.codexDesktopPath }
+          : {}),
       };
     } catch {
       this.settings = defaultSettings();

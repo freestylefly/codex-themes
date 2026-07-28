@@ -27,17 +27,9 @@ import {
   waitForDesktopAppMode,
 } from "./engine/cdp";
 import {
-  codexIsRunning,
-  discoverCodexApp,
-  launchCodexNormally,
-  launchCodexWithCdp,
-  openCodexMode,
-  selectAvailablePort,
-  stopCodex,
-  verifiedCdpEndpoint,
-  waitForCdp,
+  createCodexDesktopAdapter,
   type CodexInstall,
-} from "./platform/codex-macos";
+} from "./platform";
 import { backupAppearanceKeys, restoreAppearanceKeys } from "./config/codex-config";
 import { SettingsStore } from "./settings";
 import { ThemeStore } from "./themes/store";
@@ -107,6 +99,7 @@ function aiJobForRenderer(job: AiThemeJob): AiThemeJob {
 }
 
 export class ThemeController extends EventEmitter {
+  private readonly desktop = createCodexDesktopAdapter();
   private install: CodexInstall | null = null;
   private watcher: ThemeWatcher | null = null;
   private persisted: PersistedState = { ...EMPTY_PERSISTED };
@@ -149,7 +142,7 @@ export class ThemeController extends EventEmitter {
     // Resume a previously applied theme if its debug port is still ours.
     const { activeThemeId, cdpPort } = this.persisted;
     if (!activeThemeId || !cdpPort) return;
-    if (!(await verifiedCdpEndpoint(cdpPort, this.install.executable))) {
+    if (!(await this.desktop.verifiedCdpEndpoint(cdpPort, this.install))) {
       this.log("info", "Codex 未在调试端口上运行,主题将在下次应用时恢复。");
       return;
     }
@@ -170,11 +163,11 @@ export class ThemeController extends EventEmitter {
 
   /** Refresh install/running/CDP health and notify listeners. */
   async refreshStatus(): Promise<AppState> {
-    this.install = await discoverCodexApp();
+    this.install = await this.desktop.discover(this.settings.current.codexDesktopPath);
     if (this.install) {
-      this.codexRunning = await codexIsRunning(this.install.executable);
+      this.codexRunning = await this.desktop.isRunning(this.install);
       this.cdpHealthy = this.persisted.cdpPort
-        ? await verifiedCdpEndpoint(this.persisted.cdpPort, this.install.executable)
+        ? await this.desktop.verifiedCdpEndpoint(this.persisted.cdpPort, this.install)
         : false;
     } else {
       this.codexRunning = false;
@@ -313,8 +306,9 @@ export class ThemeController extends EventEmitter {
   getState(): AppState {
     return {
       codexDesktop: {
+        platform: this.desktop.platform,
         installed: Boolean(this.install),
-        bundlePath: this.install?.bundle ?? null,
+        installPath: this.install?.installPath ?? null,
         version: this.install?.version ?? null,
         running: this.codexRunning,
         cdpPort: this.persisted.cdpPort,
@@ -352,9 +346,17 @@ export class ThemeController extends EventEmitter {
     this.emitState();
     const notes: string[] = [];
     try {
-      if (!this.install) this.install = await discoverCodexApp();
       if (!this.install) {
-        return this.result("failed", false, false, notes, "未找到 Codex 桌面端(ChatGPT.app)。");
+        this.install = await this.desktop.discover(this.settings.current.codexDesktopPath);
+      }
+      if (!this.install) {
+        return this.result(
+          "failed",
+          false,
+          false,
+          notes,
+          `未找到 ${this.desktop.displayName}。`,
+        );
       }
       const dir = await this.store.resolveThemeDir(themeId, {
         preferPurchased: true,
@@ -373,22 +375,22 @@ export class ThemeController extends EventEmitter {
       // 1) Make sure Codex is running with a verified loopback CDP port.
       let restarted = false;
       let port = this.persisted.cdpPort;
-      if (port && (await verifiedCdpEndpoint(port, this.install.executable))) {
+      if (port && (await this.desktop.verifiedCdpEndpoint(port, this.install))) {
         this.log("info", `复用现有调试端口 ${port}。`);
       } else {
-        const running = await codexIsRunning(this.install.executable);
+        const running = await this.desktop.isRunning(this.install);
         if (running && !opts.confirmRestart) {
           // UI must ask first — never restart the user's app silently.
           return this.result("failed", false, true, notes);
         }
-        port = await selectAvailablePort(PREFERRED_CDP_PORT);
+        port = await this.desktop.selectAvailablePort(PREFERRED_CDP_PORT);
         if (running) {
           this.log("info", "正在退出 Codex(用户已授权重启)…");
-          await stopCodex(this.install.executable, { force: true });
+          await this.desktop.stop(this.install, { force: true });
         }
         this.log("info", `以调试模式重启 Codex(端口 ${port})…`);
-        await launchCodexWithCdp(this.install, port);
-        await waitForCdp(port, this.install.executable);
+        await this.desktop.launchWithCdp(this.install, port);
+        await this.desktop.waitForCdp(port, this.install);
         this.persisted.cdpPort = port;
         restarted = true;
       }
@@ -401,7 +403,7 @@ export class ThemeController extends EventEmitter {
       const appMode = await detectDesktopAppMode(port).catch(() => "unknown" as const);
       if (appMode === "chatgpt") {
         this.log("info", "检测到 ChatGPT / Work 模式,正在自动切换到 Codex…");
-        await openCodexMode();
+        await this.desktop.openCodexMode();
         if (!(await waitForDesktopAppMode(port, "codex", 15_000))) {
           throw new Error("无法自动切换到 Codex,请从左上角模式菜单手动选择 Codex 后重试。");
         }
@@ -502,9 +504,11 @@ export class ThemeController extends EventEmitter {
 
   async openCodex(): Promise<{ ok: boolean; error?: string }> {
     try {
-      if (!this.install) this.install = await discoverCodexApp();
+      if (!this.install) {
+        this.install = await this.desktop.discover(this.settings.current.codexDesktopPath);
+      }
       if (!this.install) throw new Error("未找到 Codex 桌面端。");
-      await launchCodexNormally(this.install.bundle);
+      await this.desktop.launchNormally(this.install);
       return { ok: true };
     } catch (error) {
       return { ok: false, error: (error as Error).message };

@@ -6,8 +6,9 @@
  * Electron-as-Node process, it re-executes itself with a real Node binary.
  *
  * Usage:
- *   node scripts/build-dist.mjs           # full DMG + zip
- *   node scripts/build-dist.mjs --dir     # unpacked directory only
+ *   node scripts/build-dist.mjs --platform mac --arch arm64
+ *   node scripts/build-dist.mjs --platform win --arch x64
+ *   node scripts/build-dist.mjs --dir
  */
 
 import { spawnSync } from "node:child_process";
@@ -77,13 +78,46 @@ if (process.env.MACOS_SIGNING_IDENTITY && !process.env.CSC_NAME) {
   );
 }
 
-const { build } = await import("electron-builder");
+const { Arch, Platform, build } = await import("electron-builder");
 
 const dir = process.argv.includes("--dir");
 const publish = process.argv.includes("--publish") ? "onTagOrDraft" : "never";
+const valueAfter = (flag) => {
+  const index = process.argv.indexOf(flag);
+  return index >= 0 ? process.argv[index + 1] : undefined;
+};
+const platformName = valueAfter("--platform") ??
+  (process.platform === "darwin" ? "mac" : process.platform === "win32" ? "win" : "linux");
+const archName = valueAfter("--arch") ?? process.arch;
+const platform = platformName === "mac"
+  ? Platform.MAC
+  : platformName === "win"
+    ? Platform.WINDOWS
+    : platformName === "linux"
+      ? Platform.LINUX
+      : null;
+const arch = archName === "arm64"
+  ? Arch.arm64
+  : archName === "x64"
+    ? Arch.x64
+    : null;
+
+if (!platform) {
+  throw new Error(`Unsupported packaging platform: ${platformName}.`);
+}
+if (arch == null) {
+  throw new Error(`Unsupported packaging architecture: ${archName}.`);
+}
+
+const targetNames = dir
+  ? ["dir"]
+  : platform === Platform.MAC
+    ? ["dmg", "zip"]
+    : platform === Platform.WINDOWS
+      ? ["nsis"]
+      : undefined;
 
 await build({
-  mac: [],
+  targets: platform.createTarget(targetNames, arch),
   publish,
-  ...(dir ? { dir: true } : {}),
 });

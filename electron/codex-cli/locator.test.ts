@@ -3,7 +3,7 @@ import { afterEach, describe, it } from "node:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { locateCodexCli } from "./locator";
+import { bundledCodexCliPath, locateCodexCli } from "./locator";
 
 const temporaryRoots: string[] = [];
 
@@ -42,6 +42,28 @@ describe("locateCodexCli", () => {
       executablePath: bundled,
       version: "0.146.0",
     });
+  });
+
+  it("resolves the CLI bundled with the Windows desktop installation", async () => {
+    const root = await temporaryRoot();
+    const installRoot = path.join(root, "ChatGPT");
+    assert.equal(
+      bundledCodexCliPath("C:\\Program Files\\ChatGPT", "win32"),
+      "C:\\Program Files\\ChatGPT\\resources\\codex.exe",
+    );
+    const bundled = await fakeCli(
+      path.join(installRoot, "resources", "codex.exe"),
+      "0.146.1",
+    );
+
+    const located = await locateCodexCli(null, {
+      desktopBundlePath: null,
+      commonPaths: [bundled],
+      envPath: "",
+    });
+
+    assert.equal(located?.executablePath, bundled);
+    assert.equal(located?.version, "0.146.1");
   });
 
   it("keeps an explicit user-selected CLI as the highest priority", async () => {

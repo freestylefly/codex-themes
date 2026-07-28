@@ -40,6 +40,10 @@ const CLI_FILE_FILTERS = [
   { name: "Codex CLI", extensions: ["*"] },
 ];
 
+const DESKTOP_FILE_FILTERS = [
+  { name: "ChatGPT / Codex", extensions: ["exe"] },
+];
+
 interface IpcContext {
   paths: AppPaths;
   controller: ThemeController;
@@ -99,9 +103,18 @@ export function registerIpc(ctx: IpcContext): void {
     if (typeof patch?.codexCliPath === "string" && (patch.codexCliPath === "" || path.isAbsolute(patch.codexCliPath))) {
       allowed.codexCliPath = patch.codexCliPath === "" ? null : patch.codexCliPath;
     }
+    if (
+      typeof patch?.codexDesktopPath === "string" &&
+      (patch.codexDesktopPath === "" || path.isAbsolute(patch.codexDesktopPath))
+    ) {
+      allowed.codexDesktopPath = patch.codexDesktopPath === "" ? null : patch.codexDesktopPath;
+    }
     const next = await settings.update(allowed);
     if (typeof allowed.launchAtLogin === "boolean") {
       app.setLoginItemSettings({ openAtLogin: allowed.launchAtLogin });
+    }
+    if (typeof allowed.codexDesktopPath !== "undefined") {
+      await controller.refreshStatus();
     }
     return next;
   });
@@ -122,6 +135,15 @@ export function registerIpc(ctx: IpcContext): void {
   ipcMain.handle("themes:restoreOfficial", () => controller.restoreOfficial());
 
   ipcMain.handle("codex:open", () => controller.openCodex());
+  ipcMain.handle("codex:selectDesktop", async () => {
+    const win = getWindow();
+    const result = await dialog.showOpenDialog(win!, {
+      title: "选择 ChatGPT / Codex 桌面端",
+      properties: process.platform === "darwin" ? ["openDirectory"] : ["openFile"],
+      ...(process.platform === "win32" ? { filters: DESKTOP_FILE_FILTERS } : {}),
+    });
+    return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
+  });
 
   ipcMain.handle("themes:saveCustom", (_event, input: CustomThemeInput) =>
     store.saveCustomTheme(input),
