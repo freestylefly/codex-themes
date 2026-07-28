@@ -1,4 +1,17 @@
 ---
+import { Image } from "astro:assets";
+import {
+  Apple,
+  ArrowRight,
+  Download,
+  Info,
+  LockKeyhole,
+  MonitorDown,
+  PackageOpen,
+  PanelsTopLeft,
+  ShieldCheck,
+} from "lucide-astro";
+import themeGalleryClient from "../assets/product/theme-gallery-client.jpg";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import {
   GITHUB_REPO_URL,
@@ -15,96 +28,263 @@ const description =
   locale === "zh"
     ? "下载适用于 Apple 芯片 Mac、Intel Mac 和 Windows x64 的最新版 Codex Themes。"
     : "Download the latest Codex Themes for Apple silicon Macs, Intel Macs, and Windows x64.";
+const isZh = locale === "zh";
 ---
 
-<BaseLayout locale={locale} title={locale === "zh" ? "下载" : "Download"} description={description}>
-  <section class="download-page-hero section-shell">
-    <div class="eyebrow">CODEX THEMES · LATEST BETA</div>
-    <h1>{locale === "zh" ? "下载，然后打开一个更有趣的 Codex。" : "Download a more personal Codex workspace."}</h1>
-    <p>{description}</p>
-    <div class="download-card-list">
-      <div class="download-card">
-        <div class="download-card-main">
-          <div class="platform-mark">macOS</div>
-          <div>
-            <h2>{locale === "zh" ? "Apple 芯片版" : "Apple silicon"}</h2>
-            <p>M1 / M2 / M3 / M4 / M5 · macOS 13+</p>
+<BaseLayout
+  locale={locale}
+  title={isZh ? "下载" : "Download"}
+  description={description}
+  bodyClass="download-dark"
+  themeColor="#06111f"
+>
+  <section class="download-stage">
+    <div class="download-stage-inner">
+      <div class="download-hero-grid">
+        <div class="download-hero-copy">
+          <div class="download-hero-kicker">CODEX THEMES FOR DESKTOP · v0.2.14</div>
+          <h1>
+            {isZh ? (
+              <>先下载，再把<br /><span class="download-title-second">Codex 变成你的<em>工作空间。</em></span></>
+            ) : (
+              <>Download first.<br /><span class="download-title-second">Turn Codex into <em>your workspace.</em></span></>
+            )}
+          </h1>
+          <p>
+            {isZh
+              ? "主题、本地生成与一键恢复，都在桌面端完成。"
+              : "Themes, local generation, and one-click restore—all from the desktop app."}
+          </p>
+          <div class="download-trust-list">
+            <div>
+              <ShieldCheck size={22} stroke-width={1.7} aria-hidden="true" />
+              <span>
+                <strong>{isZh ? "本地运行" : "Runs locally"}</strong>
+                {isZh ? "数据保留在本机" : "Your data stays on device"}
+              </span>
+            </div>
+            <div>
+              <LockKeyhole size={22} stroke-width={1.7} aria-hidden="true" />
+              <span>
+                <strong>{isZh ? "不修改 Codex 安装包" : "Leaves Codex untouched"}</strong>
+                {isZh ? "安全兼容，随时可恢复" : "Safe, compatible, reversible"}
+              </span>
+            </div>
           </div>
         </div>
-        <div class="download-card-actions">
-          <a class="button button-blue" href={MAC_ARM64_DMG_URL}>{locale === "zh" ? "下载 DMG" : "Download DMG"}</a>
-          <a class="text-link" href={MAC_ARM64_ZIP_URL}>{locale === "zh" ? "下载 ZIP" : "Download ZIP"}</a>
-        </div>
-      </div>
-      <div class="download-card">
-        <div class="download-card-main">
-          <div class="platform-mark">macOS</div>
-          <div>
-            <h2>{locale === "zh" ? "Intel 芯片版" : "Intel"}</h2>
-            <p>Intel x64 · macOS 13+</p>
+
+        <figure class="download-product-visual">
+          <div class="download-product-window">
+            <Image
+              src={themeGalleryClient}
+              alt={isZh ? "Codex Themes 桌面客户端主题画廊" : "Codex Themes desktop theme gallery"}
+              widths={[720, 1080, 1440]}
+              sizes="(max-width: 900px) 92vw, 48vw"
+              format="webp"
+              loading="eager"
+            />
           </div>
+          <figcaption>{isZh ? "主题画廊 · 10 款官方精选" : "Theme gallery · 10 curated themes"}</figcaption>
+        </figure>
+      </div>
+
+      <div class="download-dock">
+        <div class="download-dock-heading">
+          <strong>{isZh ? "选择适合你的版本" : "Choose the right version"}</strong>
+          <span class="download-detected" data-platform-detected>
+            <i aria-hidden="true"></i>
+            {isZh ? "正在识别当前设备" : "Detecting this device"}
+          </span>
         </div>
-        <div class="download-card-actions">
-          <a class="button button-blue" href={MAC_X64_DMG_URL}>{locale === "zh" ? "下载 DMG" : "Download DMG"}</a>
-          <a class="text-link" href={MAC_X64_ZIP_URL}>{locale === "zh" ? "下载 ZIP" : "Download ZIP"}</a>
+
+        <div class="download-platform-grid">
+          <article class="download-platform" data-platform="mac-arm64">
+            <div class="download-platform-badge" data-platform-badge>{isZh ? "推荐" : "Recommended"}</div>
+            <div class="download-platform-summary">
+              <Apple size={40} fill="currentColor" stroke-width={1.25} aria-hidden="true" />
+              <div>
+                <h2>{isZh ? "Apple 芯片 Mac" : "Apple silicon Mac"}</h2>
+                <p>M1–M5 · macOS 13+</p>
+              </div>
+            </div>
+            <div class="download-platform-actions">
+              <a class="download-primary-action" href={MAC_ARM64_DMG_URL}>
+                <Download size={17} stroke-width={1.9} aria-hidden="true" />
+                {isZh ? "下载 DMG" : "Download DMG"}
+              </a>
+              <a class="download-alt-action" href={MAC_ARM64_ZIP_URL}>ZIP</a>
+            </div>
+          </article>
+
+          <article class="download-platform" data-platform="mac-x64">
+            <div class="download-platform-badge" data-platform-badge>{isZh ? "推荐" : "Recommended"}</div>
+            <div class="download-platform-summary">
+              <Apple size={40} fill="currentColor" stroke-width={1.25} aria-hidden="true" />
+              <div>
+                <h2>Intel Mac</h2>
+                <p>Intel x64 · macOS 13+</p>
+              </div>
+            </div>
+            <div class="download-platform-actions">
+              <a class="download-primary-action" href={MAC_X64_DMG_URL}>
+                <Download size={17} stroke-width={1.9} aria-hidden="true" />
+                {isZh ? "下载 DMG" : "Download DMG"}
+              </a>
+              <a class="download-alt-action" href={MAC_X64_ZIP_URL}>ZIP</a>
+            </div>
+          </article>
+
+          <article class="download-platform" data-platform="windows-x64">
+            <div class="download-platform-badge" data-platform-badge>{isZh ? "推荐" : "Recommended"}</div>
+            <div class="download-platform-summary">
+              <PanelsTopLeft size={40} stroke-width={1.6} aria-hidden="true" />
+              <div>
+                <div class="download-platform-title-row">
+                  <h2>Windows x64</h2>
+                  <span>{isZh ? "预览版" : "Preview"}</span>
+                </div>
+                <p>Windows 11</p>
+              </div>
+            </div>
+            <div class="download-platform-actions">
+              <a class="download-primary-action" href={WINDOWS_X64_EXE_URL}>
+                <Download size={17} stroke-width={1.9} aria-hidden="true" />
+                {isZh ? "下载 EXE" : "Download EXE"}
+              </a>
+            </div>
+          </article>
         </div>
       </div>
-      <div class="download-card download-card--preview">
-        <div class="download-card-main">
-          <div class="platform-mark">Windows</div>
-          <div>
-            <div class="download-preview-pill">{locale === "zh" ? "预览版" : "Preview"}</div>
-            <h2>Windows x64</h2>
-            <p>{locale === "zh" ? "Windows 11 · NSIS 安装程序" : "Windows 11 · NSIS installer"}</p>
-          </div>
-        </div>
-        <div class="download-card-actions">
-          <a class="button button-blue" href={WINDOWS_X64_EXE_URL}>{locale === "zh" ? "下载 EXE" : "Download EXE"}</a>
-        </div>
-      </div>
+
+      <p class="download-windows-note">
+        <Info size={16} stroke-width={1.8} aria-hidden="true" />
+        <span>
+          {isZh
+            ? "Windows 首次安装可能出现 SmartScreen 提示"
+            : "Windows may show a SmartScreen prompt on first install"}
+        </span>
+        <a href="#install-guide">
+          {isZh ? "查看安装说明" : "View installation help"}
+          <ArrowRight size={14} stroke-width={1.8} aria-hidden="true" />
+        </a>
+      </p>
     </div>
-    <p class="availability-note">
-      {locale === "zh"
-        ? "Windows 预览版尚未配置代码签名，首次安装可能出现 SmartScreen 提示。请确认安装包来自本官网或 GitHub Release。"
-        : "The Windows preview is currently unsigned, so SmartScreen may ask for confirmation. Download only from this website or the GitHub Release."}
-    </p>
   </section>
 
-  <section class="install-guide section-shell">
-    <div class="section-kicker">{locale === "zh" ? "安装与更新" : "INSTALL & UPDATE"}</div>
-    <div class="install-guide-grid">
-      <h2>
-        {locale === "zh"
-          ? "先把 Codex 和 Codex Themes 都更新到最新版"
-          : "Keep both Codex and Codex Themes up to date"}
-      </h2>
-      <div>
-        <ol>
-          <li>
-            {locale === "zh"
-              ? "先从官方渠道安装或升级到最新版 ChatGPT / Codex 桌面应用，并确认可以进入 Codex 模式。"
-              : "First install or update the official ChatGPT / Codex desktop app and confirm that Codex mode is available."}
-          </li>
-          <li>
-            {locale === "zh"
-              ? "从本页面下载最新版 Codex Themes；不要继续使用旧安装包。"
-              : "Download the latest Codex Themes from this page instead of reusing an older installer."}
-          </li>
-          <li>{locale === "zh" ? "Mac 打开 DMG 后将应用拖入“应用程序”；Windows 运行 EXE 完成安装。" : "On Mac, open the DMG and drag the app into Applications. On Windows, run the EXE installer."}</li>
-          <li>{locale === "zh" ? "Windows 若显示 SmartScreen，请确认发布来源后选择“更多信息 → 仍要运行”。" : "If Windows SmartScreen appears, verify the source and choose More info → Run anyway."}</li>
-          <li>
-            {locale === "zh"
-              ? "以后看到客户端更新提示请及时升级；自动更新遇到问题时，可重新下载当前系统对应的安装包覆盖安装。"
-              : "Install future in-app updates promptly. If automatic updating fails, download the installer for your system and install it over the current version."}
-          </li>
-        </ol>
+  <section class="install-guide" id="install-guide">
+    <div class="install-guide-inner section-shell">
+      <div class="install-guide-heading">
+        <div class="section-kicker">{isZh ? "安装指南" : "INSTALL GUIDE"}</div>
+        <h2>{isZh ? "下载后，三步开始使用" : "Get started in three steps"}</h2>
         <p>
-          {locale === "zh"
-            ? "Codex 界面会持续迭代，Codex Themes 也会同步提供兼容修复。遇到主题显示异常时，请先确认两边都是最新版，再重新应用主题。应用不修改 Codex 安装包，也不会读取 API Key。"
-            : "Codex evolves continuously, and Codex Themes ships matching compatibility fixes. If a theme looks wrong, update both apps first and reapply the theme. Codex Themes does not patch Codex or read API keys."}
+          {isZh
+            ? "保持 Codex 与 Codex Themes 都是最新版，可以获得更稳定的主题体验。"
+            : "Keep Codex and Codex Themes up to date for the most reliable theme experience."}
         </p>
-        <a class="text-link" href={GITHUB_REPO_URL}>{locale === "zh" ? "在 GitHub 查看源码" : "View the source on GitHub"}</a>
+      </div>
+
+      <div class="install-step-grid">
+        <article>
+          <div class="install-step-topline">
+            <span>01</span>
+            <Download size={22} stroke-width={1.6} aria-hidden="true" />
+          </div>
+          <h3>{isZh ? "下载对应安装包" : "Download your installer"}</h3>
+          <p>
+            {isZh
+              ? "Apple 芯片和 Intel Mac 使用对应的 DMG；Windows x64 使用 EXE。"
+              : "Choose the matching DMG for Apple silicon or Intel Mac, or the EXE for Windows x64."}
+          </p>
+        </article>
+        <article>
+          <div class="install-step-topline">
+            <span>02</span>
+            <PackageOpen size={22} stroke-width={1.6} aria-hidden="true" />
+          </div>
+          <h3>{isZh ? "完成桌面端安装" : "Install the desktop app"}</h3>
+          <p>
+            {isZh
+              ? "Mac 将应用拖入“应用程序”；Windows 运行安装程序并按提示完成。"
+              : "On Mac, drag the app into Applications. On Windows, run the installer and follow the prompts."}
+          </p>
+        </article>
+        <article>
+          <div class="install-step-topline">
+            <span>03</span>
+            <MonitorDown size={22} stroke-width={1.6} aria-hidden="true" />
+          </div>
+          <h3>{isZh ? "打开 Codex 并应用主题" : "Open Codex and apply a theme"}</h3>
+          <p>
+            {isZh
+              ? "选择喜欢的主题并应用；遇到显示异常时，先更新两个应用再重新应用。"
+              : "Choose a theme and apply it. If something looks wrong, update both apps and apply again."}
+          </p>
+        </article>
+      </div>
+
+      <div class="install-guide-note">
+        <p>
+          {isZh
+            ? "Codex Themes 在本机运行，不读取 API Key，也不会修改 Codex 安装包。"
+            : "Codex Themes runs locally, never reads your API key, and leaves the Codex installation untouched."}
+        </p>
+        <a href={GITHUB_REPO_URL}>
+          {isZh ? "在 GitHub 查看源码" : "View the source on GitHub"}
+          <ArrowRight size={15} stroke-width={1.8} aria-hidden="true" />
+        </a>
       </div>
     </div>
   </section>
+
+  <script is:inline define:vars={{ isZh }}>
+    const detectedLabel = document.querySelector("[data-platform-detected]");
+    const platformCards = Array.from(document.querySelectorAll("[data-platform]"));
+
+    const copy = {
+      zh: {
+        "mac-arm64": "已识别：Apple 芯片 Mac",
+        "mac-x64": "已识别：Intel Mac",
+        "windows-x64": "已识别：Windows x64",
+        fallback: "当前推荐：Apple 芯片 Mac",
+      },
+      en: {
+        "mac-arm64": "Detected: Apple silicon Mac",
+        "mac-x64": "Detected: Intel Mac",
+        "windows-x64": "Detected: Windows x64",
+        fallback: "Recommended: Apple silicon Mac",
+      },
+    };
+
+    const setRecommended = (platform, certain = true) => {
+      platformCards.forEach((card) => {
+        const active = card.getAttribute("data-platform") === platform;
+        card.toggleAttribute("data-recommended", active);
+        if (active) card.setAttribute("aria-current", "true");
+        else card.removeAttribute("aria-current");
+      });
+      if (detectedLabel) {
+        const language = isZh ? copy.zh : copy.en;
+        detectedLabel.lastChild.textContent = certain ? language[platform] : language.fallback;
+      }
+    };
+
+    const userAgent = navigator.userAgent;
+    const isWindows = /Windows/i.test(userAgent);
+    const isMac = /Macintosh|Mac OS X/i.test(userAgent);
+
+    if (isWindows) {
+      setRecommended("windows-x64");
+    } else if (isMac && navigator.userAgentData?.getHighEntropyValues) {
+      navigator.userAgentData
+        .getHighEntropyValues(["architecture"])
+        .then(({ architecture }) => {
+          setRecommended(architecture === "x86" ? "mac-x64" : "mac-arm64");
+        })
+        .catch(() => setRecommended("mac-arm64", false));
+    } else if (isMac) {
+      setRecommended("mac-arm64", false);
+    } else {
+      setRecommended("mac-arm64", false);
+    }
+  </script>
 </BaseLayout>

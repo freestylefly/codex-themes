@@ -1589,156 +1589,498 @@ h3 {
 
 /* Download */
 
-.download-page-hero {
-  padding-block: 120px 105px;
+.download-dark {
+  color: #f7f3ea;
+  background: #06111f;
 }
 
-.download-page-hero h1 {
-  max-width: 1030px;
+.download-dark .site-header {
+  border-bottom-color: rgba(223, 184, 102, 0.18);
+  color: #f7f3ea;
+  background: rgba(4, 13, 25, 0.88);
 }
 
-.download-card-list {
+.download-dark .header-inner {
+  width: min(1387px, calc(100vw - 100px));
+  height: 82px;
+}
+
+.download-dark .desktop-nav a,
+.download-dark .language-link {
+  color: rgba(247, 243, 234, 0.72);
+}
+
+.download-dark .desktop-nav a:hover,
+.download-dark .language-link:hover {
+  color: #e6bd6d;
+}
+
+.download-dark .header-download {
+  min-height: 44px;
+  gap: 9px;
+  border-color: rgba(230, 189, 109, 0.76);
+  border-radius: 8px;
+  color: #f7f3ea;
+  background: rgba(11, 26, 46, 0.68);
+}
+
+.download-dark .header-download:hover {
+  border-color: #e6bd6d;
+  color: #0b1727;
+  background: #e6bd6d;
+}
+
+.download-stage {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(230, 189, 109, 0.2);
+  background:
+    radial-gradient(ellipse at 43% 57%, rgba(28, 100, 230, 0.29), transparent 29%),
+    radial-gradient(ellipse at 88% 5%, rgba(31, 96, 184, 0.16), transparent 27%),
+    linear-gradient(145deg, #040d1a 0%, #071526 56%, #06111f 100%);
+}
+
+.download-stage::after {
+  position: absolute;
+  right: -9%;
+  bottom: 15%;
+  left: -9%;
+  height: 250px;
+  border-top: 1px solid rgba(96, 160, 255, 0.16);
+  border-radius: 50%;
+  content: "";
+  background: radial-gradient(ellipse at center, rgba(49, 113, 224, 0.12), transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+  transform: rotate(-3deg);
+}
+
+.download-stage-inner {
+  position: relative;
+  z-index: 1;
+  width: min(1387px, calc(100vw - 100px));
+  margin-inline: auto;
+  padding: clamp(18px, 2vh, 22px) 0 26px;
+}
+
+.download-hero-grid {
   display: grid;
-  margin-top: 66px;
-  gap: 14px;
-}
-
-.download-card {
-  display: flex;
-  padding: 34px 36px;
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--line);
+  grid-template-columns: minmax(520px, 0.92fr) minmax(600px, 1.08fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 40px;
-  background: rgba(255, 255, 255, 0.52);
+  gap: clamp(42px, 4vw, 64px);
 }
 
-.download-card--preview {
-  border-color: rgba(37, 112, 209, 0.45);
-  background: rgba(237, 246, 255, 0.72);
+.download-hero-copy {
+  max-width: 610px;
 }
 
-.download-preview-pill {
-  display: inline-flex;
-  margin-bottom: 5px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: #125da9;
-  background: #dceeff;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.download-hero-kicker {
+  color: #72a8ff;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
-.download-card-main {
+.download-hero-copy h1 {
+  max-width: 610px;
+  margin: 26px 0 25px;
+  color: #f6f1e8;
+  font-size: clamp(50px, 3.75vw, 59px);
+  letter-spacing: -0.052em;
+  line-height: 1.17;
+}
+
+.download-hero-copy h1 em {
+  color: #7faeff;
+  font-style: normal;
+}
+
+.download-title-second {
+  font-size: 0.86em;
+  white-space: nowrap;
+}
+
+.download-hero-copy > p {
+  margin-bottom: 32px;
+  color: rgba(238, 242, 248, 0.82);
+  font-size: 17px;
+}
+
+.download-trust-list {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 0;
 }
 
-.platform-mark {
-  display: grid;
-  width: 74px;
-  height: 74px;
-  place-items: center;
-  border: 1px solid var(--line-dark);
-  border-radius: 16px;
-  background: var(--white);
-  font-size: 13px;
-  font-weight: 750;
+.download-trust-list > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  color: #dcb76f;
 }
 
-.download-card h2 {
+.download-trust-list > div + div {
+  margin-left: 24px;
+  padding-left: 24px;
+  border-left: 1px solid rgba(230, 189, 109, 0.22);
+}
+
+.download-trust-list span {
+  display: flex;
+  flex-direction: column;
+  color: rgba(220, 229, 241, 0.58);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.download-trust-list strong {
   margin-bottom: 2px;
-  font-family: var(--sans);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.download-card p {
-  margin-bottom: 0;
-  color: var(--muted);
+  color: rgba(247, 243, 234, 0.91);
   font-size: 13px;
+  font-weight: 650;
 }
 
-.download-card-actions {
+.download-product-visual {
+  width: min(720px, 100%);
+  min-width: 0;
+  margin: 0;
+  justify-self: end;
+}
+
+.download-product-window {
+  overflow: hidden;
+  border: 1px solid rgba(123, 162, 217, 0.35);
+  border-radius: 12px;
+  background: #101113;
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.4),
+    0 0 80px rgba(35, 101, 215, 0.16);
+}
+
+.download-product-window img {
+  width: 100%;
+  aspect-ratio: 1.52 / 1;
+  object-fit: cover;
+}
+
+.download-product-visual figcaption {
+  margin-top: 10px;
+  color: rgba(230, 189, 109, 0.82);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.download-dock {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(20px, 2.4vh, 27px);
+  padding: 20px 20px 16px;
+  border: 1px solid rgba(130, 168, 222, 0.37);
+  border-radius: 16px;
+  background: rgba(8, 24, 43, 0.78);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(24px);
+}
+
+.download-dock-heading {
   display: flex;
+  min-height: 36px;
+  padding: 0 9px 12px;
   align-items: center;
+  justify-content: space-between;
   gap: 22px;
 }
 
-.availability-note {
-  margin-top: 17px;
-  color: var(--muted);
+.download-dock-heading > strong {
+  color: #f4efe6;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.download-detected {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(221, 231, 243, 0.68);
+  font-size: 11px;
+}
+
+.download-detected i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #49cf8a;
+  box-shadow: 0 0 13px rgba(73, 207, 138, 0.74);
+}
+
+.download-platform-grid {
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid rgba(126, 164, 215, 0.22);
+  border-radius: 11px;
+  background: rgba(5, 16, 31, 0.58);
+}
+
+.download-platform {
+  position: relative;
+  min-width: 0;
+  padding: 21px 28px 18px;
+  border-right: 1px solid rgba(126, 164, 215, 0.27);
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.download-platform:last-child {
+  border-right: 0;
+}
+
+.download-platform[data-recommended] {
+  background: linear-gradient(145deg, rgba(27, 68, 133, 0.66), rgba(13, 39, 74, 0.56));
+  box-shadow: inset 0 -3px #397fff;
+}
+
+.download-platform-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  padding: 3px 13px;
+  border-radius: 10px 0 9px;
+  color: #e9f2ff;
+  background: #2c6ee9;
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: 0.06em;
+}
+
+.download-platform[data-recommended] .download-platform-badge {
+  display: block;
+}
+
+.download-platform-summary {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 18px;
+  color: #eef4fb;
+}
+
+.download-platform-summary > svg {
+  flex: 0 0 auto;
+}
+
+.download-platform h2 {
+  margin: 0 0 3px;
+  color: #f8f5ee;
+  font-family: var(--sans);
+  font-size: clamp(19px, 1.55vw, 23px);
+  font-weight: 680;
+  letter-spacing: -0.025em;
+}
+
+.download-platform p {
+  margin: 0;
+  color: rgba(211, 223, 238, 0.66);
   font-size: 12px;
 }
 
-.install-guide {
-  padding-block: 120px 150px;
-  border-top: 1px solid var(--line);
+.download-platform-title-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
-.install-guide-grid {
+.download-platform-title-row > span {
+  display: inline-flex;
+  padding: 3px 7px;
+  border: 1px solid rgba(97, 157, 255, 0.58);
+  border-radius: 6px;
+  color: #89b5ff;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.download-platform-actions {
+  display: flex;
+  margin-top: 18px;
+  align-items: center;
+  gap: 11px;
+}
+
+.download-primary-action,
+.download-alt-action {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 680;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.download-primary-action {
+  min-width: 154px;
+  flex: 1;
+  gap: 8px;
+  border: 1px solid #3278f3;
+  color: #f7fbff;
+  background: #2369e9;
+  box-shadow: 0 9px 24px rgba(31, 99, 224, 0.23);
+}
+
+.download-alt-action {
+  width: 64px;
+  border: 1px solid rgba(143, 177, 224, 0.45);
+  color: rgba(239, 245, 252, 0.8);
+  background: rgba(12, 30, 53, 0.52);
+}
+
+.download-primary-action:hover,
+.download-alt-action:hover {
+  transform: translateY(-2px);
+}
+
+.download-primary-action:hover {
+  border-color: #5b96ff;
+  background: #347af4;
+}
+
+.download-alt-action:hover {
+  border-color: rgba(143, 177, 224, 0.78);
+  background: rgba(20, 47, 81, 0.8);
+}
+
+.download-windows-note {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 36px;
+  margin: 12px 0 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(213, 223, 235, 0.58);
+  font-size: 11px;
+}
+
+.download-windows-note a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #79aaff;
+}
+
+.download-windows-note a:hover {
+  color: #a8c7ff;
+}
+
+.download-dark .install-guide {
+  padding-block: 24px 128px;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.install-guide-heading {
   display: grid;
-  margin-top: 32px;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 105px;
+  grid-template-columns: 0.55fr 1.05fr 0.8fr;
+  align-items: end;
+  gap: 46px;
 }
 
-.install-guide h2 {
-  font-size: clamp(42px, 5vw, 70px);
-  line-height: 1.05;
+.install-guide-heading h2 {
+  margin: 0;
+  font-size: clamp(43px, 4.6vw, 66px);
+  line-height: 1.04;
 }
 
-.install-guide ol {
-  margin: 0 0 28px;
-  padding-left: 24px;
-}
-
-.install-guide li {
-  padding: 11px 0 16px 10px;
-  border-bottom: 1px solid var(--line);
-}
-
-.install-guide p {
+.install-guide-heading > p {
+  max-width: 360px;
+  margin: 0;
   color: var(--muted);
+  font-size: 14px;
 }
 
-.install-troubleshooting {
-  margin: 34px 0 28px;
-  padding: 26px 28px;
-  border: 1px solid var(--line-dark);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.58);
+.install-step-grid {
+  display: grid;
+  margin-top: 70px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
 }
 
-.install-troubleshooting h3 {
-  margin: 0 0 12px;
-  font-size: 21px;
+.install-step-grid article {
+  min-height: 255px;
+  padding: 28px 36px 38px 0;
+  border-right: 1px solid var(--line);
 }
 
-.install-troubleshooting ol {
-  margin-bottom: 18px;
+.install-step-grid article + article {
+  padding-left: 36px;
 }
 
-.install-troubleshooting pre {
-  overflow-x: auto;
-  margin: 18px 0;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: #eef7ff;
-  background: #111821;
-  font-family: var(--mono);
+.install-step-grid article:last-child {
+  border-right: 0;
+}
+
+.install-step-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--blue);
+}
+
+.install-step-topline span {
+  font-family: var(--display);
+  font-size: 40px;
+}
+
+.install-step-grid h3 {
+  margin: 54px 0 10px;
+  font-size: 19px;
+}
+
+.install-step-grid p {
+  max-width: 310px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.install-guide-note {
+  display: flex;
+  margin-top: 40px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.install-guide-note p {
+  margin: 0;
+  color: var(--muted);
   font-size: 13px;
-  line-height: 1.6;
 }
 
-.install-troubleshooting code {
-  white-space: pre;
+.install-guide-note a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid currentColor;
+  font-size: 13px;
+  font-weight: 650;
 }
 
 /* Modal */
@@ -2418,6 +2760,244 @@ h3 {
   .footer-links {
     flex-wrap: wrap;
     gap: 18px 26px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .download-stage-inner {
+    width: min(100% - 56px, 1040px);
+  }
+
+  .download-hero-grid {
+    grid-template-columns: minmax(380px, 0.84fr) minmax(500px, 1.16fr);
+    gap: 42px;
+  }
+
+  .download-hero-copy h1 {
+    font-size: clamp(48px, 5.2vw, 61px);
+  }
+
+  .download-platform {
+    padding-inline: 20px;
+  }
+
+  .download-primary-action {
+    min-width: 126px;
+  }
+
+  .install-guide-heading {
+    grid-template-columns: 0.4fr 1.2fr 0.8fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 900px) {
+  .download-dark .header-inner {
+    width: var(--page);
+    height: 70px;
+  }
+
+  .download-dark .menu-button {
+    color: #f7f3ea;
+  }
+
+  .download-dark .mobile-nav a {
+    border-bottom-color: rgba(247, 243, 234, 0.12);
+    color: #f7f3ea;
+  }
+
+  .download-stage {
+    min-height: auto;
+  }
+
+  .download-stage-inner {
+    width: var(--page);
+    padding-block: 56px 34px;
+  }
+
+  .download-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .download-hero-copy {
+    max-width: 680px;
+  }
+
+  .download-hero-copy h1 {
+    max-width: 640px;
+    font-size: clamp(50px, 8vw, 68px);
+  }
+
+  .download-product-visual {
+    width: min(720px, 100%);
+  }
+
+  .download-dock {
+    margin-top: 48px;
+  }
+
+  .download-platform-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .download-platform {
+    display: grid;
+    padding: 25px 24px;
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 0.65fr);
+    align-items: center;
+    gap: 24px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(126, 164, 215, 0.27);
+  }
+
+  .download-platform:last-child {
+    border-bottom: 0;
+  }
+
+  .download-platform[data-recommended] {
+    box-shadow: inset 3px 0 #397fff;
+  }
+
+  .download-platform-actions {
+    margin-top: 0;
+  }
+
+  .install-guide-heading {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .install-guide-heading h2 {
+    max-width: 670px;
+  }
+
+  .install-guide-heading > p {
+    max-width: 560px;
+  }
+
+  .install-step-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .install-step-grid article,
+  .install-step-grid article + article {
+    min-height: 0;
+    padding: 28px 0 34px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .install-step-grid article:last-child {
+    border-bottom: 0;
+  }
+
+  .install-step-grid h3 {
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .download-stage-inner {
+    width: calc(100% - 32px);
+    padding-top: 42px;
+  }
+
+  .download-hero-kicker {
+    font-size: 9px;
+  }
+
+  .download-hero-copy h1 {
+    margin-block: 20px;
+    font-size: clamp(42px, 12.6vw, 56px);
+    line-height: 1.14;
+  }
+
+  .download-title-second {
+    font-size: 1em;
+    white-space: normal;
+  }
+
+  .download-hero-copy > p {
+    font-size: 15px;
+  }
+
+  .download-trust-list {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 17px;
+  }
+
+  .download-trust-list > div + div {
+    margin-left: 0;
+    padding: 0;
+    border-left: 0;
+  }
+
+  .download-product-window {
+    border-radius: 8px;
+  }
+
+  .download-product-window img {
+    aspect-ratio: 1.35 / 1;
+  }
+
+  .download-dock {
+    padding: 16px 12px 12px;
+    border-radius: 12px;
+  }
+
+  .download-dock-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .download-platform {
+    display: block;
+    padding: 28px 18px 20px;
+  }
+
+  .download-platform-summary {
+    min-height: 52px;
+  }
+
+  .download-platform-summary > svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .download-platform h2 {
+    font-size: 20px;
+  }
+
+  .download-platform-actions {
+    margin-top: 20px;
+  }
+
+  .download-windows-note {
+    padding-inline: 8px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    line-height: 1.55;
+  }
+
+  .download-dark .install-guide {
+    padding-block: 76px 90px;
+  }
+
+  .install-guide-heading h2 {
+    font-size: 44px;
+  }
+
+  .install-step-grid {
+    margin-top: 48px;
+  }
+
+  .install-guide-note {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

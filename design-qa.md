@@ -49,7 +49,6 @@
 ## Final result
 
 final result: passed
-
 ---
 
 # AI 主题连续创作与多候选 Design QA
@@ -1125,5 +1124,63 @@ final result: passed
 ## Follow-up polish
 
 - P3: 顶部工具栏与主画面交界处的 1 px 高亮边缘比参考更亮，后续可以继续降低分隔线亮度。
+
+final result: passed
+
+---
+
+# Download Page Design QA
+
+## Evidence
+
+- Source visual truth: `/Users/canghe/.codex/generated_images/019f9db6-bbd7-77c1-a111-ae14a241f76f/call_kHWvZgA7E8G1dLFoqEivMTrG.png`
+- Source pixels: `1510 × 1042`
+- Implementation screenshot: `/tmp/codex-themes-download-desktop-qa-final.png`
+- Implementation full-page screenshot: `/tmp/codex-themes-download-full-qa-final.png`
+- Mobile hero screenshot: `/tmp/codex-themes-download-mobile-v2.png`
+- Mobile download dock screenshot: `/tmp/codex-themes-download-mobile-dock-v2.png`
+- Full-view comparison: `/tmp/codex-themes-download-design-compare-final.png`
+- Desktop CSS viewport: `1536 × 1024`
+- Desktop implementation pixels: `1521 × 1014`
+- Mobile CSS viewport: `390 × 844`
+- Density normalization: 1x browser capture. The source was resized to `1521 × 1014` before the side-by-side comparison.
+- State: Chinese download page, Apple silicon recommendation active, mobile navigation closed for the final screenshots.
+
+## Full-view Comparison
+
+The final desktop capture preserves the selected composition: dark atmospheric hero, two-line editorial headline, real Codex Themes client preview, three-column download dock, contextual Windows note, and a full-width warm-paper installation section. The first installation heading begins inside the initial viewport at the same transition point as the source.
+
+The implementation uses the repository's existing mascot in the header. The generated concept used a gold lettermark that is not part of the current brand assets. This is an accepted product constraint.
+
+## Focused Evidence
+
+The desktop hero and download dock remain legible at 1x inside the full-view comparison, so an additional desktop crop was not required. The mobile download dock received a dedicated capture at `390 × 844`; all five download links remain visible, aligned, and comfortably tappable after scrolling to the selector.
+
+## Required Fidelity Surfaces
+
+- Fonts and typography: Chinese serif display hierarchy, sans-serif interface labels, monospaced metadata, line height, wrapping, and optical weight match the selected direction. The headline stays on two lines at the desktop target.
+- Spacing and layout rhythm: hero columns, product image, dock, Windows note, and light-section transition align with the source proportions. Desktop and mobile have no horizontal overflow.
+- Colors and visual tokens: midnight navy, cobalt blue, warm gold, pale text, and warm paper map closely to the concept. Contrast remains clear across download actions and metadata.
+- Image quality and asset fidelity: the real `theme-gallery-client.jpg` asset is used through Astro image optimization. It remains sharp and correctly cropped on desktop and mobile.
+- Copy and content: platform names, architecture requirements, DMG/ZIP/EXE actions, Windows preview status, installation guidance, and version metadata are preserved.
+
+## Interaction Checks
+
+- Five installer links point to the expected platform, architecture, and format API routes.
+- Runtime recommendation selected Apple silicon on the macOS test environment.
+- Mobile navigation opens and exposes Theme gallery, How it works, FAQ, GitHub, and Download.
+- Browser console contained no warnings or errors.
+
+## Comparison History
+
+1. Initial capture found P2 differences: the title wrapped to three lines, the dock pushed the Windows note below the first viewport, and the Windows icon rendered as a filled square.
+2. The hero grid, product image ratio, headline sizing, stage spacing, dock density, and Windows icon treatment were corrected. The next capture restored the two-line title and brought the dock plus Windows note into view.
+3. The side-by-side comparison then found a P2 section-width mismatch: the warm installation background had dark gutters. A full-width section with an inner content shell fixed the mismatch.
+4. Final desktop and mobile captures show no actionable P0, P1, or P2 findings.
+
+## Follow-up Polish
+
+- P3: A future brand pass could replace the current mascot with an approved gold desktop-app lockup if that asset is formally adopted.
+- P3: A subtle raster star-field could bring the background even closer to the generated concept.
 
 final result: passed
