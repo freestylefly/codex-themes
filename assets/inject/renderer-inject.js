@@ -151,7 +151,9 @@
 
     const samples = [
       body,
-      document.querySelector("main.main-surface"),
+      document.querySelector("main.main-surface") ||
+        document.querySelector('main[class*="_MainContentSurface_"]') ||
+        document.querySelector("main"),
       document.querySelector("aside.app-shell-left-panel"),
     ].filter(Boolean);
     let votesLight = 0;
@@ -441,7 +443,10 @@
     };
 
     const findNativeProjectControl = (type) => {
-      const shell = document.querySelector("main.main-surface");
+      const shell =
+        document.querySelector("main.main-surface") ||
+        document.querySelector('main[class*="_MainContentSurface_"]') ||
+        document.querySelector("main");
       const candidates = [...(shell?.querySelectorAll("button") || [])]
         .filter((button) => !button.closest(`#${BLUE_WINDOW_HOME_ID}`));
       switch (type) {
@@ -786,6 +791,8 @@
         const composer =
           shellMain.querySelector(".composer-surface-chrome textarea") ||
           shellMain.querySelector('.composer-surface-chrome [contenteditable="true"]') ||
+          shellMain.querySelector('[class*="_ComposerLayoutRoot_"] textarea') ||
+          shellMain.querySelector('[class*="_ComposerLayoutRoot_"] [contenteditable="true"]') ||
           shellMain.querySelector("textarea") ||
           shellMain.querySelector('[contenteditable="true"]');
         if (composer instanceof HTMLElement) {
@@ -836,6 +843,9 @@
     for (const name of Object.keys(vars)) root?.style.removeProperty(name);
     document.querySelectorAll(".dream-skin-home").forEach((node) => node.classList.remove("dream-skin-home"));
     document.querySelectorAll(".dream-skin-home-shell").forEach((node) => node.classList.remove("dream-skin-home-shell"));
+    document.querySelectorAll(".dream-skin-main-surface").forEach((node) => node.classList.remove("dream-skin-main-surface"));
+    document.querySelectorAll(".dream-skin-composer").forEach((node) => node.classList.remove("dream-skin-composer"));
+    document.querySelectorAll(".dream-skin-role-main").forEach((node) => node.classList.remove("dream-skin-role-main"));
     document.getElementById(MOONLIT_WELCOME_ID)?.remove();
     document.getElementById(BLUE_WINDOW_HOME_ID)?.remove();
     document.getElementById(MOTION_ID)?.remove();
@@ -896,7 +906,16 @@
       style.dataset.dreamSkinVersion = VERSION;
     }
 
-    const shellMain = document.querySelector("main.main-surface") || document.querySelector("main");
+    const shellMain =
+      document.querySelector("main.main-surface") ||
+      document.querySelector('main[class*="_MainContentSurface_"]') ||
+      document.querySelector("main");
+    const mainContentSurface =
+      (shellMain?.matches('main[class*="_MainContentSurface_"]') ? shellMain : null) ||
+      shellMain?.querySelector('main[class*="_MainContentSurface_"]') ||
+      shellMain?.querySelector('[class*="_MainContentFrame_"]') ||
+      shellMain?.querySelector('[class*="_MainContentViewport_"]') ||
+      shellMain;
     const isRenderedElement = (node) => {
       if (!(node instanceof Element) || !node.isConnected) return false;
       if (node.closest('[hidden], [inert], [aria-hidden="true"]')) return false;
@@ -912,6 +931,7 @@
       ? [
           ...(shellMain.matches('[role="main"]') ? [shellMain] : []),
           ...shellMain.querySelectorAll('[role="main"]'),
+          ...(mainContentSurface ? [mainContentSurface] : []),
         ]
       : [];
     const visibleTaskContent = shellMain
@@ -940,7 +960,18 @@
       });
     }) || null;
     const layoutHome = PRESERVE_NATIVE_LAYOUT ? null : home;
-    for (const candidate of document.querySelectorAll('[role="main"].dream-skin-home')) {
+    if (shellMain) shellMain.classList.add("dream-skin-main-surface");
+    if (mainContentSurface && mainContentSurface !== shellMain) {
+      mainContentSurface.classList.add("dream-skin-role-main");
+    }
+    const composerRoot =
+      document.querySelector(".composer-surface-chrome") ||
+      shellMain?.querySelector('[class*="_ComposerLayoutRoot_"]') ||
+      shellMain?.querySelector('.ProseMirror')?.closest('[class*="_Composer"]') ||
+      shellMain?.querySelector('[contenteditable="true"]')?.closest('[class*="_Composer"]');
+    if (composerRoot instanceof HTMLElement) composerRoot.classList.add("dream-skin-composer");
+
+    for (const candidate of document.querySelectorAll('[role="main"].dream-skin-home, .dream-skin-role-main.dream-skin-home')) {
       if (candidate !== layoutHome) candidate.classList.remove("dream-skin-home");
     }
     if (layoutHome) layoutHome.classList.add("dream-skin-home");

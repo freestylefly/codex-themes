@@ -4,7 +4,7 @@
  */
 
 /** Bumped whenever the injected payload format changes. */
-export const SKIN_VERSION = "1.1.0";
+export const SKIN_VERSION = "1.2.0";
 
 export const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
@@ -23,10 +23,17 @@ export const PREVIEW_HEIGHT = 675;
 
 /** Selectors proving a CDP page target is the Codex shell. */
 export const CODEX_SHELL_MARKERS = {
-  shell: "main.main-surface",
+  /** Selectors proving a CDP page target is the Codex shell.
+   *
+   * These selectors support both the legacy Codex DOM (main.main-surface,
+   * .composer-surface-chrome, [role="main"]) and the newer unified ChatGPT/Codex
+   * shell that uses hashed CSS-module class names such as
+   * _MainContentSurface_* and _ComposerLayoutRoot_*.
+   */
+  shell: "main.main-surface, main[class*=\"_MainContentSurface_\"], main",
   sidebar: "aside.app-shell-left-panel",
-  composer: ".composer-surface-chrome",
-  main: '[role="main"]',
+  composer: ".composer-surface-chrome, [class*=\"_ComposerLayoutRoot_\"], .ProseMirror",
+  main: "[role=\"main\"], main, [class*=\"_MainContentSurface_\"]",
 } as const;
 
 export const PROBE_EXPRESSION = `(() => {
