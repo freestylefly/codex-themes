@@ -189,7 +189,7 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.
 
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) article,
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .message,
-html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="surface"] {
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="surface"]:not(:is(.composer-surface-chrome, .dream-skin-composer, .dream-skin-composer-dock, .dream-skin-composer-dock *)) {
   border: 1px solid color-mix(in srgb, var(--ds-text) 7%, transparent) !important;
   background: color-mix(in srgb, var(--ds-panel) 96%, transparent) !important;
   box-shadow: 0 10px 28px var(--ds-ink-shadow);
@@ -727,6 +727,13 @@ html.codex-dream-skin :is(.composer-surface-chrome, .dream-skin-composer)::befor
   background: linear-gradient(145deg, var(--ds-lime), var(--ds-green));
   box-shadow: 0 0 14px var(--ds-accent-glow);
   font-size: 13px;
+}
+
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer) {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
 .dream-skin-home div:has(> .horizontal-scroll-fade-mask .group\/project-selector) {
@@ -3555,11 +3562,20 @@ html.codex-dream-skin[data-dream-theme="focus-capybara"] :is(.composer-surface-c
   box-shadow: 0 10px 28px rgba(48, 69, 92, .07) !important;
 }
 
-html.codex-dream-skin[data-dream-theme="focus-capybara"] :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) :where(article, .message, [class*="surface"]:not(:is(.composer-surface-chrome, .dream-skin-composer))) {
+html.codex-dream-skin[data-dream-theme="focus-capybara"] :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) :where(article, .message, [class*="surface"]:not(:is(.composer-surface-chrome, .dream-skin-composer, .dream-skin-composer-dock, .dream-skin-composer-dock *))) {
   border-color: rgba(50, 85, 125, .1) !important;
   background: #fff !important;
   color: #303235 !important;
   box-shadow: 0 8px 24px rgba(45, 66, 87, .055) !important;
+}
+
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer),
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer)::before,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer)::after {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
 @media (max-width: 760px) {
