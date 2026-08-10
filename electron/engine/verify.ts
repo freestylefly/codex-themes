@@ -86,7 +86,10 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
       const value = box(node);
       return Boolean(value?.visible && node.getClientRects().length > 0);
     };
-    const shellMain = document.querySelector('main.main-surface') ?? document.querySelector('main');
+    const shellMain = document.querySelector('main.main-surface') ??
+      document.querySelector('main.dream-skin-main-surface') ??
+      document.querySelector('main[class*="_MainContentSurface_"]') ??
+      document.querySelector('main');
     const homeCandidates = shellMain
       ? [
           ...(shellMain.matches('[role="main"]') ? [shellMain] : []),
@@ -104,7 +107,8 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
         visible(candidate.querySelector('.group\\\\/home-suggestions'));
       return visible(candidate) && hasHomeContent && !hasVisibleTaskContent;
     }) ?? null;
-    const home = document.querySelector('[role="main"].dream-skin-home');
+    const home = document.querySelector('[role="main"].dream-skin-home') ??
+      document.querySelector('.dream-skin-role-main.dream-skin-home');
     const blueWindowHome = home?.querySelector('#codex-dream-skin-blue-window-home') ?? null;
     const suggestions = blueWindowHome?.querySelector('.blue-window-home__quick-actions') ??
       home?.querySelector('.group\\\\/home-suggestions') ?? null;
@@ -115,7 +119,10 @@ export async function verifySession(session: CdpSession): Promise<VerifyResult> 
     const projectButton = box(blueWindowHome?.querySelector('[data-project-target]')) ??
       box(home?.querySelector('.group\\\\/project-selector > button'));
     const composer = box(blueWindowHome?.querySelector('.blue-window-home__composer')) ??
-      box(document.querySelector('.composer-surface-chrome'));
+      box(document.querySelector('.composer-surface-chrome')) ??
+      box(document.querySelector('.dream-skin-composer')) ??
+      box(document.querySelector('[class*="_ComposerLayoutRoot_"]')) ??
+      box(document.querySelector('.ProseMirror')?.closest('[class]'));
     const sidebar = box(document.querySelector('aside.app-shell-left-panel'));
     const chrome = document.getElementById('codex-dream-skin-chrome');
     const result = {

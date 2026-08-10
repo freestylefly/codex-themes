@@ -366,6 +366,23 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface) > hea
   font: italic 9px/1.2 "Snell Roundhand", "Segoe Print", "Comic Sans MS", cursive;
   letter-spacing: .04em;
 }
+#codex-dream-skin-chrome:not(.dream-skin-home-shell) .dream-skin-composer-stamp {
+  left: 28px;
+  right: auto;
+  bottom: 74px;
+  display: flex;
+  padding: 5px 5px 7px;
+  opacity: .92;
+  transform: rotate(-4deg);
+}
+#codex-dream-skin-chrome:not(.dream-skin-home-shell) .dream-skin-composer-stamp img {
+  width: 46px;
+  height: 46px;
+}
+#codex-dream-skin-chrome:not(.dream-skin-home-shell) .dream-skin-composer-stamp span {
+  max-width: 64px;
+  font-size: 8px;
+}
 
 /* Corner stickers. */
 .dream-skin-corner {
@@ -1590,6 +1607,10 @@ html.codex-dream-skin--minimal-focus .dream-skin-orbit,
 html.codex-dream-skin--minimal-focus .dream-skin-corner,
 html.codex-dream-skin--minimal-focus .dream-skin-washi,
 html.codex-dream-skin--minimal-focus .dream-skin-composer-stamp { display: none !important; }
+
+#codex-dream-skin-chrome:not(.dream-skin-home-shell) .dream-skin-composer-stamp {
+  display: flex !important;
+}
 
 html.codex-dream-skin--minimal-focus .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
   width: 78% !important;
