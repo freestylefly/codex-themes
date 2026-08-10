@@ -736,6 +736,21 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.
   backdrop-filter: none !important;
 }
 
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::before,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::after {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::before,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::after {
+  content: none !important;
+  display: none !important;
+}
+
 .dream-skin-home div:has(> .horizontal-scroll-fade-mask .group\/project-selector) {
   position: relative;
   padding-top: 28px !important;
@@ -3571,11 +3586,20 @@ html.codex-dream-skin[data-dream-theme="focus-capybara"] :is(main.main-surface, 
 
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer),
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer)::before,
-html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer)::after {
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer)::after,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::before,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::after {
   border-color: transparent !important;
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+}
+
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::before,
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::after {
+  content: none !important;
+  display: none !important;
 }
 
 @media (max-width: 760px) {

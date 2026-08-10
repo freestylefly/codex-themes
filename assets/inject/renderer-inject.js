@@ -973,6 +973,7 @@
       composerDock;
     if (composerRoot instanceof HTMLElement) composerRoot.classList.add("dream-skin-composer");
     if (composerDock instanceof HTMLElement && composerDock !== composerRoot) {
+      composerDock.classList.remove("dream-skin-composer");
       composerDock.classList.add("dream-skin-composer-dock");
     }
     if (composerRoot instanceof HTMLElement) {
@@ -980,6 +981,9 @@
       for (let node = composerRoot.parentElement; node && node !== shellMain && depth < 3; node = node.parentElement, depth += 1) {
         node.classList.add("dream-skin-composer-dock");
       }
+    }
+    if (composerDock instanceof HTMLElement && composerDock !== composerRoot) {
+      composerDock.classList.remove("dream-skin-composer");
     }
 
     for (const candidate of document.querySelectorAll('[role="main"].dream-skin-home, .dream-skin-role-main.dream-skin-home')) {
