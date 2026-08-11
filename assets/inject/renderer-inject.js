@@ -845,6 +845,7 @@
     document.querySelectorAll(".dream-skin-home-shell").forEach((node) => node.classList.remove("dream-skin-home-shell"));
     document.querySelectorAll(".dream-skin-main-surface").forEach((node) => node.classList.remove("dream-skin-main-surface"));
     document.querySelectorAll(".dream-skin-composer").forEach((node) => node.classList.remove("dream-skin-composer"));
+    document.querySelectorAll(".dream-skin-composer-dock").forEach((node) => node.classList.remove("dream-skin-composer-dock"));
     document.querySelectorAll(".dream-skin-role-main").forEach((node) => node.classList.remove("dream-skin-role-main"));
     document.getElementById(MOONLIT_WELCOME_ID)?.remove();
     document.getElementById(BLUE_WINDOW_HOME_ID)?.remove();
@@ -964,12 +965,26 @@
     if (mainContentSurface && mainContentSurface !== shellMain) {
       mainContentSurface.classList.add("dream-skin-role-main");
     }
+    const composerDock = shellMain?.querySelector('[class*="_ComposerLayoutRoot_"]') || null;
     const composerRoot =
       document.querySelector(".composer-surface-chrome") ||
-      shellMain?.querySelector('[class*="_ComposerLayoutRoot_"]') ||
-      shellMain?.querySelector('.ProseMirror')?.closest('[class*="_Composer"]') ||
-      shellMain?.querySelector('[contenteditable="true"]')?.closest('[class*="_Composer"]');
+      shellMain?.querySelector('.ProseMirror')?.closest('[class*="_Composer"]:not([class*="_ComposerLayoutRoot_"])') ||
+      shellMain?.querySelector('[contenteditable="true"]')?.closest('[class*="_Composer"]:not([class*="_ComposerLayoutRoot_"])') ||
+      composerDock;
     if (composerRoot instanceof HTMLElement) composerRoot.classList.add("dream-skin-composer");
+    if (composerDock instanceof HTMLElement && composerDock !== composerRoot) {
+      composerDock.classList.remove("dream-skin-composer");
+      composerDock.classList.add("dream-skin-composer-dock");
+    }
+    if (composerRoot instanceof HTMLElement) {
+      let depth = 0;
+      for (let node = composerRoot.parentElement; node && node !== shellMain && depth < 3; node = node.parentElement, depth += 1) {
+        node.classList.add("dream-skin-composer-dock");
+      }
+    }
+    if (composerDock instanceof HTMLElement && composerDock !== composerRoot) {
+      composerDock.classList.remove("dream-skin-composer");
+    }
 
     for (const candidate of document.querySelectorAll('[role="main"].dream-skin-home, .dream-skin-role-main.dream-skin-home')) {
       if (candidate !== layoutHome) candidate.classList.remove("dream-skin-home");
