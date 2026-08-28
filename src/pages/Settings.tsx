@@ -36,6 +36,13 @@ export function Settings() {
           ? `已登录 · ${cli.authMode ?? "未知账号"} · 图片生成 ${cli.imageGeneration ? "可用" : "不可用"}`
           : "未登录"
         : cli.error ?? "App Server 未运行";
+  const injectionStatusText = !state.watcherActive
+    ? state.activeThemeId
+      ? "未运行，当前主题尚未注入"
+      : "未运行"
+    : state.watcherSessionCount > 0
+      ? `已连接 ${state.watcherSessionCount} 个 Codex 窗口(刷新/新窗口自动重注入)`
+      : "运行中，等待有效 Codex 页面";
 
   return (
     <div className="page">
@@ -112,8 +119,10 @@ export function Settings() {
         </div>
         <div className="kv-row">
           <span className="kv-key">注入守护</span>
-          <span className="kv-value">
-            {state.watcherActive ? "运行中(刷新/新窗口自动重注入)" : "未运行"}
+          <span
+            className={`kv-value${state.watcherActive && state.watcherSessionCount === 0 ? " faint" : ""}`}
+          >
+            {injectionStatusText}
           </span>
         </div>
         <div className="row-actions">

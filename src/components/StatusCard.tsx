@@ -5,9 +5,15 @@ export function StatusCard() {
   const state = useApp((s) => s.state);
   if (!state) return null;
 
+  const themeConnected = state.watcherSessionCount > 0;
   const themeRow = state.activeThemeName
-    ? { dot: "ok", text: state.activeThemeName }
+    ? { dot: themeConnected ? "ok" : "warn", text: state.activeThemeName }
     : { dot: "", text: "官方外观" };
+  const watcherText = themeConnected
+    ? `已注入 ${state.watcherSessionCount}`
+    : state.watcherActive
+      ? "等待注入"
+      : "未守护";
   const codexRow = !state.codexDesktop.installed
     ? { dot: "err", text: "未安装 Codex" }
     : state.codexDesktop.cdpHealthy
@@ -24,7 +30,7 @@ export function StatusCard() {
         <span className="grow" title={themeRow.text}>
           {themeRow.text}
         </span>
-        {state.watcherActive && <span className="status-watcher">守护中</span>}
+        {state.activeThemeName && <span className="status-watcher">{watcherText}</span>}
       </div>
       <span className="status-divider" aria-hidden="true" />
       <div className="status-row" title={`Codex · ${codexRow.text}`}>

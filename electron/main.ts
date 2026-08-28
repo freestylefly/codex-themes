@@ -424,7 +424,7 @@ async function requestQuit(): Promise<void> {
   quitRequestPending = true;
   const state = controller.getState();
   try {
-    if (state.activeThemeId && mainWindow) {
+    if (state.activeThemeId && state.watcherSessionCount > 0 && mainWindow) {
       const { response } = await dialog.showMessageBox(mainWindow, {
         type: "info",
         title: "退出 Codex Themes",

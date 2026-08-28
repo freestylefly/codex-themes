@@ -319,6 +319,7 @@ export class ThemeController extends EventEmitter {
       activeThemeName: this.persisted.activeThemeName,
       activeLayout: this.persisted.activeLayout,
       watcherActive: this.watcher?.active ?? false,
+      watcherSessionCount: this.watcher?.sessionCount ?? 0,
       applying: this.applying,
       lastError: this.lastError,
       engineVersion: SKIN_VERSION,

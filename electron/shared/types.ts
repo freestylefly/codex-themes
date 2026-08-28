@@ -574,6 +574,7 @@ export interface AppState {
   activeThemeName: string | null;
   activeLayout: LayoutKind | null;
   watcherActive: boolean;
+  watcherSessionCount: number;
   applying: boolean;
   lastError: string | null;
   engineVersion: string;

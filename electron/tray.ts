@@ -34,9 +34,13 @@ export class AppTray {
     const active = this.state.activeThemeName;
     const statusLabel = this.state.applying
       ? "正在应用主题…"
-      : active
-        ? `主题已激活:${active}`
-        : "官方外观(未应用主题)";
+      : active && this.state.watcherSessionCount > 0
+        ? `主题已生效:${active}`
+        : active && this.state.watcherActive
+          ? `主题等待注入:${active}`
+          : active
+            ? `主题已选择:${active}`
+            : "官方外观(未应用主题)";
     const codexLabel = !this.state.codexDesktop.installed
       ? "未安装 Codex"
       : this.state.codexDesktop.cdpHealthy
