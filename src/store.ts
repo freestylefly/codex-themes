@@ -25,6 +25,7 @@ import type {
   ThemeEntitlement,
   ThemeGenerationRequest,
   ThemeProduct,
+  ThemeSource,
   ThemeSubmission,
   ThemeSubmissionStatus,
   ThemeSummary,
@@ -50,6 +51,7 @@ interface AppStore {
   toasts: Toast[];
   applyingId: string | null;
   pendingRestartThemeId: string | null;
+  pendingRestartThemeSource: ThemeSource | null;
   pendingWebThemeId: string | null;
   aiJobs: AiThemeJobSummary[];
   activeAiJob: AiThemeJob | null;
@@ -82,7 +84,7 @@ interface AppStore {
   dismissToast(id: number): void;
   showAuthPrompt(): void;
   dismissAuthPrompt(): void;
-  apply(id: string): Promise<void>;
+  apply(id: string, source?: ThemeSource): Promise<void>;
   confirmRestartAndApply(): Promise<void>;
   cancelRestart(): void;
   confirmWebTheme(): Promise<void>;
@@ -192,6 +194,7 @@ export const useApp = create<AppStore>((set, get) => ({
   toasts: [],
   applyingId: null,
   pendingRestartThemeId: null,
+  pendingRestartThemeSource: null,
   pendingWebThemeId: null,
   aiJobs: [],
   activeAiJob: null,
@@ -384,7 +387,7 @@ export const useApp = create<AppStore>((set, get) => ({
     set({ authPromptOpen: false });
   },
 
-  async apply(id) {
+  async apply(id, source) {
     const current = get();
     if (current.applyingId) return;
     const theme = current.themes.find((candidate) => candidate.id === id);
@@ -407,9 +410,9 @@ export const useApp = create<AppStore>((set, get) => ({
         const downloaded = await get().downloadPurchasedTheme(id);
         if (!downloaded) return;
       }
-      const result = await api.applyTheme(id);
+      const result = await api.applyTheme(id, { source });
       if (result.needsRestart) {
-        set({ pendingRestartThemeId: id });
+        set({ pendingRestartThemeId: id, pendingRestartThemeSource: source ?? null });
         return;
       }
       reportApplyResult(result.status, result.notes, result.error, get().toast);
@@ -423,9 +426,10 @@ export const useApp = create<AppStore>((set, get) => ({
   async confirmRestartAndApply() {
     const id = get().pendingRestartThemeId;
     if (!id) return;
-    set({ pendingRestartThemeId: null, applyingId: id });
+    const source = get().pendingRestartThemeSource ?? undefined;
+    set({ pendingRestartThemeId: null, pendingRestartThemeSource: null, applyingId: id });
     try {
-      const result = await api.applyTheme(id, { confirmRestart: true });
+      const result = await api.applyTheme(id, { confirmRestart: true, source });
       reportApplyResult(result.status, result.notes, result.error, get().toast);
     } catch (error) {
       get().toast("err", `应用失败:${(error as Error).message}`);
@@ -435,7 +439,7 @@ export const useApp = create<AppStore>((set, get) => ({
   },
 
   cancelRestart() {
-    set({ pendingRestartThemeId: null });
+    set({ pendingRestartThemeId: null, pendingRestartThemeSource: null });
   },
 
   async confirmWebTheme() {
@@ -451,7 +455,7 @@ export const useApp = create<AppStore>((set, get) => ({
       await get().purchaseTheme(id);
       return;
     }
-    await get().apply(id);
+    await get().apply(id, "preset");
   },
 
   cancelWebTheme() {
@@ -567,7 +571,7 @@ export const useApp = create<AppStore>((set, get) => ({
         activeAiJob: s.activeAiJob?.jobId === jobId ? job : s.activeAiJob,
       }));
       if (result.apply.needsRestart) {
-        set({ pendingRestartThemeId: result.theme.id });
+        set({ pendingRestartThemeId: result.theme.id, pendingRestartThemeSource: result.theme.source });
         return;
       }
       reportApplyResult(result.apply.status, result.apply.notes, result.apply.error, get().toast);

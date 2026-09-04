@@ -106,7 +106,7 @@ export function Gallery() {
       setInspection(null);
       await refreshThemes();
       toast("ok", `已导入「${installed.name}」。`);
-      void apply(installed.id);
+      void apply(installed.id, installed.source);
     } catch (error) {
       toast("err", `导入失败:${(error as Error).message}`);
     }

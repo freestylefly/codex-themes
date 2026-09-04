@@ -216,6 +216,45 @@ describe("ThemeStore package inspection", () => {
     assert.equal(resolved, purchasedDir);
   });
 
+  it("honors the selected library source when duplicate theme ids exist", async () => {
+    const presetDir = path.join(root, "presets", "source-collision");
+    const purchasedDir = path.join(purchasedRoot, "source-collision");
+    const baseManifest = JSON.parse(themeJson) as Record<string, unknown>;
+    await Promise.all([
+      fs.mkdir(presetDir, { recursive: true }),
+      fs.mkdir(purchasedDir, { recursive: true }),
+    ]);
+    await Promise.all([
+      fs.writeFile(path.join(presetDir, "theme.json"), JSON.stringify({
+        ...baseManifest,
+        uuid: "550e8400-e29b-41d4-a716-446655440011",
+        id: "source-collision",
+        name: "Preset Theme",
+      })),
+      fs.writeFile(path.join(presetDir, "hero.png"), heroPng),
+      fs.writeFile(path.join(purchasedDir, "theme.json"), JSON.stringify({
+        ...baseManifest,
+        uuid: "550e8400-e29b-41d4-a716-446655440012",
+        id: "source-collision",
+        name: "Purchased Theme",
+      })),
+      fs.writeFile(path.join(purchasedDir, "hero.png"), heroPng),
+    ]);
+
+    const preset = await store.resolveThemeDir("source-collision", {
+      preferPurchased: true,
+      preferredSource: "preset",
+      allowCatalogOnly: false,
+    });
+    const purchased = await store.resolveThemeDir("source-collision", {
+      preferPurchased: true,
+      preferredSource: "purchased",
+      allowCatalogOnly: false,
+    });
+    assert.equal(preset, presetDir);
+    assert.equal(purchased, purchasedDir);
+  });
+
   it("never resolves a catalog-only placeholder as an applicable theme", async () => {
     const placeholderDir = path.join(root, "presets", "preview-only");
     const baseManifest = JSON.parse(themeJson) as Record<string, unknown>;

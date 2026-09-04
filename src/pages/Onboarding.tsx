@@ -79,7 +79,7 @@ export function Onboarding() {
     setEntering(true);
     try {
       await finish();
-      await apply(selectedTheme.id);
+      await apply(selectedTheme.id, selectedTheme.source);
     } finally {
       setEntering(false);
     }

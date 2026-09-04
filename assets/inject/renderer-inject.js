@@ -179,6 +179,120 @@
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const clamp01 = (v) => clamp(Number(v) || 0, 0, 1);
 
+  const HAPPY_DOG_SIDEBAR_ICONS = [
+    ["new-chat", /^(?:新对话|new chat)$/i],
+    ["pull-requests", /^(?:拉取请求|pull requests?)$/i],
+    ["sites", /^(?:站点|sites?)$/i],
+    ["scheduled", /^(?:已安排|scheduled)$/i],
+    ["plugins", /^(?:插件|plugins?)$/i],
+    ["security", /^(?:安全|security)$/i],
+  ];
+  const HAPPY_DOG_SIDEBAR_ACTIONS = [
+    ["search", /(?:^|\s)(?:搜索|search)(?:$|\s)/i],
+    ["activity", /(?:查看活动|activity|notifications?)/i],
+    ["quick-chat", /(?:快速聊天|quick chat)/i],
+    ["profile", /(?:个人资料|profile)/i],
+    ["voice", /(?:语音|voice)/i],
+    ["help", /(?:帮助|help)/i],
+  ];
+  const HAPPY_DOG_CHROME_ACTIONS = [
+    ["sidebar", /(?:隐藏侧边栏|显示侧边栏|hide sidebar|show sidebar)/i],
+    ["back", /^(?:返回|back)$/i],
+    ["forward", /^(?:前进|forward)$/i],
+  ];
+
+  const annotateHappyDogSidebar = () => {
+    if (THEME.id !== "happy-coding-dog") return;
+    const sidebar = document.querySelector("aside.app-shell-left-panel");
+    if (!sidebar) return;
+
+    const interactive = [...sidebar.querySelectorAll("button, a, [role=button]")];
+    for (const item of interactive) {
+      item.removeAttribute("data-dream-dog-icon");
+      item.removeAttribute("data-dream-dog-project");
+      item.removeAttribute("data-dream-dog-action");
+      const text = (item.textContent || "").replace(/\s+/g, " ").trim();
+      const label = `${text} ${item.getAttribute("aria-label") || ""} ${item.title || ""}`
+        .replace(/\s+/g, " ")
+        .trim();
+      const match = HAPPY_DOG_SIDEBAR_ICONS.find(([, pattern]) => pattern.test(text));
+      if (match && item.querySelector("svg")) item.setAttribute("data-dream-dog-icon", match[0]);
+      const action = HAPPY_DOG_SIDEBAR_ACTIONS.find(([, pattern]) => pattern.test(label));
+      if (action) item.setAttribute("data-dream-dog-action", action[0]);
+      if (item.classList.contains("group/folder-row") && item.querySelector("svg")) {
+        item.setAttribute("data-dream-dog-project", "");
+      }
+    }
+
+    sidebar.querySelectorAll('[class*="_Project"], [class*="_Workspace"]').forEach((node) => {
+      const item = node.matches("button, a, [role=button]")
+        ? node
+        : node.closest("button, a, [role=button]");
+      if (item?.querySelector("svg") && !item.hasAttribute("data-dream-dog-icon")) {
+        item.setAttribute("data-dream-dog-project", "");
+      }
+    });
+
+    document.querySelectorAll("button, a, [role=button]").forEach((item) => {
+      item.removeAttribute("data-dream-dog-chrome-action");
+      const label = `${item.getAttribute("aria-label") || ""} ${item.title || ""}`.trim();
+      const action = HAPPY_DOG_CHROME_ACTIONS.find(([, pattern]) => pattern.test(label));
+      if (action && item.querySelector("svg")) {
+        item.setAttribute("data-dream-dog-chrome-action", action[0]);
+      }
+    });
+  };
+
+  const annotateHappyDogResourcePanel = () => {
+    const selector = "[data-dream-dog-resource-panel], [data-dream-dog-resource-header], [data-dream-dog-resource-add], [data-dream-dog-resource-row], [data-dream-dog-resource-view-all]";
+    document.querySelectorAll(selector).forEach((node) => {
+      for (const name of ["panel", "header", "add", "row", "view-all"]) {
+        node.removeAttribute(`data-dream-dog-resource-${name}`);
+      }
+    });
+    if (THEME.id !== "happy-coding-dog") return;
+
+    const sections = [...document.querySelectorAll('section[role="presentation"]')];
+    const findSection = (pattern) => sections.find((section) => {
+      const heading = section.querySelector(":scope > header");
+      return heading && pattern.test((heading.textContent || "").replace(/\s+/g, " ").trim());
+    });
+    const output = findSection(/^(?:输出内容|output)$/i);
+    const sources = findSection(/^(?:来源|sources?)$/i);
+    if (!output || !sources) return;
+
+    let common = output.parentElement;
+    while (common && !common.contains(sources)) common = common.parentElement;
+    if (!common) return;
+    const panel = common.closest('[class*="bg-surface-elevated"]') || common;
+    panel.setAttribute("data-dream-dog-resource-panel", "");
+
+    for (const [section, kind] of [[output, "output"], [sources, "sources"]]) {
+      const header = section.querySelector(":scope > header");
+      if (!header) continue;
+      header.setAttribute("data-dream-dog-resource-header", kind);
+      [...header.querySelectorAll("button")]
+        .filter((button) => !button.classList.contains("group/section-toggle"))
+        .forEach((button) => button.setAttribute("data-dream-dog-resource-add", kind));
+    }
+
+    const rows = [...output.querySelectorAll('[data-slot="thread-summary-panel-item-button"]'),
+      ...sources.querySelectorAll('[data-slot="thread-summary-panel-item-button"]')];
+    rows.forEach((row) => {
+      const label = `${row.getAttribute("aria-label") || ""} ${row.textContent || ""}`.trim();
+      if (/^(?:查看全部|view all)$/i.test((row.textContent || "").trim())) {
+        row.setAttribute("data-dream-dog-resource-view-all", "");
+        row.setAttribute("data-dream-dog-resource-row", "link");
+      } else if (/(?:创建文件或站点|create (?:a )?(?:file|site))/i.test(label)) {
+        row.setAttribute("data-dream-dog-resource-row", "create");
+      } else if (/\.(?:png|jpe?g|gif|webp|svg|avif)\b/i.test(label)) {
+        row.setAttribute("data-dream-dog-resource-row", "image");
+      } else {
+        row.setAttribute("data-dream-dog-resource-row", "file");
+      }
+    });
+  };
+
   const hexToRgb = (hex) => {
     const m = /^#([0-9a-f]{6})$/i.exec(hex.trim());
     if (!m) return null;
@@ -876,6 +990,8 @@
     root.classList.add("codex-dream-skin");
     root.classList.remove(...LAYOUT_CLASSES);
     root.classList.add(`codex-dream-skin--${layout}`);
+    annotateHappyDogSidebar();
+    annotateHappyDogResourcePanel();
     root.classList.toggle("codex-dream-skin--dark", shell === "dark");
     root.classList.toggle("codex-dream-skin--light", shell === "light");
     root.setAttribute(SHELL_ATTR, shell);
@@ -950,28 +1066,146 @@
         cinematicUi?.classList.contains("is-home") &&
         isRenderedElement(cinematicUi);
       const visibleThemeHome = visibleBlueWindowHome || Boolean(visibleCinematicHome);
+      const visibleWelcome = [...candidate.querySelectorAll("h1,h2,h3,p")].some((node) =>
+        /我们应该在.+中做些什么|What should we do in/i.test((node.textContent || "").trim()) &&
+        isRenderedElement(node));
       return isActiveHomeSurface({
         withinShell: candidate === shellMain || Boolean(shellMain?.contains(candidate)),
         connected: candidate.isConnected,
         rendered: isRenderedElement(candidate),
         visibleThemeHome,
+        visibleWelcome,
         visibleGameSource: isRenderedElement(candidate.querySelector('[data-feature="game-source"]')),
         visibleSuggestions: isRenderedElement(candidate.querySelector('.group\\/home-suggestions')),
         visibleTaskContent,
       });
     }) || null;
     const layoutHome = PRESERVE_NATIVE_LAYOUT ? null : home;
+    document.querySelectorAll(".dream-skin-happy-home-title,.dream-skin-happy-home-voice").forEach((node) => {
+      node.classList.remove("dream-skin-happy-home-title", "dream-skin-happy-home-voice");
+    });
+    document.querySelectorAll(".dream-skin-native-home-dog").forEach((node) => {
+      if (!home || node.parentElement !== home) node.remove();
+    });
+    if (THEME.id === "happy-coding-dog" && home) {
+      home.classList.add("dream-skin-happy-home-canvas");
+      let nativeHomeDog = home.querySelector(":scope > .dream-skin-native-home-dog");
+      if (!nativeHomeDog) {
+        nativeHomeDog = document.createElement("img");
+        nativeHomeDog.className = "dream-skin-native-home-dog";
+        nativeHomeDog.alt = "";
+        home.prepend(nativeHomeDog);
+      }
+      if (nativeHomeDog.getAttribute("src") !== artUrl) nativeHomeDog.setAttribute("src", artUrl);
+      shellMain.querySelectorAll(".group\\/home-suggestions button").forEach((button, index) => {
+        button.classList.add(`dream-skin-happy-home-card-${index + 1}`);
+      });
+      const visibleHomeNodes = [...shellMain.querySelectorAll("h1,h2,h3,p,div")];
+      const welcomeNode = visibleHomeNodes.find((node) => {
+        const text = (node.textContent || "").trim();
+        const rect = node.getBoundingClientRect();
+        return node.children.length <= 2 && /我们应该在.+中做些什么|What should we do in/i.test(text) &&
+          rect.width > 180 && rect.height > 20 && rect.height < 130;
+      });
+      const homeTitle = welcomeNode?.closest("h1,h2,h3") || welcomeNode;
+      homeTitle?.classList.add("dream-skin-happy-home-title");
+
+      const nativeSuggestions = home.querySelector(
+        ".group\\/home-suggestions:not(.dream-skin-happy-fallback-suggestions)",
+      );
+      let fallbackSuggestions = home.querySelector(".dream-skin-happy-fallback-suggestions");
+      if (!nativeSuggestions && homeTitle && !fallbackSuggestions) {
+        const suggestionHost = homeTitle.querySelector(':scope > [class*="top-full"]');
+        if (suggestionHost) {
+          fallbackSuggestions = suggestionHost;
+          fallbackSuggestions.classList.add(
+            "group/home-suggestions",
+            "dream-skin-happy-fallback-suggestions",
+          );
+          fallbackSuggestions.innerHTML = `
+            <div class="dream-skin-happy-fallback-grid">
+              <div><button type="button" data-happy-suggestion="understand"><span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 15 6m-8 5-3 3 3 3m10-6 3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span>探索并理解代码</span></button></div>
+              <div><button type="button" data-happy-suggestion="build"><span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></span><span>构建新功能、应用或工具</span></button></div>
+              <div><button type="button" data-happy-suggestion="review"><span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 1 0 7.4 5M12 8v4l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span>审查代码并提出修改建议</span></button></div>
+              <div><button type="button" data-happy-suggestion="fix"><span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6 4 4M5 19l3.5-1 9-9-2.5-2.5-9 9L5 19Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span>修复问题和失败</span></button></div>
+            </div>`;
+          const prompts = {
+            understand: "探索并理解这个项目的代码结构",
+            build: "构建一个新功能、应用或工具",
+            review: "审查代码并提出修改建议",
+            fix: "定位并修复项目中的问题和失败",
+          };
+          fallbackSuggestions.querySelectorAll("[data-happy-suggestion]").forEach((button, index) => {
+            button.classList.add(`dream-skin-happy-home-card-${index + 1}`);
+            button.addEventListener("click", () => {
+              const prompt = prompts[button.getAttribute("data-happy-suggestion")] || "";
+              const composer = home.querySelector('textarea, [contenteditable="true"]');
+              if (!composer || !prompt) return;
+              if (composer instanceof HTMLTextAreaElement || composer instanceof HTMLInputElement) {
+                const prototype = composer instanceof HTMLTextAreaElement
+                  ? HTMLTextAreaElement.prototype
+                  : HTMLInputElement.prototype;
+                const setter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+                if (setter) setter.call(composer, prompt);
+                else composer.value = prompt;
+              } else {
+                composer.textContent = prompt;
+              }
+              composer.dispatchEvent(new InputEvent("input", {
+                bubbles: true,
+                inputType: "insertText",
+                data: prompt,
+              }));
+              composer.focus();
+            });
+          });
+        }
+      } else if (nativeSuggestions && fallbackSuggestions) {
+        fallbackSuggestions.replaceChildren();
+        fallbackSuggestions.classList.remove(
+          "group/home-suggestions",
+          "dream-skin-happy-fallback-suggestions",
+        );
+      }
+
+      const isHappyVoiceCardCandidate = (node) => {
+        if (!node) return false;
+        const rect = node.getBoundingClientRect();
+        return rect.width >= 420 && rect.height >= 45 && rect.height <= 110;
+      };
+      const voiceLabel = visibleHomeNodes.find((node) =>
+        node.children.length <= 2 &&
+        /试试 ChatGPT 语音|Try ChatGPT voice/i.test((node.textContent || "").trim()) &&
+        isHappyVoiceCardCandidate(node));
+      let voiceCard = voiceLabel;
+      for (let depth = 0; voiceCard?.parentElement && depth < 5; depth += 1) {
+        const parent = voiceCard.parentElement;
+        if (isHappyVoiceCardCandidate(parent)) voiceCard = parent;
+        else break;
+      }
+      if (voiceCard && isHappyVoiceCardCandidate(voiceCard)) {
+        voiceCard.classList.add("dream-skin-happy-home-voice");
+      }
+    }
+    document.querySelectorAll(".dream-skin-happy-home-canvas").forEach((node) => {
+      if (node !== home) node.classList.remove("dream-skin-happy-home-canvas");
+    });
     if (shellMain) shellMain.classList.add("dream-skin-main-surface");
     if (mainContentSurface && mainContentSurface !== shellMain) {
       mainContentSurface.classList.add("dream-skin-role-main");
     }
     const composerDock = shellMain?.querySelector('[class*="_ComposerLayoutRoot_"]') || null;
+    const composerBody = composerDock?.querySelector('[class*="_ComposerLayoutBody_"]') || null;
     const composerRoot =
       document.querySelector(".composer-surface-chrome") ||
+      composerBody ||
       shellMain?.querySelector('.ProseMirror')?.closest('[class*="_Composer"]:not([class*="_ComposerLayoutRoot_"])') ||
       shellMain?.querySelector('[contenteditable="true"]')?.closest('[class*="_Composer"]:not([class*="_ComposerLayoutRoot_"])') ||
       composerDock;
-    if (composerRoot instanceof HTMLElement) composerRoot.classList.add("dream-skin-composer");
+    if (composerRoot instanceof HTMLElement) {
+      composerRoot.classList.remove("dream-skin-composer-dock");
+      composerRoot.classList.add("dream-skin-composer");
+    }
     if (composerDock instanceof HTMLElement && composerDock !== composerRoot) {
       composerDock.classList.remove("dream-skin-composer");
       composerDock.classList.add("dream-skin-composer-dock");
@@ -1002,6 +1236,7 @@
     let chrome = document.getElementById(CHROME_ID);
     const chromeIsCurrent = Boolean(
       chrome?.querySelector(".dream-skin-composer-stamp img") &&
+      chrome?.querySelector(".dream-skin-home-dog-backdrop") &&
       chrome?.querySelector(".dream-skin-retro-mascot") &&
       chrome?.querySelector(".dream-skin-retro-friend-avatar") &&
       chrome?.querySelector(".dream-skin-retro-friend-search") &&
@@ -1013,6 +1248,7 @@
       chrome.id = CHROME_ID;
       chrome.setAttribute("aria-hidden", "true");
       chrome.innerHTML = `
+        <img class="dream-skin-home-dog-backdrop" alt="">
         <div class="dream-skin-brand">
           <span class="dream-skin-portal-mark">✦</span>
           <span><b></b><small></small></span>
@@ -1131,7 +1367,67 @@
       /[A-Za-z][A-Za-z' ]+/.exec(themeName)?.[0].trim() || themeName;
     const stampImg = chrome.querySelector(".dream-skin-composer-stamp img");
     if (stampImg.getAttribute("src") !== stampUrl) stampImg.setAttribute("src", stampUrl);
-    chrome.querySelector(".dream-skin-composer-stamp span").textContent = copy.quote || "MAKE SOMETHING WONDERFUL";
+    const homeDogBackdrop = chrome.querySelector(".dream-skin-home-dog-backdrop");
+    if (homeDogBackdrop.getAttribute("src") !== artUrl) homeDogBackdrop.setAttribute("src", artUrl);
+    const stampLabel = chrome.querySelector(".dream-skin-composer-stamp span");
+    const stampCopy = copy.quote || "MAKE SOMETHING WONDERFUL";
+    if (THEME.id === "happy-coding-dog" && stampCopy.includes("，")) {
+      const splitAt = stampCopy.indexOf("，") + 1;
+      stampLabel.replaceChildren(
+        document.createTextNode(stampCopy.slice(0, splitAt)),
+        document.createElement("br"),
+        document.createTextNode(stampCopy.slice(splitAt)),
+      );
+    } else {
+      stampLabel.textContent = stampCopy;
+    }
+    if (THEME.id === "happy-coding-dog") {
+      const reviewClasses = [
+        "dream-skin-review-toolbar",
+        "dream-skin-review-tab",
+        "dream-skin-review-close",
+        "dream-skin-review-add",
+        "dream-skin-review-action",
+      ];
+      document.querySelectorAll(reviewClasses.map((name) => `.${name}`).join(",")).forEach((node) => {
+        reviewClasses.forEach((name) => node.classList.remove(name));
+      });
+
+      const reviewLabel = [...document.querySelectorAll("button,[role=\"tab\"],[role=\"button\"],span,div")].find((node) => {
+        const rect = node.getBoundingClientRect();
+        return node.children.length <= 3 && /^(审查|Review)$/i.test((node.textContent || "").trim()) &&
+          rect.width > 0 && rect.width < 320 && rect.height > 0 && rect.top < 84;
+      });
+      const reviewTab = reviewLabel?.closest("button,[role=\"tab\"],[role=\"button\"]") || reviewLabel?.parentElement;
+      let reviewToolbar = null;
+      if (reviewTab) {
+        reviewTab.classList.add("dream-skin-review-tab");
+        let candidate = reviewTab.parentElement;
+        for (let depth = 0; candidate && depth < 8; depth += 1, candidate = candidate.parentElement) {
+          const rect = candidate.getBoundingClientRect();
+          if (rect.top < 66 && rect.width > 280 && rect.height >= 34 && rect.height <= 82) reviewToolbar = candidate;
+        }
+      }
+      if (reviewToolbar) {
+        reviewToolbar.classList.add("dream-skin-review-toolbar");
+        reviewToolbar.querySelectorAll("button,[role=\"button\"]").forEach((button) => {
+          if (button === reviewTab) return;
+          const label = `${button.getAttribute("aria-label") || ""} ${button.title || ""} ${button.textContent || ""}`.trim();
+          if (/关闭|close|dismiss|^[×x]$/i.test(label)) button.classList.add("dream-skin-review-close");
+          else if (/新建|add|new|^\+$/i.test(label)) button.classList.add("dream-skin-review-add");
+          else button.classList.add("dream-skin-review-action");
+        });
+        root.dataset.dreamReviewOpen = "true";
+      } else {
+        delete root.dataset.dreamReviewOpen;
+      }
+
+      const threadPane = document.querySelector("[data-pip-anchor-host=\"codex-main-thread\"]") ||
+        document.querySelector(".thread-scroll-container")?.parentElement;
+      const threadWidth = threadPane?.getBoundingClientRect().width || 0;
+      if (threadWidth > 0 && threadWidth < 580) root.dataset.dreamThreadNarrow = "true";
+      else delete root.dataset.dreamThreadNarrow;
+    }
     chrome.querySelector(".dream-skin-silk-heading small").textContent = copy.brandSubtitle || "MIRROR LAKE RIBBON";
     chrome.querySelector(".dream-skin-silk-heading span").textContent = THEME.tagline || "一卷湖光，写尽风华。";
     chrome.querySelector(".dream-skin-silk-status span").textContent = copy.statusText || "湖光正明";
@@ -1148,6 +1444,13 @@
     const retroFriendAvatar = chrome.querySelector(".dream-skin-retro-friend-avatar");
     if (retroFriendAvatar.getAttribute("src") !== stampUrl) retroFriendAvatar.setAttribute("src", stampUrl);
     const shellBox = shellMain.getBoundingClientRect();
+    if (THEME.id === "happy-coding-dog" && homeDogBackdrop) {
+      const workspaceBox = (mainContentSurface || shellMain).getBoundingClientRect();
+      homeDogBackdrop.style.left = `${Math.max(0, Math.round(workspaceBox.left - shellBox.left))}px`;
+      homeDogBackdrop.style.top = `${Math.max(59, Math.round(workspaceBox.top - shellBox.top + 59))}px`;
+      homeDogBackdrop.style.width = `${Math.round(workspaceBox.width)}px`;
+      homeDogBackdrop.style.height = `${Math.max(240, Math.round(shellBox.bottom - Math.max(workspaceBox.top + 59, shellBox.top + 59)))}px`;
+    }
     chrome.style.left = `${Math.round(shellBox.left)}px`;
     chrome.style.top = `${Math.round(shellBox.top)}px`;
     chrome.style.width = `${Math.round(shellBox.width)}px`;
@@ -1185,22 +1488,49 @@
   };
 
   const scheduler = { timeout: null };
-  const scheduleEnsure = () => {
-    if (scheduler.timeout) clearTimeout(scheduler.timeout);
-    scheduler.timeout = setTimeout(() => {
-      scheduler.timeout = null;
-      ensure();
-    }, 180);
-  };
-  const observer = new MutationObserver(scheduleEnsure);
-  observer.observe(document.documentElement, {
+  const observerOptions = {
     childList: true,
     subtree: true,
     attributes: true,
     characterData: true,
-    attributeFilter: ["class", "aria-label", "data-theme", "data-appearance", "data-color-mode", "style"],
+    attributeFilter: ["class", "data-theme", "data-appearance", "data-color-mode"],
+  };
+  const THEME_STRUCTURE_SELECTOR = "main, aside.app-shell-left-panel, [class*=_MainContent], [class*=_ComposerLayout], [data-message-author-role], [data-testid=home-icon]";
+  const mutationTouchesThemeStructure = (mutation) =>
+    [...mutation.addedNodes, ...mutation.removedNodes].some((node) =>
+      node.nodeType === Node.ELEMENT_NODE &&
+      (node.matches?.(THEME_STRUCTURE_SELECTOR) || node.querySelector?.(THEME_STRUCTURE_SELECTOR)),
+    );
+  const shouldScheduleEnsure = (mutations) => mutations.some((mutation) => {
+    if (mutation.type === "characterData") return false;
+    if (mutation.type === "childList") return mutationTouchesThemeStructure(mutation);
+    if (mutation.type !== "attributes") return false;
+    if (mutation.attributeName !== "class") return true;
+    return mutation.target === document.documentElement ||
+      mutation.target === document.body ||
+      mutation.target.matches?.("main, aside.app-shell-left-panel");
   });
-  const timer = setInterval(ensure, 4000);
+  let observer = null;
+  const runEnsure = () => {
+    observer.disconnect();
+    try {
+      ensure();
+    } finally {
+      observer.observe(document.documentElement, observerOptions);
+    }
+  };
+  const scheduleEnsure = () => {
+    if (scheduler.timeout) clearTimeout(scheduler.timeout);
+    scheduler.timeout = setTimeout(() => {
+      scheduler.timeout = null;
+      runEnsure();
+    }, 180);
+  };
+  observer = new MutationObserver((mutations) => {
+    if (shouldScheduleEnsure(mutations)) scheduleEnsure();
+  });
+  observer.observe(document.documentElement, observerOptions);
+  const timer = setInterval(runEnsure, 4000);
   const resizeHandler = scheduleEnsure;
   window.addEventListener("resize", resizeHandler, { passive: true });
 
@@ -1251,6 +1581,6 @@
     detectProductMode,
     productMode: detectProductMode(),
   };
-  ensure();
+  runEnsure();
   return { installed: true, version: VERSION, themeId: THEME.id || "custom", shell: detectShellMode() };
 })(__DREAM_SKIN_CSS_JSON__, __DREAM_SKIN_ART_JSON__, __DREAM_SKIN_WALLPAPER_JSON__, __DREAM_SKIN_STAMP_JSON__, __DREAM_SKIN_MOTION_JSON__, __DREAM_SKIN_MOTION_POSTER_JSON__, __DREAM_SKIN_THEME_JSON__, __DREAM_SKIN_VARS_JSON__, __DREAM_SKIN_VERSION_JSON__)

@@ -581,6 +581,11 @@ export interface AppState {
 
 export type ApplyStatus = "applied" | "partial" | "failed";
 
+export interface ApplyThemeOptions {
+  confirmRestart?: boolean;
+  source?: ThemeSource;
+}
+
 export interface ApplyResult {
   ok: boolean;
   status: ApplyStatus;
@@ -988,7 +993,7 @@ export interface CodexThemesApi {
   openAppUpdateRelease(): Promise<void>;
   openAppUpdateDownload(): Promise<void>;
   listThemes(): Promise<ThemeSummary[]>;
-  applyTheme(id: string, opts?: { confirmRestart?: boolean }): Promise<ApplyResult>;
+  applyTheme(id: string, opts?: ApplyThemeOptions): Promise<ApplyResult>;
   restoreOfficial(): Promise<{ ok: boolean; error?: string }>;
   openCodex(): Promise<{ ok: boolean; error?: string }>;
   selectCodexDesktop(): Promise<string | null>;

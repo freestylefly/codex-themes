@@ -217,6 +217,37 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface) > hea
   backdrop-filter: none !important;
 }
 
+html.codex-dream-skin :is(
+  header.app-header-tint,
+  [class*="_AppHeader_"],
+  [class*="_TitleBar_"],
+  [class*="_Titlebar_"],
+  [class*="_TopBar_"]
+) {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--ds-panel) 88%, transparent),
+      color-mix(in srgb, var(--ds-panel-2) 84%, transparent),
+      color-mix(in srgb, var(--ds-lime) 10%, var(--ds-panel-2))) !important;
+  border-color: color-mix(in srgb, var(--ds-text) 8%, transparent) !important;
+  color: color-mix(in srgb, var(--ds-text) 88%, var(--ds-muted)) !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, white 42%, transparent) inset !important;
+  backdrop-filter: blur(18px) saturate(112%) !important;
+}
+
+html.codex-dream-skin :is(
+  header.app-header-tint,
+  [class*="_AppHeader_"],
+  [class*="_TitleBar_"],
+  [class*="_Titlebar_"],
+  [class*="_TopBar_"]
+) :where(button, [role="button"]) {
+  color: color-mix(in srgb, var(--ds-text) 78%, var(--ds-muted)) !important;
+  background: color-mix(in srgb, var(--ds-panel) 56%, transparent) !important;
+  border-color: color-mix(in srgb, var(--ds-text) 8%, transparent) !important;
+  box-shadow: none !important;
+}
+
 /* ------------------------------------------------------- decoration layer */
 
 #codex-dream-skin-chrome {
@@ -225,6 +256,273 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface) > hea
   pointer-events: none;
   overflow: hidden;
   border-radius: 24px 0 0 0;
+}
+
+.dream-skin-home-dog-backdrop { display: none; }
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-home-dog-backdrop {
+  position: absolute !important;
+  z-index: 2 !important;
+  right: auto !important;
+  display: none !important;
+  object-fit: cover !important;
+  object-position: center 42% !important;
+  opacity: 1 !important;
+  filter: saturate(112%) contrast(103%) !important;
+  transform: none !important;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 88%, transparent 100%) !important;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 88%, transparent 100%) !important;
+  pointer-events: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-happy-home-canvas {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  scrollbar-gutter: auto !important;
+  background: var(--dog-paper) !important;
+}
+
+/* With a workspace wallpaper active, the legacy hero-art layers (a full-canvas
+   <img> and the faint ghost pseudo) would paint a second, differently-scaled
+   copy of the artwork on top and read as a visible seam. Let the wallpaper
+   carry the whole home surface instead. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-wallpaper="true"] .dream-skin-happy-home-canvas > .dream-skin-native-home-dog {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-wallpaper="true"] main.dream-skin-home-shell::before {
+  content: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-wallpaper="true"] main.dream-skin-home-shell {
+  background:
+    var(--dream-skin-wallpaper) var(--ds-wallpaper-position) / cover no-repeat,
+    var(--dog-paper) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-wallpaper="true"] .dream-skin-happy-home-canvas {
+  background: transparent !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_MainContentTopFade_"] {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell header.app-header-tint {
+  background: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_MainContentViewport_"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_MainContentViewport_"]::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_MainContentViewport_"]::after,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell::after,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class~="draggable"][class*="grid-cols-"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_MainContentViewport_"] [class*="contain:layout_paint"] {
+  background: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-happy-home-canvas > .dream-skin-native-home-dog {
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  filter: saturate(112%) contrast(103%) !important;
+  pointer-events: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-happy-home-canvas > :not(.dream-skin-native-home-dog) {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-happy-home-canvas > div,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-happy-home-canvas > div > div {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+@media (max-width: 1180px) {
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-home-dog-backdrop {
+    opacity: 1 !important;
+  }
+}
+
+/* Opaque poster foreground composed around the full-color dog artwork. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-title {
+  position: relative !important;
+  z-index: 4 !important;
+  width: min(650px, calc(100vw - 80px)) !important;
+  margin-inline: auto !important;
+  padding: 13px 24px 15px !important;
+  border: 4px solid var(--dog-ink) !important;
+  border-radius: 20px 12px 22px 14px !important;
+  background:
+    repeating-linear-gradient(2deg, rgba(255,255,255,.14) 0 2px, transparent 2px 9px),
+    var(--dog-yellow) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 8px 8px 0 var(--dog-ink) !important;
+  font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", system-ui, sans-serif !important;
+  font-weight: 950 !important;
+  text-align: center !important;
+  transform: translateX(clamp(-280px, -15vw, -110px)) rotate(-.7deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-title::before {
+  content: "HAPPY CODING!" !important;
+  position: absolute !important;
+  left: 18px !important;
+  top: -24px !important;
+  padding: 4px 10px !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 999px 850px 999px 900px !important;
+  background: #8eddea !important;
+  box-shadow: 3px 3px 0 var(--dog-ink) !important;
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+  transform: rotate(-4deg) !important;
+}
+
+/* Pink washi tape holding the title card's top-right corner. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-title::after {
+  content: "" !important;
+  position: absolute !important;
+  top: -13px !important;
+  right: 46px !important;
+  width: 88px !important;
+  height: 24px !important;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 7px, rgba(255,255,255,.12) 7px 14px),
+    #f58bb7 !important;
+  opacity: .88 !important;
+  transform: rotate(4.5deg) !important;
+  box-shadow: 0 2px 3px rgba(32, 32, 29, .18) !important;
+  pointer-events: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions {
+  position: relative !important;
+  z-index: 4 !important;
+  width: min(720px, calc(100vw - 70px)) !important;
+  margin-inline: auto !important;
+  transform: translateX(clamp(-280px, -15vw, -110px)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions button {
+  background-image: repeating-linear-gradient(3deg, rgba(255,255,255,.12) 0 2px, transparent 2px 9px) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions .grid > :nth-child(1) > button { background-color: #67d1df !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions .grid > :nth-child(2) > button { background-color: #91d14b !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions .grid > :nth-child(3) > button { background-color: #ff6857 !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions .grid > :nth-child(4) > button { background-color: #ffd84a !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions .grid > :nth-child(1) > button span:has(> svg) { background-color: #ffd84a !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions .grid > :nth-child(2) > button span:has(> svg) { background-color: #fffaf0 !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions .grid > :nth-child(3) > button span:has(> svg) { background-color: #ffd84a !important; }
+
+/* Plan B: quote text centered in the card, star coin pinned to the left edge like a sticker. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-title {
+  align-items: center !important;
+}
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-title > div:first-child {
+  align-items: center !important;
+}
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-title .size-14 {
+  position: absolute !important;
+  left: -32px !important;
+  top: 50% !important;
+  transform: translateY(-50%) rotate(-10deg) !important;
+  opacity: 1 !important;
+}
+
+/* Squiggle hugs the quote text: painted on the heading itself, width follows the text. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-title .heading-xl {
+  padding-bottom: 13px !important;
+  background:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="460" height="12" viewBox="0 0 460 12" preserveAspectRatio="none"><path d="M2 8 Q8 2 14 8 T37 8 T60 8 T83 8 T106 8 T129 8 T152 8 T175 8 T198 8 T221 8 T244 8 T267 8 T290 8 T313 8 T336 8 T359 8 T382 8 T405 8 T428 8 T451 8" stroke="%23f04f3d" stroke-width="4" fill="none" stroke-linecap="round"/></svg>') center bottom / 100% 11px no-repeat !important;
+}
+
+/* Doodles floating in the gap between the title card and the suggestion cards. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions::before {
+  content: "" !important;
+  position: absolute !important;
+  top: -34px !important;
+  left: -6px !important;
+  width: 30px !important;
+  height: 30px !important;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5 L14.6 8.7 L21.4 9.2 L16.2 13.6 L17.9 20.3 L12 16.6 L6.1 20.3 L7.8 13.6 L2.6 9.2 L9.4 8.7 Z" fill="%23ffd84a" stroke="%2320201d" stroke-width="1.6" stroke-linejoin="round"/></svg>') center / contain no-repeat !important;
+  transform: rotate(-14deg) !important;
+  pointer-events: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions::after {
+  content: "" !important;
+  position: absolute !important;
+  top: -30px !important;
+  right: 6px !important;
+  width: 26px !important;
+  height: 26px !important;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20.5 C6 15.2 2.8 11.6 2.8 8.3 C2.8 5.3 5.2 3.2 7.9 3.2 C9.7 3.2 11.2 4.2 12 5.7 C12.8 4.2 14.3 3.2 16.1 3.2 C18.8 3.2 21.2 5.3 21.2 8.3 C21.2 11.6 18 15.2 12 20.5 Z" fill="%23f04f3d" stroke="%2320201d" stroke-width="1.6" stroke-linejoin="round"/></svg>') center / contain no-repeat !important;
+  transform: rotate(10deg) !important;
+  pointer-events: none !important;
+}
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-card-1 { background-color: #ffd84a !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-card-2 { background-color: #67d1df !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-card-3 { background-color: #91d14b !important; }
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-card-4 { background-color: #ff6857 !important; }
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-home-voice {
+  position: relative !important;
+  z-index: 5 !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 16px 10px 18px 12px !important;
+  background:
+    repeating-linear-gradient(2deg, rgba(255,255,255,.15) 0 2px, transparent 2px 8px),
+    #8eddea !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 6px 6px 0 var(--dog-ink) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell div:has(> .horizontal-scroll-fade-mask .group\/project-selector) {
+  position: relative !important;
+  z-index: 5 !important;
+  background-color: #67d1df !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .composer-surface-chrome {
+  position: relative !important;
+  z-index: 6 !important;
+  background:
+    linear-gradient(90deg, #ff6857 0 10px, transparent 10px),
+    repeating-linear-gradient(3deg, rgba(255,216,74,.13) 0 2px, transparent 2px 9px),
+    #fff8df !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
+@media (max-width: 1180px) {
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell :where(
+    .dream-skin-happy-home-title,
+    .group\/home-suggestions
+  ) {
+    transform: translateX(-6vw) !important;
+  }
 }
 
 .dream-skin-brand {
@@ -271,6 +569,57 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface) > hea
 }
 .dream-skin-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--ds-green); box-shadow: 0 0 10px var(--ds-green); }
 #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-status { display: flex; }
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-brand {
+  top: 5px !important;
+  /* Clear the native titlebar buttons (sidebar toggle / back / forward span x363-455). */
+  left: 195px !important;
+  padding: 7px 15px 7px 8px !important;
+  background: var(--dog-cream) !important;
+  border: 3px solid var(--dog-coral) !important;
+  border-radius: 999px !important;
+  box-shadow: 4px 4px 0 var(--dog-purple) !important;
+  transform: rotate(-.6deg) !important;
+}
+
+/* Chip shows only the subtitle: hide the bilingual theme name line. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-brand b {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-brand small {
+  margin-top: 0 !important;
+  color: var(--dog-ink) !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  letter-spacing: .1em !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-brand .dream-skin-portal-mark {
+  border: 2px solid var(--dog-ink) !important;
+  background: var(--dog-yellow) !important;
+  color: var(--dog-coral) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-brand :where(b, small) {
+  color: var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-status {
+  top: 10px !important;
+  padding: 6px 12px !important;
+  background: var(--dog-yellow) !important;
+  border: 2px solid var(--dog-ink) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 3px 3px 0 var(--dog-purple) !important;
+  transform: rotate(.7deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-status i {
+  background: var(--dog-coral) !important;
+  box-shadow: 0 0 0 2px var(--dog-cream) !important;
+}
 
 .dream-skin-quote {
   position: absolute;
@@ -711,6 +1060,25 @@ html.codex-dream-skin :is(.composer-surface-chrome, .dream-skin-composer) {
   overflow: visible !important;
 }
 
+/* The unified Codex shell splits its composer into a full-width Body and a
+   narrower Footer. Theme the Body as the single surface and keep the Footer
+   structural, otherwise width rules create a second card inside the dock. */
+html.codex-dream-skin .dream-skin-composer[class*="_ComposerLayoutBody_"] {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+html.codex-dream-skin .dream-skin-composer[class*="_ComposerLayoutBody_"]
+  [class*="_ComposerLayoutFooter_"] {
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
 html.codex-dream-skin :is(.composer-surface-chrome, .dream-skin-composer)::before {
   content: "✦";
   position: absolute;
@@ -732,8 +1100,32 @@ html.codex-dream-skin :is(.composer-surface-chrome, .dream-skin-composer)::befor
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) .dream-skin-composer-dock:not(.dream-skin-composer) {
   border-color: transparent !important;
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+}
+
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell)
+  :where([class*="_ComposerLayoutRoot_"], .dream-skin-composer-dock:not(.dream-skin-composer)) {
+  --composer-background: transparent;
+  --composer-surface-background: transparent;
+  --composer-surface-primary: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell)
+  :where([class*="_ComposerLayoutRoot_"], .dream-skin-composer-dock:not(.dream-skin-composer))
+  > :not(.composer-surface-chrome):not(.dream-skin-composer) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
 }
 
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock,
@@ -741,6 +1133,8 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::after {
   border-color: transparent !important;
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
@@ -823,6 +1217,108 @@ html.codex-dream-skin [data-message-author-role] { border-radius: 18px; }
   .dream-skin-home [data-feature="game-source"]::after { font-size: 11px; margin-top: 9px; }
   .dream-skin-home .group\/home-suggestions button { min-height: 122px !important; font-size: 12px !important; }
   .dream-skin-home .group\/home-suggestions button > span:last-child::after { display: none; }
+}
+
+/* Dynamically tagged review chrome: the app does not expose stable class names here. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-review-toolbar {
+  box-sizing: border-box !important;
+  min-height: 48px !important;
+  padding: 5px 10px !important;
+  gap: 10px !important;
+  border: 0 !important;
+  border-bottom: 3px solid var(--dog-marker-shadow) !important;
+  background:
+    repeating-linear-gradient(2deg, rgba(255,255,255,.14) 0 2px, transparent 2px 8px),
+    linear-gradient(94deg, #ffd84b 0 28%, #8eddea 28% 55%, #9ad85d 55% 78%, #ff6a58 78%) !important;
+  box-shadow: inset 0 -2px 0 rgba(255,255,255,.38) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-review-tab {
+  min-height: 34px !important;
+  padding: 5px 34px 5px 13px !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 8px 11px 7px 10px !important;
+  background: var(--dog-marker-cream) !important;
+  color: var(--dog-marker-shadow) !important;
+  box-shadow: 3px 3px 0 var(--dog-marker-red) !important;
+  font-weight: 900 !important;
+  transform: rotate(-.25deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .dream-skin-review-close,
+  .dream-skin-review-add,
+  .dream-skin-review-action
+) {
+  min-width: 29px !important;
+  min-height: 29px !important;
+  margin-inline: 3px !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 8px 6px 9px 7px !important;
+  color: var(--dog-marker-shadow) !important;
+  box-shadow: 2px 2px 0 var(--dog-marker-shadow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-review-close {
+  background: var(--dog-marker-red) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-review-add {
+  background: var(--dog-marker-green) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-review-action {
+  background: var(--dog-marker-yellow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .dream-skin-review-close,
+  .dream-skin-review-add,
+  .dream-skin-review-action
+):hover {
+  transform: translate(1px, 1px) rotate(-2deg) !important;
+  box-shadow: 1px 1px 0 var(--dog-marker-shadow) !important;
+}
+
+/* Compact dog stamp while review squeezes the conversation pane; reveal the copy on hover. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-thread-narrow="true"] .dream-skin-composer-stamp {
+  left: 10px !important;
+  bottom: 168px !important;
+  width: 62px !important;
+  padding: 5px !important;
+  gap: 2px !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transform: rotate(-4deg) !important;
+  transform-origin: left bottom !important;
+  transition: width .18s ease, transform .18s ease, bottom .18s ease !important;
+  z-index: 48 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-thread-narrow="true"] .dream-skin-composer-stamp img {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-thread-narrow="true"] .dream-skin-composer-stamp span {
+  display: block !important;
+  width: 0 !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  transition: width .18s ease, max-height .18s ease, opacity .14s ease !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-thread-narrow="true"] .dream-skin-composer-stamp:hover {
+  bottom: 174px !important;
+  width: 132px !important;
+  transform: rotate(-2deg) translateY(-3px) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-thread-narrow="true"] .dream-skin-composer-stamp:hover span {
+  width: 68px !important;
+  max-height: 38px !important;
+  opacity: 1 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1564,6 +2060,125 @@ html.codex-dream-skin[data-dream-theme="moonlit-immortal"] [data-radix-popper-co
   html.codex-dream-skin[data-dream-theme="moonlit-immortal"] .dream-skin-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
     width: min(66%, 560px) !important;
   }
+}
+
+/* Happy Coding Dog — acrylic marker material pass ------------------------- */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] {
+  --dog-marker-red: #f04f3d;
+  --dog-marker-blue: #176fa8;
+  --dog-marker-green: #78c64b;
+  --dog-marker-yellow: #ffd84a;
+  --dog-marker-cream: #fff3c8;
+  --dog-marker-shadow: #20201d;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel {
+  background:
+    linear-gradient(88deg, transparent 0 94%, rgba(5, 94, 113, .18) 94% 100%),
+    repeating-linear-gradient(2deg, rgba(255, 255, 255, .075) 0 2px, transparent 2px 9px),
+    var(--dog-cyan) !important;
+  border-right: 3px solid var(--dog-marker-shadow) !important;
+  box-shadow: 5px 0 0 rgba(32, 32, 29, .13) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :where(
+  [aria-current="page"],
+  [data-state="active"],
+  [data-selected="true"]
+) {
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 10px 7px 11px 8px !important;
+  background:
+    repeating-linear-gradient(-4deg, rgba(255,255,255,.12) 0 2px, transparent 2px 8px),
+    var(--dog-marker-yellow) !important;
+  box-shadow: 4px 4px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(-.25deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-message-author-role="user"] {
+  border: 3px solid var(--dog-marker-shadow) !important;
+  border-radius: 17px 12px 16px 10px !important;
+  background:
+    repeating-linear-gradient(5deg, rgba(255,255,255,.11) 0 2px, transparent 2px 9px),
+    color-mix(in srgb, var(--dog-marker-yellow) 34%, var(--dog-marker-cream)) !important;
+  box-shadow: 5px 5px 0 var(--dog-marker-red) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  [data-testid*="tool"],
+  [data-testid*="diff"],
+  [class*="ToolCall"],
+  [class*="DiffCard"]
+) {
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 12px 8px 13px 9px !important;
+  background:
+    linear-gradient(90deg, var(--dog-marker-blue) 0 9px, transparent 9px),
+    repeating-linear-gradient(-3deg, rgba(23,111,168,.045) 0 2px, transparent 2px 8px),
+    #fffaf0 !important;
+  box-shadow: 5px 5px 0 rgba(32, 32, 29, .92) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  [data-testid*="tool"],
+  [class*="ToolCall"]
+):nth-of-type(3n + 2) {
+  background:
+    linear-gradient(90deg, var(--dog-marker-green) 0 9px, transparent 9px),
+    repeating-linear-gradient(3deg, rgba(120,198,75,.055) 0 2px, transparent 2px 9px),
+    #fffaf0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(pre, [data-testid*="code"]):not(code) {
+  border: 3px solid var(--dog-marker-shadow) !important;
+  border-radius: 11px 8px 13px 9px !important;
+  background:
+    repeating-linear-gradient(4deg, rgba(255,255,255,.035) 0 2px, transparent 2px 9px),
+    #123f67 !important;
+  color: #fff8df !important;
+  box-shadow: 6px 6px 0 var(--dog-marker-shadow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(code):not(pre code) {
+  border: 1.5px solid var(--dog-marker-shadow) !important;
+  border-radius: 6px 4px 7px 5px !important;
+  background: color-mix(in srgb, var(--dog-marker-green) 27%, #fffaf0) !important;
+  color: var(--dog-marker-shadow) !important;
+  box-shadow: 2px 2px 0 rgba(32,32,29,.28) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class~="rounded-3xl"][class~="bg-surface-elevated-secondary"] {
+  border: 3px solid var(--dog-marker-shadow) !important;
+  border-radius: 15px 10px 16px 11px !important;
+  background:
+    linear-gradient(to bottom, var(--dog-marker-green) 0 39px, transparent 39px),
+    repeating-linear-gradient(-3deg, rgba(32,32,29,.025) 0 1px, transparent 1px 8px),
+    #fffaf0 !important;
+  box-shadow: 7px 7px 0 var(--dog-marker-shadow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .composer-surface-chrome,
+  .dream-skin-composer,
+  [data-testid="composer"]
+) {
+  border-width: 3px !important;
+  border-color: var(--dog-marker-shadow) !important;
+  border-radius: 17px 12px 18px 13px !important;
+  background:
+    repeating-linear-gradient(3deg, rgba(255,216,74,.09) 0 2px, transparent 2px 9px),
+    #fffaf0 !important;
+  box-shadow: 7px 7px 0 var(--dog-marker-shadow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(button, [role="button"]):not([disabled]):hover {
+  filter: saturate(1.08) contrast(1.02) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(h1, h2, h3, strong) {
+  text-decoration-color: var(--dog-marker-red) !important;
+  text-decoration-thickness: 3px !important;
+  text-underline-offset: 4px !important;
 }
 
 @media (max-width: 680px) {
@@ -3477,6 +4092,1265 @@ html.codex-dream-skin[data-dream-theme="potion-workshop"] :is(main.main-surface,
 
 /* ----------------------------------------------------------- focus capybara */
 
+/* -------------------------------------------------------- happy coding dog */
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] {
+  --dog-ink: #20201d;
+  --dog-paper: #fff5d8;
+  --dog-cream: #fffaf0;
+  --dog-yellow: #ffd84a;
+  --dog-blue: #23b7c9;
+  --dog-deep-blue: #087f98;
+  --dog-green: #78c64b;
+  --dog-coral: #f04f3d;
+  --dog-pink: #f58bb7;
+  --dog-purple: #a86be8;
+  --dog-dopamine-header: linear-gradient(105deg, #ffd84a 0 24%, #ff8a3d 24% 49%, #ff5b49 49% 74%, #a86be8 74% 100%);
+  --dog-line: 2px solid var(--dog-ink);
+  --dog-hard-shadow: 4px 4px 0 var(--dog-ink);
+  --dog-stroke-texture:
+    repeating-linear-gradient(7deg, rgba(255,255,255,.07) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(-5deg, rgba(32,32,29,.025) 0 1px, transparent 1px 6px);
+  color-scheme: light !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body {
+  background:
+    radial-gradient(circle at 13% 17%, rgba(240, 79, 61, .16) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 12%, rgba(35, 183, 201, .18) 0 2px, transparent 3px),
+    radial-gradient(circle at 65% 74%, rgba(120, 198, 75, .15) 0 1.5px, transparent 2.5px),
+    repeating-linear-gradient(7deg, rgba(32, 32, 29, .018) 0 1px, transparent 1px 7px),
+    var(--dog-paper) !important;
+  color: var(--dog-ink) !important;
+  font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", system-ui, sans-serif !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body::before {
+  opacity: .18;
+  background-image:
+    radial-gradient(circle, var(--dog-coral) 0 1px, transparent 1.8px),
+    radial-gradient(circle, var(--dog-blue) 0 1px, transparent 1.8px),
+    radial-gradient(circle, var(--dog-green) 0 1px, transparent 1.8px) !important;
+  background-position: 17px 23px, 61px 79px, 103px 41px !important;
+  background-size: 149px 149px, 173px 173px, 191px 191px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel {
+  border: 0 !important;
+  border-right: 3px solid var(--dog-ink) !important;
+  border-radius: 0 !important;
+  background:
+    repeating-linear-gradient(5deg, rgba(255, 255, 255, .035) 0 2px, transparent 2px 9px),
+    var(--dog-blue) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 5px 0 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :where(button, a) {
+  border: 2px solid transparent !important;
+  border-radius: 11px 8px 12px 9px !important;
+  color: var(--dog-ink) !important;
+  font-weight: 760 !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :where(button, a):hover {
+  border-color: var(--dog-ink) !important;
+  background: color-mix(in srgb, var(--dog-yellow) 72%, white) !important;
+  box-shadow: 3px 3px 0 var(--dog-ink) !important;
+  transform: translate(-1px, -1px) rotate(-.15deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [aria-current="page"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [class~="bg-token-list-hover-background"] {
+  border: var(--dog-line) !important;
+  border-radius: 12px 7px 11px 9px !important;
+  background: linear-gradient(100deg, var(--dog-yellow), #ffe989) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 4px 4px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :where(svg, span, div) {
+  color: var(--dog-ink) !important;
+}
+
+/* Native sidebar glyphs become small, uneven stickers while their original
+   SVG shapes keep the meaning and accessibility behavior supplied by Codex. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon] svg {
+  box-sizing: content-box !important;
+  width: 16px !important;
+  height: 16px !important;
+  padding: 3px !important;
+  overflow: visible !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 52% 43% 48% 45% !important;
+  color: var(--dog-ink) !important;
+  stroke-width: 2.35 !important;
+  filter: drop-shadow(2px 2px 0 var(--dog-ink)) !important;
+  transform: rotate(-2deg) !important;
+  transition: transform .16s ease, filter .16s ease, background .16s ease !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon]:hover svg {
+  filter: drop-shadow(1px 1px 0 var(--dog-ink)) !important;
+  transform: translate(1px, 1px) rotate(2deg) scale(1.04) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon="new-chat"] svg {
+  background: var(--dog-yellow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon="pull-requests"] svg {
+  background: var(--dog-green) !important;
+  transform: rotate(2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon="sites"] svg {
+  background: color-mix(in srgb, var(--dog-cream) 72%, var(--dog-blue)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon="scheduled"] svg {
+  background: var(--dog-pink) !important;
+  transform: rotate(2.5deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon="plugins"] svg {
+  background: var(--dog-purple) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-icon="security"] svg {
+  background: var(--dog-coral) !important;
+  transform: rotate(1.5deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-project] svg {
+  box-sizing: content-box !important;
+  width: 16px !important;
+  height: 16px !important;
+  padding: 2px !important;
+  overflow: visible !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 5px 3px 5px 4px !important;
+  background: var(--dog-yellow) !important;
+  color: var(--dog-ink) !important;
+  stroke-width: 2.25 !important;
+  filter: drop-shadow(1px 1px 0 var(--dog-ink)) !important;
+  transform: rotate(-1deg) !important;
+}
+
+/* Give every sidebar label the same breathing room, including native project
+   folders whose markup differs from Codex's primary navigation rows. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :is(
+  [data-dream-dog-icon],
+  [data-dream-dog-project]
+) {
+  column-gap: 8px !important;
+}
+
+/* Utility actions use the same hand-painted visual language as navigation,
+   but stay slightly smaller so the top and bottom chrome remains quiet. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action] svg {
+  box-sizing: content-box !important;
+  width: 14px !important;
+  height: 14px !important;
+  padding: 3px !important;
+  overflow: visible !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 52% 44% 49% 43% !important;
+  color: var(--dog-ink) !important;
+  stroke-width: 2.3 !important;
+  filter: drop-shadow(2px 2px 0 var(--dog-ink)) !important;
+  transform: rotate(-2deg) !important;
+  transition: transform .16s ease, filter .16s ease !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action] {
+  column-gap: 8px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action]:hover svg {
+  filter: drop-shadow(1px 1px 0 var(--dog-ink)) !important;
+  transform: translate(1px, 1px) rotate(2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="search"] svg {
+  background: var(--dog-yellow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="activity"] svg {
+  background: var(--dog-coral) !important;
+  transform: rotate(2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="quick-chat"] svg {
+  background: var(--dog-green) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="profile"] {
+  column-gap: 8px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="profile"] :where([class*="avatar" i], [class*="Avatar"], img) {
+  outline: 2px solid var(--dog-ink) !important;
+  outline-offset: 1px !important;
+  border-radius: 48% 43% 52% 45% !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  transform: rotate(-2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="voice"] {
+  column-gap: 8px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="voice"] svg {
+  background: var(--dog-purple) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [data-dream-dog-action="help"] svg {
+  background: var(--dog-yellow) !important;
+  transform: rotate(2deg) !important;
+}
+
+/* Titlebar navigation sits outside the aside, so it gets a dedicated compact
+   sticker treatment without changing the native hit targets. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-chrome-action] svg {
+  box-sizing: content-box !important;
+  width: 14px !important;
+  height: 14px !important;
+  padding: 3px !important;
+  overflow: visible !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 50% !important;
+  background: var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  stroke-width: 2.3 !important;
+  filter: drop-shadow(2px 2px 0 var(--dog-ink)) !important;
+  transition: transform .15s ease, filter .15s ease !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] button[data-dream-dog-chrome-action]:hover svg {
+  transform: scale(1.12) !important;
+  filter: drop-shadow(3px 3px 0 var(--dog-ink)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-chrome-action="sidebar"] svg {
+  background: var(--dog-yellow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-chrome-action="back"] svg {
+  background: color-mix(in srgb, var(--dog-cream) 72%, var(--dog-blue)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-chrome-action="forward"] svg {
+  background: var(--dog-green) !important;
+  transform: rotate(2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-chrome-action]:hover svg {
+  filter: drop-shadow(1px 1px 0 var(--dog-ink)) !important;
+  transform: translate(1px, 1px) rotate(2deg) scale(1.04) !important;
+}
+
+/* Output and sources — a compact folder-note popover. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-panel] {
+  overflow: hidden !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 12px 8px 15px 10px !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 20px, rgba(32, 32, 29, .035) 21px 22px),
+    var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 7px 7px 0 var(--dog-ink) !important;
+  transform: rotate(-.15deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-header] {
+  position: relative !important;
+  top: 0 !important;
+  height: 30px !important;
+  border-bottom: 2px solid var(--dog-ink) !important;
+  color: var(--dog-ink) !important;
+  font-weight: 850 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-header="output"] {
+  background: var(--dog-yellow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-header="sources"] {
+  background: var(--dog-coral) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-add] {
+  display: inline-flex !important;
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  padding: 0 !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 50% 44% 52% 46% !important;
+  background: var(--dog-green) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  transition: transform 140ms ease, box-shadow 140ms ease !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-add]:hover {
+  box-shadow: 1px 1px 0 var(--dog-ink) !important;
+  transform: translate(1px, 1px) rotate(9deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-row] {
+  column-gap: 8px !important;
+  min-height: 29px !important;
+  padding: 3px 5px !important;
+  border: 2px dashed transparent !important;
+  border-radius: 8px 5px 9px 6px !important;
+  color: var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-row] [data-slot="thread-summary-panel-item-leading"] {
+  box-sizing: border-box !important;
+  width: 22px !important;
+  height: 22px !important;
+  margin-inline-end: 0 !important;
+  padding: 3px !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 5px 3px 6px 4px !important;
+  background: var(--dog-blue) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  transform: rotate(-2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-row="image"] [data-slot="thread-summary-panel-item-leading"] {
+  background: var(--dog-green) !important;
+  transform: rotate(2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-row="create"] {
+  background: color-mix(in srgb, var(--dog-yellow) 35%, transparent) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-row]:hover {
+  border-color: var(--dog-ink) !important;
+  background: #fff0a8 !important;
+  transform: rotate(.2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-dream-dog-resource-view-all] {
+  width: fit-content !important;
+  margin-top: 3px !important;
+  padding-inline: 7px !important;
+  border-style: solid !important;
+  background: var(--dog-green) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  font-weight: 800 !important;
+  transform: rotate(-1deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :is(
+  [data-dream-dog-icon],
+  [data-dream-dog-project]
+)[aria-current="page"] svg,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :is(
+  [data-dream-dog-icon],
+  [data-dream-dog-project]
+)[class~="bg-token-list-hover-background"] svg,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel [aria-current="page"] :is(
+  [data-dream-dog-icon],
+  [data-dream-dog-project]
+) svg {
+  background: var(--dog-yellow) !important;
+  filter: drop-shadow(2px 2px 0 var(--dog-coral)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :is(
+  [class*=_Project],
+  [class*=_Thread],
+  [class*=_Conversation]
+) {
+  border-radius: 10px 7px 11px 8px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel :is(
+  [class*=_SectionHeader],
+  [class*=_GroupHeader]
+) {
+  margin-block: 8px 4px !important;
+  color: color-mix(in srgb, var(--dog-ink) 72%, var(--dog-deep-blue)) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .035em !important;
+  text-transform: uppercase !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-radix-scroll-area-viewport] {
+  scrollbar-color: var(--dog-coral) transparent !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-main-surface,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.main-surface {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background:
+    repeating-linear-gradient(-3deg, rgba(32, 32, 29, .012) 0 1px, transparent 1px 8px),
+    var(--dog-paper) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_MainContentViewport_"] {
+  position: relative !important;
+  background:
+    linear-gradient(to bottom,
+      transparent 0 59px,
+      transparent 59px),
+    radial-gradient(circle at 13% 17%, rgba(240, 79, 61, .16) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 12%, rgba(35, 183, 201, .18) 0 2px, transparent 3px),
+    radial-gradient(circle at 65% 74%, rgba(120, 198, 75, .15) 0 1.5px, transparent 2.5px),
+    repeating-linear-gradient(7deg, rgba(32, 32, 29, .018) 0 1px, transparent 1px 7px),
+    var(--dog-dopamine-header) top / 100% 59px no-repeat,
+    var(--dog-paper) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_MainContentViewport_"]::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 0 auto !important;
+  height: 59px !important;
+  pointer-events: none !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  background:
+    var(--dog-stroke-texture),
+    var(--dog-dopamine-header) !important;
+  box-shadow: none !important;
+}
+
+/* The thread view keeps an 8px native titlebar spacer above the themed
+   layers. Paint that exact seam at the viewport edge so it also stays covered
+   after switching between conversations. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_MainContentViewport_"]::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 40 !important;
+  inset: 0 auto auto 0 !important;
+  width: 9px !important;
+  height: 59px !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(to bottom, transparent 0 56px, var(--dog-ink) 56px 59px),
+    var(--dog-stroke-texture),
+    var(--dog-dopamine-header) !important;
+}
+
+/* Keep the native titlebar's pale separator from showing through below the
+   hand-drawn header. This narrow overlay belongs to the theme chrome, so it
+   remains stable while the conversation viewport scrolls. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome {
+  z-index: 32 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 1 !important;
+  inset: 46px 0 auto !important;
+  height: 13px !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(to bottom, transparent 0 10px, var(--dog-ink) 10px 13px),
+    var(--dog-stroke-texture),
+    var(--dog-dopamine-header) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 0 auto auto !important;
+  width: 70px !important;
+  height: 46px !important;
+  pointer-events: none !important;
+  background:
+    var(--dog-stroke-texture),
+    var(--dog-dopamine-header) !important;
+}
+
+/* Task conversations and the new-conversation home use different viewport
+   geometry. In both cases the fixed titlebar already draws the upper rule;
+   keep the 13px seam painted, but do not draw a second lower rule. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome:not(.dream-skin-home-shell)::before {
+  background: var(--dog-dopamine-header) !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main:not(.dream-skin-home-shell) [class*="_MainContentViewport_"]::after {
+  background: var(--dog-dopamine-header) !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell::before {
+  background: transparent !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_MainContentViewport_"]::after {
+  background: transparent !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Plan A: the thread header is an opaque cream bar with its own 6px ribbon,
+   so the conversation viewport drops the legacy 59px rainbow backing and the
+   seam covers that used to sit behind the old transparent header. These rules
+   must come after the legacy ones above — equal-specificity ties break by
+   source order. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main:not(.dream-skin-home-shell) [class*="_MainContentViewport_"] {
+  background:
+    radial-gradient(circle at 13% 17%, rgba(240, 79, 61, .16) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 12%, rgba(35, 183, 201, .18) 0 2px, transparent 3px),
+    radial-gradient(circle at 65% 74%, rgba(120, 198, 75, .15) 0 1.5px, transparent 2.5px),
+    repeating-linear-gradient(7deg, rgba(32, 32, 29, .018) 0 1px, transparent 1px 7px),
+    var(--dog-paper) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main:not(.dream-skin-home-shell) [class*="_MainContentViewport_"]::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main:not(.dream-skin-home-shell) [class*="_MainContentViewport_"]::after,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome:not(.dream-skin-home-shell)::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome:not(.dream-skin-home-shell)::after {
+  background: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class~="draggable"][class*="grid-cols-"] {
+  border-bottom: 0 !important;
+  background:
+    var(--dog-stroke-texture),
+    var(--dog-dopamine-header) !important;
+  color: var(--dog-ink) !important;
+  box-shadow:
+    -12px 0 0 var(--dog-yellow),
+    160px 0 0 var(--dog-yellow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class~="draggable"][class*="grid-cols-"] :where(button, [role="button"]) {
+  color: var(--dog-ink) !important;
+  font-weight: 850 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_MainContentViewport_"] [class*="contain:layout_paint"] {
+  margin-left: 0 !important;
+  width: calc(100% + 8px) !important;
+  padding-left: 16px !important;
+  overflow: visible !important;
+  border-bottom: 0 !important;
+  background:
+    var(--dog-stroke-texture),
+    var(--dog-yellow) !important;
+  box-shadow:
+    -12px 0 0 var(--dog-yellow),
+    120px 0 0 var(--dog-yellow) !important;
+  transform: translateX(-8px) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class~="draggable"][class*="grid-cols-"] > :first-child button.aspect-square {
+  width: 30px !important;
+  height: 29px !important;
+  margin-right: 5px !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 8px 10px 7px 9px !important;
+  background: var(--dog-deep-blue) !important;
+  color: #fff9e8 !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  transform: rotate(-1.5deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class~="draggable"][class*="grid-cols-"] > :first-child button[class*="max-w-"] {
+  min-height: 28px !important;
+  padding: 1px 7px 3px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--dog-ink) !important;
+  font-weight: 900 !important;
+  letter-spacing: .025em !important;
+  box-shadow: inset 0 -4px 0 rgba(240, 79, 61, .72) !important;
+  text-shadow: 1px 1px 0 rgba(255, 249, 232, .72) !important;
+  transform: rotate(-.25deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class~="draggable"][class*="grid-cols-"] > :first-child button:not(.aspect-square):not([class*="max-w-"]) {
+  width: 29px !important;
+  min-width: 29px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 48% 52% 45% 55% !important;
+  background: var(--dog-coral) !important;
+  color: #fff9e8 !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  transform: rotate(2deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] button.aspect-square:is(
+  [aria-label="Share"],
+  [aria-label="切换置顶摘要"]
+) {
+  width: 29px !important;
+  height: 28px !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 9px 7px 10px 8px !important;
+  background: var(--dog-green) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  transform: rotate(.8deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] button.aspect-square[aria-label="Share"] {
+  background: var(--dog-coral) !important;
+  color: #fff9e8 !important;
+  transform: rotate(-1deg);
+}
+
+/* Current unified shell: its thread toolbar is a transparent fixed header
+   rather than the older app-header-tint node. Paint the fixed layer itself so
+   scrolled messages cannot show through the titlebar.
+   Plan A: quiet cream paper body; the rainbow is demoted to a 6px ribbon
+   hugging the bottom edge above the ink border. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-main-surface:not(.dream-skin-home-shell) > header[class~="fixed"][class~="z-30"] {
+  background:
+    linear-gradient(100deg,
+      #ffd84a 0 24%,
+      #ff5b49 24% 45%,
+      #23b7c9 45% 66%,
+      #78c64b 66% 84%,
+      #a86be8 84% 100%) left 0 bottom 3px / 100% 6px no-repeat,
+    var(--dog-stroke-texture),
+    var(--dog-cream) !important;
+  border-bottom: 3px solid var(--dog-ink) !important;
+  box-shadow: 0 4px 0 rgba(32, 32, 29, .11) !important;
+  backdrop-filter: none !important;
+}
+
+/* Plan A: thread title chip becomes a yellow sticker card. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-main-surface:not(.dream-skin-home-shell) > header[class~="fixed"] button.cursor-interaction {
+  background: var(--dog-yellow) !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 10px 8px 11px 9px !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  color: var(--dog-ink) !important;
+  padding: 3px 10px !important;
+  transform: rotate(-.6deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-main-surface:not(.dream-skin-home-shell) > header[class~="fixed"] button.cursor-interaction:hover {
+  background: var(--dog-yellow) !important;
+  box-shadow: 3px 3px 0 var(--dog-ink) !important;
+  transform: rotate(-.6deg) translate(-1px, -1px) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-main-surface > header.app-header-tint,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.main-surface > header.app-header-tint,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] header.app-header-tint,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is([class*="_AppHeader_"], [class*="_TitleBar_"], [class*="_Titlebar_"], [class*="_TopBar_"]) {
+  border: 0 !important;
+  border-bottom: 3px solid var(--dog-ink) !important;
+  background:
+    repeating-linear-gradient(3deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 10px),
+    var(--dog-dopamine-header) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 0 4px 0 rgba(32, 32, 29, .11) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell > header[class~="fixed"][class~="z-30"] {
+  background:
+    var(--dog-stroke-texture),
+    linear-gradient(100deg,
+      #ffd84a 0 24%,
+      #ff5b49 24% 45%,
+      #23b7c9 45% 66%,
+      #78c64b 66% 84%,
+      #a86be8 84% 100%) !important;
+  border-bottom: 3px solid var(--dog-ink) !important;
+  box-shadow: 0 4px 0 rgba(32, 32, 29, .11) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] header.app-header-tint :where(button, [role="button"]),
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell > header[class~="fixed"] :where(button, [role="button"]),
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is([class*="_AppHeader_"], [class*="_TitleBar_"], [class*="_Titlebar_"], [class*="_TopBar_"]) :where(button, [role="button"]) {
+  border: 2.5px solid var(--dog-ink) !important;
+  border-radius: 50% !important;
+  background: var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] header.app-header-tint :where(button, [role="button"]):hover,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell > header[class~="fixed"] :where(button, [role="button"]):hover,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is([class*="_AppHeader_"], [class*="_TitleBar_"], [class*="_Titlebar_"], [class*="_TopBar_"]) :where(button, [role="button"]):hover {
+  border-color: var(--dog-ink) !important;
+  background: var(--dog-yellow) !important;
+  box-shadow: 3px 3px 0 var(--dog-ink) !important;
+  transform: translate(-1px, -1px) !important;
+}
+
+/* The icon circle is the whole button face: keep the hit target transparent.
+   Must come after the generic header-button rules above — equal specificity
+   !important ties are broken by source order. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body button[data-dream-dog-chrome-action][aria-label],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body button[data-dream-dog-chrome-action][aria-label]:hover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-message-author-role] {
+  border: var(--dog-line) !important;
+  border-radius: 15px 10px 16px 11px !important;
+  background: var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 4px 4px 0 rgba(32, 32, 29, .92) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-message-author-role="user"] {
+  background: var(--dog-yellow) !important;
+  transform: rotate(.08deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*=_Thread],
+  [class*=_Conversation],
+  [class*=_MessageList],
+  [class*=_Timeline]
+) {
+  color: var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*=_Thread],
+  [class*=_Conversation],
+  [class*=_MessageList],
+  [class*=_Timeline]
+) :where(h1, h2, h3, strong) {
+  color: var(--dog-ink) !important;
+  font-weight: 900 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*=_Thread],
+  [class*=_Conversation],
+  [class*=_MessageList],
+  [class*=_Timeline]
+) :where(a) {
+  color: var(--dog-deep-blue) !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] article {
+  border: var(--dog-line) !important;
+  border-radius: 14px 9px 15px 10px !important;
+  background: rgba(255, 250, 240, .97) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 4px 4px 0 rgba(32, 32, 29, .9) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [data-testid*="tool"],
+  [data-testid*="diff"],
+  [data-testid*="file"],
+  [class*="_ToolCall_"],
+  [class*="_Diff_"],
+  [class*="_FileChange_"]
+) {
+  border: var(--dog-line) !important;
+  border-radius: 12px 8px 13px 9px !important;
+  background: color-mix(in srgb, var(--dog-green) 20%, var(--dog-cream)) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 3px 3px 0 var(--dog-ink) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [data-testid*="tool"],
+  [data-testid*="diff"],
+  [data-testid*="file"],
+  [class*="_ToolCall_"],
+  [class*="_Diff_"],
+  [class*="_FileChange_"]
+) > :first-child {
+  border-bottom: 2px solid rgba(32, 32, 29, .72) !important;
+  background: color-mix(in srgb, var(--dog-green) 42%, var(--dog-cream)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_ArtifactPanel_"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*="_RightPanel_"],
+  [class*="_Inspector_"],
+  [data-testid*="artifact"],
+  [data-testid*="inspector"]
+) {
+  border: var(--dog-line) !important;
+  border-right: 0 !important;
+  border-radius: 15px 0 0 12px !important;
+  background: var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: -4px 4px 0 var(--dog-ink) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_ArtifactPanel_"] :where(button, [role="button"]),
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is([class*="_RightPanel_"], [class*="_Inspector_"]) :where(button, [role="button"]) {
+  border-radius: 8px 6px 9px 7px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*=_ArtifactPanel_],
+  [class*=_RightPanel_],
+  [class*=_Inspector_],
+  [class*=_Output],
+  [class*=_Sources]
+) :is([class*=_Header], [class*=_SectionHeader]) {
+  border-bottom: var(--dog-line) !important;
+  background: var(--dog-yellow) !important;
+  color: var(--dog-ink) !important;
+  font-weight: 900 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*=_ArtifactPanel_],
+  [class*=_RightPanel_],
+  [class*=_Inspector_],
+  [class*=_Output],
+  [class*=_Sources]
+) :is([class*=_Item], [class*=_Row], li) {
+  border-bottom: 2px dashed color-mix(in srgb, var(--dog-ink) 35%, transparent) !important;
+  background: transparent !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] div[class~="rounded-3xl"][class~="bg-surface-elevated-secondary"] {
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 18px 11px 20px 13px !important;
+  background:
+    var(--dog-stroke-texture),
+    var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow:
+    inset 0 38px 0 var(--dog-green),
+    6px 6px 0 var(--dog-ink) !important;
+  backdrop-filter: none !important;
+  outline: 3px solid var(--dog-ink) !important;
+  outline-offset: -3px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body div[class~="rounded-3xl"][class~="bg-surface-elevated-secondary"] {
+  background-color: var(--dog-cream) !important;
+  background-image: var(--dog-stroke-texture) !important;
+  border-color: var(--dog-ink) !important;
+  color: var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] div[class~="rounded-3xl"][class~="bg-surface-elevated-secondary"] div[class~="sticky"][class~="bg-surface-elevated-secondary"] {
+  border: 0 !important;
+  border-bottom: 3px solid var(--dog-ink) !important;
+  border-radius: 14px 8px 0 0 !important;
+  background:
+    var(--dog-stroke-texture),
+    var(--dog-green) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body div[class~="rounded-3xl"][class~="bg-surface-elevated-secondary"] div[class~="sticky"][class~="bg-surface-elevated-secondary"] {
+  background-color: var(--dog-green) !important;
+  background-image: var(--dog-stroke-texture) !important;
+  border-bottom-color: var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body div[class~="rounded-3xl"][class~="bg-surface-elevated-secondary"] div[class~="sticky"] {
+  border: 0 !important;
+  border-bottom: 3px solid var(--dog-ink) !important;
+  background-color: var(--dog-green) !important;
+  background-image: var(--dog-stroke-texture) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body div[class~="rounded-3xl"][class~="bg-surface-elevated-secondary"] div[class~="sticky"]::before {
+  background: var(--dog-green) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .thread-scroll-container [class*="summary-panel-item"] {
+  margin: 3px 0 !important;
+  padding: 7px 8px !important;
+  border: 2px solid transparent !important;
+  border-radius: 9px 6px 10px 7px !important;
+  color: var(--dog-ink) !important;
+  font-weight: 750 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .thread-scroll-container [class*="summary-panel-item"]:hover {
+  border-color: var(--dog-ink) !important;
+  background: var(--dog-yellow) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+/* Resource popover cascade guard. The generic elevated-panel rules above are
+   intentionally broad, so the semantic resource hooks must paint last. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel] {
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 12px 8px 15px 10px !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 20px, rgba(32, 32, 29, .035) 21px 22px),
+    var(--dog-cream) !important;
+  box-shadow: 7px 7px 0 var(--dog-ink) !important;
+  outline: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel][class~="rounded-3xl"] [data-dream-dog-resource-header][class~="sticky"] {
+  height: 30px !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--dog-ink) !important;
+  border-radius: 0 !important;
+  color: var(--dog-ink) !important;
+  box-shadow: none !important;
+  font-weight: 850 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel][class~="rounded-3xl"] [data-dream-dog-resource-header="output"][class~="sticky"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel][class~="rounded-3xl"] [data-dream-dog-resource-header="output"][class~="sticky"]::before {
+  background: var(--dog-yellow) !important;
+  background-color: var(--dog-yellow) !important;
+  background-image: var(--dog-stroke-texture) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel][class~="rounded-3xl"] [data-dream-dog-resource-header="sources"][class~="sticky"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel][class~="rounded-3xl"] [data-dream-dog-resource-header="sources"][class~="sticky"]::before {
+  background: var(--dog-coral) !important;
+  background-color: var(--dog-coral) !important;
+  background-image: var(--dog-stroke-texture) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel] [data-dream-dog-resource-header] [data-dream-dog-resource-add] {
+  display: inline-grid !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  padding: 0 !important;
+  place-items: center !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 52% 44% 50% 46% !important;
+  background: var(--dog-green) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel] [data-dream-dog-resource-header] [data-dream-dog-resource-add="sources"] {
+  background: var(--dog-blue) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-panel] [data-dream-dog-resource-header] [data-dream-dog-resource-add]:hover {
+  box-shadow: 1px 1px 0 var(--dog-ink) !important;
+  transform: translate(1px, 1px) rotate(9deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-row] {
+  column-gap: 8px !important;
+  margin: 2px 0 !important;
+  padding: 4px 6px !important;
+  border: 2px dashed transparent !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-row]:hover {
+  border-color: var(--dog-ink) !important;
+  background: #fff0a8 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-row] [data-slot="thread-summary-panel-item-leading"] {
+  width: 22px !important;
+  height: 22px !important;
+  margin-inline-end: 0 !important;
+  padding: 3px !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 5px 3px 6px 4px !important;
+  background: var(--dog-blue) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-row="image"] [data-slot="thread-summary-panel-item-leading"] {
+  background: var(--dog-green) !important;
+  transform: rotate(2deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] body [data-dream-dog-resource-view-all] {
+  width: fit-content !important;
+  padding-inline: 7px !important;
+  border-style: solid !important;
+  background: var(--dog-green) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  font-weight: 850 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .composer-surface-chrome {
+  position: relative !important;
+  border: var(--dog-line) !important;
+  border-color: var(--dog-ink) !important;
+  border-radius: 18px 12px 20px 14px !important;
+  background:
+    repeating-linear-gradient(4deg, rgba(255, 216, 74, .07) 0 2px, transparent 2px 9px),
+    var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 6px 6px 0 rgba(32, 32, 29, .92) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*=_ComposerLayoutRoot_] {
+  border-top: 3px solid var(--dog-ink) !important;
+  background:
+    var(--dog-stroke-texture),
+    color-mix(in srgb, var(--dog-yellow) 16%, var(--dog-paper)) !important;
+  box-shadow: 0 -4px 0 rgba(32,32,29,.08) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*=_ComposerLayoutRoot_].dream-skin-composer-dock {
+  overflow: visible !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .thread-scroll-container > :where(div) > [aria-hidden="true"][class~="sticky"][class~="bottom-0"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .thread-scroll-container [aria-hidden="true"][class~="sticky"][class~="bottom-0"] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .thread-scroll-container [aria-hidden="true"][class~="sticky"][class~="bottom-0"]::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .thread-scroll-container [aria-hidden="true"][class~="sticky"][class~="bottom-0"]::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_MainContentViewport_"] :where(div)[class~="pointer-events-none"][class~="absolute"][class~="inset-x-0"][class~="bottom-0"][class~="pb-4"] {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-thread-scroll-footer="true"] [aria-hidden="true"][class*="bg-gradient-to-t"] {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-thread-scroll-footer="true"] [aria-hidden="true"][class*="bg-gradient-to-t"]::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-thread-scroll-footer="true"] [aria-hidden="true"][class*="bg-gradient-to-t"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [aria-hidden="true"][class~="bg-gradient-to-t"][class~="from-surface"] {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [aria-hidden="true"][class~="bg-gradient-to-t"][class~="from-surface"]::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [aria-hidden="true"][class~="bg-gradient-to-t"][class~="from-surface"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*=_ComposerLayoutRoot_] > :not(.dream-skin-composer) {
+  color: var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer-stamp {
+  left: 24px !important;
+  bottom: 70px !important;
+  padding: 6px 6px 8px !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 10px 7px 11px 8px !important;
+  background: var(--dog-yellow) !important;
+  box-shadow: 5px 5px 0 var(--dog-ink) !important;
+  opacity: 1 !important;
+  transform: rotate(-3deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer-stamp img {
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 7px 5px 8px 6px !important;
+  filter: saturate(118%) contrast(105%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer-stamp span {
+  width: 94px !important;
+  max-width: 94px !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  color: var(--dog-ink) !important;
+  font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", system-ui, sans-serif !important;
+  font-style: normal !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  line-height: 1.3 !important;
+  text-align: center !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer::before,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .composer-surface-chrome::before {
+  content: "★" !important;
+  border: var(--dog-line) !important;
+  border-radius: 8px 6px 9px 7px !important;
+  background: var(--dog-coral) !important;
+  color: var(--dog-yellow) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer :where(button, [role="button"]),
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .composer-surface-chrome :where(button, [role="button"]) {
+  border-radius: 9px 6px 10px 7px !important;
+  color: var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] button[class~="bg-token-foreground"] {
+  border: var(--dog-line) !important;
+  border-radius: 10px 7px 11px 8px !important;
+  background: var(--dog-coral) !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(button, [role="button"]):focus-visible {
+  outline: 3px solid var(--dog-coral) !important;
+  outline-offset: 3px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*=_Dialog],
+  [role=dialog],
+  [data-radix-popper-content-wrapper] > *
+) {
+  border: var(--dog-line) !important;
+  border-radius: 14px 9px 15px 10px !important;
+  background: var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 6px 6px 0 var(--dog-ink) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(
+  [class*=_Toast],
+  [data-sonner-toast]
+) {
+  border: var(--dog-line) !important;
+  border-radius: 12px 8px 13px 9px !important;
+  background: var(--dog-green) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 4px 4px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] pre,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(code, table, [data-testid*="code"], [class*="_Terminal_"]) {
+  border: var(--dog-line) !important;
+  border-radius: 10px 6px 11px 7px !important;
+  background: #222725 !important;
+  color: #fff5d8 !important;
+  box-shadow: 4px 4px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :is(pre, code) :where(span) {
+  text-shadow: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-home > div:first-child > div:first-child > div:first-child {
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 22px 14px 24px 16px !important;
+  box-shadow: 7px 7px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-home [data-feature="game-source"] {
+  color: var(--dog-cream) !important;
+  font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", system-ui, sans-serif !important;
+  text-shadow: 2px 2px 0 var(--dog-ink), -1px -1px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-home [data-feature="game-source"]::before {
+  border: var(--dog-line) !important;
+  border-radius: 999px 900px 999px 880px !important;
+  background: var(--dog-yellow) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 3px 3px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-home .group\/home-suggestions button {
+  border: var(--dog-line) !important;
+  border-radius: 16px 10px 18px 12px !important;
+  background: var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 5px 5px 0 var(--dog-ink) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-home .group\/home-suggestions button:nth-of-type(2n) {
+  background: color-mix(in srgb, var(--dog-green) 22%, var(--dog-cream)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  input,
+  textarea,
+  select,
+  [contenteditable="true"]
+) {
+  color: var(--dog-ink) !important;
+  caret-color: var(--dog-coral) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-shell="dark"] {
+  --dog-ink: #151816;
+  --dog-paper: #202725;
+  --dog-cream: #2a312e;
+  color-scheme: dark !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-shell="dark"] body,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-shell="dark"] main.dream-skin-main-surface {
+  color: #fff5d8 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"][data-dream-shell="dark"] :where(
+  article,
+  [data-message-author-role],
+  .dream-skin-composer,
+  .composer-surface-chrome,
+  [class*="_ArtifactPanel_"],
+  [class*="_RightPanel_"],
+  [class*="_Inspector_"]
+) {
+  border-color: #111 !important;
+  color: #fff5d8 !important;
+  box-shadow: 4px 4px 0 #111 !important;
+}
+
 html.codex-dream-skin[data-dream-theme="focus-capybara"] body {
   background: #f7f4ee !important;
 }
@@ -3577,6 +5451,25 @@ html.codex-dream-skin[data-dream-theme="focus-capybara"] :is(.composer-surface-c
   box-shadow: 0 10px 28px rgba(48, 69, 92, .07) !important;
 }
 
+html.codex-dream-skin[data-dream-theme="focus-capybara"]
+  .dream-skin-composer[class*="_ComposerLayoutBody_"] {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="focus-capybara"]
+  [class*="_ComposerLayoutBody_"]
+  [class*="_ComposerLayoutFooter_"] {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
 html.codex-dream-skin[data-dream-theme="focus-capybara"] :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) :where(article, .message, [class*="surface"]:not(:is(.composer-surface-chrome, .dream-skin-composer, .dream-skin-composer-dock, .dream-skin-composer-dock *))) {
   border-color: rgba(50, 85, 125, .1) !important;
   background: #fff !important;
@@ -3592,6 +5485,8 @@ html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.
 html.codex-dream-skin :is(main.main-surface, main.dream-skin-main-surface):not(.dream-skin-home-shell) [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock::after {
   border-color: transparent !important;
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
@@ -4656,5 +6551,799 @@ html.codex-dream-skin--cinematic-live :where([role="dialog"], [role="menu"], [ro
 
   .dream-skin-cinematic-actions button {
     transition: none;
+  }
+}
+
+/* Happy Coding Dog — conversation narrative and edit cards */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"] {
+  position: relative !important;
+  margin: 6px 0 15px !important;
+  padding: 17px 19px 18px 24px !important;
+  border: 3px solid var(--dog-marker-shadow) !important;
+  border-radius: 15px 10px 17px 11px !important;
+  background:
+    linear-gradient(90deg, var(--dog-marker-blue) 0 10px, transparent 10px),
+    repeating-linear-gradient(-3deg, rgba(255,216,74,.07) 0 2px, transparent 2px 9px),
+    #fffaf0 !important;
+  box-shadow: 7px 7px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(-.06deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"]::before {
+  content: "✦" !important;
+  position: absolute !important;
+  top: -12px !important;
+  left: 16px !important;
+  display: grid !important;
+  width: 25px !important;
+  height: 25px !important;
+  place-items: center !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 48% 52% 43% 57% !important;
+  background: var(--dog-marker-red) !important;
+  color: #fff9e8 !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  box-shadow: 2px 2px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(-7deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"] > :first-child {
+  font-weight: 900 !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--dog-marker-red) !important;
+  text-decoration-thickness: 3px !important;
+  text-underline-offset: 5px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"] :where(ul, ol) {
+  padding-left: 1.45rem !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"] li::marker {
+  color: var(--dog-marker-red) !important;
+  font-size: 1.15em !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 3px solid var(--dog-marker-shadow) !important;
+  border-radius: 13px 9px 15px 10px !important;
+  background:
+    linear-gradient(to right, var(--dog-marker-green) 0 12px, transparent 12px),
+    repeating-linear-gradient(3deg, rgba(23,111,168,.045) 0 2px, transparent 2px 9px),
+    #fffaf0 !important;
+  box-shadow: 7px 7px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(.04deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] [class*="group/turn-diff-header"] {
+  background:
+    linear-gradient(90deg, rgba(120,198,75,.18), transparent 58%),
+    transparent !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] :where(button, [role="button"]) {
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 8px 6px 9px 7px !important;
+  background: var(--dog-marker-yellow) !important;
+  color: var(--dog-marker-shadow) !important;
+  font-weight: 850 !important;
+  box-shadow: 2px 2px 0 var(--dog-marker-shadow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] :where(svg) {
+  color: var(--dog-marker-blue) !important;
+  stroke-width: 2.2 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-local-conversation-final-assistant="true"] > :last-child :where(button, [role="button"]) {
+  border-radius: 7px 5px 8px 6px !important;
+  color: var(--dog-marker-blue) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-in-progress-fixed-content="true"] [class*="overflow-hidden"]:has([class*="bg-background-primary-soft/70"]) {
+  overflow: visible !important;
+  border-radius: 0 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-in-progress-fixed-content="true"] [class*="bg-background-primary-soft/70"] {
+  position: relative !important;
+  min-height: 37px !important;
+  padding: 6px 14px 7px 34px !important;
+  overflow: visible !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 12px 8px 13px 9px !important;
+  background:
+    repeating-linear-gradient(-4deg, rgba(255,255,255,.12) 0 2px, transparent 2px 8px),
+    var(--dog-marker-yellow) !important;
+  color: var(--dog-marker-shadow) !important;
+  font-weight: 850 !important;
+  box-shadow: 4px 4px 0 var(--dog-marker-shadow) !important;
+  backdrop-filter: none !important;
+  transform: rotate(-.35deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-in-progress-fixed-content="true"] [class*="bg-background-primary-soft/70"]::before {
+  content: "✎" !important;
+  position: absolute !important;
+  top: 5px !important;
+  left: 7px !important;
+  display: grid !important;
+  width: 22px !important;
+  height: 22px !important;
+  place-items: center !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 50% 45% 53% 47% !important;
+  background: var(--dog-marker-red) !important;
+  color: #fff9e8 !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  transform: rotate(-7deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-in-progress-fixed-content="true"] [class*="bg-background-primary-soft/70"] :where(.text-success, [class*="text-success"]) {
+  color: var(--dog-marker-blue) !important;
+  font-weight: 900 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="_MainContentViewport_"] .thread-scroll-container > div [aria-hidden="true"][class~="bg-gradient-to-t"][class~="from-surface"][class~="via-surface"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+}
+
+/* Happy Coding Dog — broader acrylic colour composition */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-pip-anchor-host="codex-main-thread"].thread-scroll-container {
+  background:
+    radial-gradient(ellipse 240px 150px at 12% 25%, rgba(35,183,201,.105), transparent 72%),
+    radial-gradient(ellipse 280px 170px at 84% 36%, rgba(240,79,61,.085), transparent 74%),
+    radial-gradient(ellipse 250px 180px at 25% 78%, rgba(120,198,75,.095), transparent 72%),
+    radial-gradient(ellipse 210px 140px at 76% 88%, rgba(255,216,74,.16), transparent 74%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"] {
+  background:
+    linear-gradient(90deg, var(--dog-marker-blue) 0 10px, transparent 10px),
+    repeating-linear-gradient(-3deg, rgba(255,255,255,.13) 0 2px, transparent 2px 9px),
+    color-mix(in srgb, #8eddea 30%, #fffaf0) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"]::after {
+  content: "" !important;
+  position: absolute !important;
+  top: -3px !important;
+  right: 24px !important;
+  width: 68px !important;
+  height: 17px !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 4px 8px 3px 7px !important;
+  background:
+    repeating-linear-gradient(5deg, rgba(255,255,255,.14) 0 2px, transparent 2px 7px),
+    var(--dog-marker-yellow) !important;
+  box-shadow: 2px 2px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(1.7deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-message-author-role="user"] {
+  background:
+    repeating-linear-gradient(4deg, rgba(255,255,255,.13) 0 2px, transparent 2px 8px),
+    color-mix(in srgb, var(--dog-marker-red) 24%, var(--dog-marker-yellow)) !important;
+  box-shadow: 5px 5px 0 var(--dog-marker-blue) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] > :nth-child(n + 2):nth-child(3n + 1),
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] [class*="turn-diff-row"]:nth-of-type(3n + 1) {
+  background: color-mix(in srgb, var(--dog-marker-green) 22%, #fffaf0) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] > :nth-child(n + 2):nth-child(3n + 2),
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] [class*="turn-diff-row"]:nth-of-type(3n + 2) {
+  background: color-mix(in srgb, #8eddea 24%, #fffaf0) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] > :nth-child(n + 2):nth-child(3n),
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] [class*="turn-diff-row"]:nth-of-type(3n) {
+  background: color-mix(in srgb, var(--dog-marker-red) 13%, #fffaf0) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) [class*="items-center"]:has(> button) {
+  border-radius: 8px 6px 10px 7px !important;
+  background:
+    linear-gradient(90deg, rgba(255,216,74,.15), rgba(120,198,75,.12) 45%, rgba(35,183,201,.11)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button:nth-of-type(3n + 1) {
+  color: var(--dog-marker-red) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button:nth-of-type(3n + 2) {
+  color: var(--dog-marker-blue) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button:nth-of-type(3n) {
+  color: #4f8f2d !important;
+}
+
+/* Happy Coding Dog — composer control illustrations */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button[data-composer-navigation-target="add-context"] {
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 9px 7px 10px 8px !important;
+  background: var(--dog-marker-yellow) !important;
+  color: var(--dog-marker-blue) !important;
+  box-shadow: 2px 2px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(-1.5deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button[data-composer-navigation-target="permissions"] {
+  min-height: 28px !important;
+  padding-inline: 9px !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 9px 12px 8px 11px !important;
+  background: color-mix(in srgb, var(--dog-marker-red) 18%, var(--dog-marker-cream)) !important;
+  color: var(--dog-marker-red) !important;
+  font-weight: 850 !important;
+  box-shadow: 2px 2px 0 var(--dog-marker-red) !important;
+  transform: rotate(.35deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button[data-composer-navigation-target="reasoning"] {
+  min-height: 29px !important;
+  padding-inline: 10px !important;
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 11px 8px 12px 9px !important;
+  background:
+    repeating-linear-gradient(4deg, rgba(255,255,255,.08) 0 2px, transparent 2px 8px),
+    var(--dog-marker-blue) !important;
+  color: #fff9e8 !important;
+  font-weight: 850 !important;
+  box-shadow: 3px 3px 0 var(--dog-marker-shadow) !important;
+  margin-right: 9px !important;
+  transform: rotate(-.3deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button[data-composer-navigation-target="reasoning"] :where(svg, span) {
+  color: #fff9e8 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button[aria-label="听写"] {
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 48% 52% 44% 56% !important;
+  background: var(--dog-marker-green) !important;
+  color: var(--dog-marker-shadow) !important;
+  box-shadow: 2px 2px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(1.5deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button:is([aria-label="发送"], [aria-label="停止"]) {
+  border: 2px solid var(--dog-marker-shadow) !important;
+  border-radius: 10px 7px 11px 8px !important;
+  background: var(--dog-marker-red) !important;
+  color: #fff9e8 !important;
+  box-shadow: 3px 3px 0 var(--dog-marker-shadow) !important;
+  transform: rotate(-1deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) :where([class*="animate-spin"], [data-loading="true"]) {
+  border-radius: 50% !important;
+  color: var(--dog-marker-red) !important;
+  filter: drop-shadow(1px 1px 0 var(--dog-marker-yellow)) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(.composer-surface-chrome, .dream-skin-composer) button:not([disabled]):active {
+  box-shadow: 1px 1px 0 var(--dog-marker-shadow) !important;
+  translate: 1px 1px;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-codex-composer-root] [class~="bg-gradient-to-t"][class~="from-surface"][class~="to-transparent"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+}
+
+/* Happy Coding Dog — responsive narrow conversation pane */
+@container thread-content (max-width: 560px) {
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"] {
+    margin-block: 4px 11px !important;
+    padding: 11px 11px 12px 17px !important;
+    border-width: 2px !important;
+    border-radius: 11px 7px 12px 8px !important;
+    font-size: 13px !important;
+    line-height: 1.48 !important;
+    box-shadow: 4px 4px 0 var(--dog-marker-shadow) !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"]::before {
+    top: -9px !important;
+    left: 10px !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 11px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"]::after {
+    right: 14px !important;
+    width: 48px !important;
+    height: 12px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] {
+    border-width: 2px !important;
+    border-radius: 10px 7px 11px 8px !important;
+    font-size: 12px !important;
+    box-shadow: 4px 4px 0 var(--dog-marker-shadow) !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [class*="--turn-diff-row-padding-y"] :where(button, [role="button"]) {
+    min-width: 0 !important;
+    padding-inline: 6px !important;
+    font-size: 12px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-codex-composer-root] {
+    min-width: 0 !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer {
+    border-width: 2px !important;
+    border-radius: 13px 9px 14px 10px !important;
+    box-shadow: 4px 4px 0 var(--dog-marker-shadow) !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer button[data-composer-navigation-target="permissions"] {
+    max-width: 76px !important;
+    padding-inline: 6px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] .dream-skin-composer button[data-composer-navigation-target="reasoning"] {
+    max-width: 112px !important;
+    padding-inline: 7px !important;
+    margin-right: 6px !important;
+    overflow: hidden !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-in-progress-fixed-content="true"] [class*="bg-background-primary-soft/70"] {
+    max-width: calc(100% - 20px) !important;
+    min-height: 32px !important;
+    padding: 4px 9px 5px 29px !important;
+    font-size: 12px !important;
+    box-shadow: 3px 3px 0 var(--dog-marker-shadow) !important;
+  }
+}
+
+/* Happy Coding Dog — review / diff workspace */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  [class*="Review"],
+  [class*="review"],
+  [data-testid*="review"],
+  [aria-label*="审查"]
+) {
+  --review-paper: #fffaf0;
+  --review-line: #20201d;
+  color: var(--dog-marker-shadow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where([role="tablist"], [class*="TabList"], [class*="tab-list"]) {
+  gap: 7px !important;
+  padding: 6px 9px !important;
+  border-bottom: 3px solid var(--dog-marker-shadow) !important;
+  background:
+    repeating-linear-gradient(3deg, rgba(255,255,255,.1) 0 2px, transparent 2px 8px),
+    var(--dog-marker-yellow) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where([role="tab"], [class*="TabButton"], [class*="tab-button"]) {
+  min-height: 31px !important;
+  padding: 4px 11px !important;
+  border: 2px solid transparent !important;
+  border-radius: 9px 6px 10px 7px !important;
+  color: var(--dog-marker-shadow) !important;
+  font-weight: 850 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where([role="tab"][aria-selected="true"], [role="tab"][data-state="active"]) {
+  border-color: var(--dog-marker-shadow) !important;
+  background: var(--dog-marker-cream) !important;
+  box-shadow: 3px 3px 0 var(--dog-marker-red) !important;
+  transform: rotate(-.35deg);
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .monaco-editor,
+  .cm-editor,
+  [class*="DiffEditor"],
+  [class*="diff-editor"],
+  [data-testid*="diff-view"]
+) {
+  border: 3px solid var(--dog-marker-shadow) !important;
+  border-radius: 12px 8px 13px 9px !important;
+  background: var(--review-paper, #fffaf0) !important;
+  box-shadow: 6px 6px 0 var(--dog-marker-shadow) !important;
+  overflow: hidden !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .monaco-editor .margin,
+  .cm-gutters,
+  [class*="line-numbers"],
+  [class*="LineNumber"]
+) {
+  border-right: 2px solid var(--dog-marker-shadow) !important;
+  background: color-mix(in srgb, #8eddea 31%, #fffaf0) !important;
+  color: var(--dog-marker-blue) !important;
+  font-weight: 800 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .monaco-editor .view-line,
+  .cm-line,
+  [class*="DiffLine"],
+  [data-testid*="diff-line"]
+) {
+  border-bottom: 1px solid rgba(32,32,29,.055) !important;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .line-insert,
+  .char-insert,
+  [class*="added-line"],
+  [data-diff-type="addition"]
+) {
+  background: color-mix(in srgb, var(--dog-marker-green) 31%, #fffaf0) !important;
+  box-shadow: inset 4px 0 0 #35a853 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  .line-delete,
+  .char-delete,
+  [class*="removed-line"],
+  [data-diff-type="deletion"]
+) {
+  background: color-mix(in srgb, var(--dog-marker-red) 22%, #fffaf0) !important;
+  box-shadow: inset 4px 0 0 var(--dog-marker-red) !important;
+}
+
+/* Happy Coding Dog — native new-task surface only.  Keep task/thread pages untouched. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(42,177,197,.24) 0 4px, transparent 5px),
+    radial-gradient(circle at 82% 26%, rgba(255,91,73,.22) 0 4px, transparent 5px),
+    radial-gradient(circle at 68% 72%, rgba(136,201,63,.22) 0 5px, transparent 6px),
+    repeating-linear-gradient(3deg, rgba(255,216,74,.08) 0 2px, transparent 2px 9px),
+    var(--dog-paper) !important;
+}
+
+/* The native home composer has several full-width layout wrappers. They must
+   stay transparent; only the actual input card receives the painted frame. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_ComposerLayoutRoot_"],
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_ComposerLayoutRoot_"].dream-skin-composer-dock,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [class*="_ComposerLayoutRoot_"] > :not(.dream-skin-composer) {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [data-testid="home-icon"] {
+  display: grid !important;
+  width: 54px !important;
+  height: 50px !important;
+  place-items: center !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 48% 42% 46% 40% !important;
+  background: var(--dog-coral) !important;
+  color: var(--dog-yellow) !important;
+  box-shadow: 5px 5px 0 var(--dog-ink) !important;
+  transform: rotate(-4deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [data-testid="home-icon"]::after {
+  content: "★" !important;
+  font-size: 27px !important;
+  line-height: 1 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell [data-testid="home-icon"] > * {
+  display: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell :where(h1, h2) {
+  width: fit-content !important;
+  max-width: min(760px, calc(100% - 48px)) !important;
+  margin-inline: auto !important;
+  padding: 10px 22px 12px !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 18px 11px 20px 13px !important;
+  background:
+    repeating-linear-gradient(2deg, rgba(255,255,255,.16) 0 2px, transparent 2px 8px),
+    var(--dog-yellow) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 6px 6px 0 var(--dog-ink) !important;
+  font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", system-ui, sans-serif !important;
+  font-weight: 950 !important;
+  letter-spacing: .01em !important;
+  transform: rotate(-.45deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions {
+  overflow: visible !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions button {
+  position: relative !important;
+  min-height: 112px !important;
+  padding: 16px 15px !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-radius: 15px 10px 18px 12px !important;
+  background: var(--dog-yellow) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 5px 5px 0 var(--dog-ink) !important;
+  font-weight: 800 !important;
+  transform: rotate(-.65deg) !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions > * > :nth-child(2) button {
+  background: #8eddea !important;
+  transform: rotate(.55deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions > * > :nth-child(3) button {
+  background: #9ad85d !important;
+  transform: rotate(-.35deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions > * > :nth-child(4) button {
+  background: #ff7463 !important;
+  transform: rotate(.7deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions button:hover {
+  transform: translate(-2px, -3px) rotate(0deg) !important;
+  box-shadow: 8px 8px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions button span:has(> svg) {
+  display: inline-grid !important;
+  flex: 0 0 34px !important;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  margin: 0 10px 0 0 !important;
+  place-items: center !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 50% 44% 48% 42% !important;
+  background: var(--dog-cream) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions button svg {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--dog-ink) !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .composer-surface-chrome,
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-composer {
+  max-width: min(760px, calc(100vw - 42px)) !important;
+  margin-inline: auto !important;
+  border: 3px solid var(--dog-ink) !important;
+  background:
+    repeating-linear-gradient(3deg, rgba(255,216,74,.09) 0 2px, transparent 2px 9px),
+    var(--dog-cream) !important;
+  box-shadow: 7px 7px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-composer-stamp {
+  left: 50% !important;
+  right: auto !important;
+  bottom: 124px !important;
+  width: 78px !important;
+  padding: 5px !important;
+  transform: translateX(-50%) rotate(-3deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-composer-stamp img {
+  width: 54px !important;
+  height: 54px !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-composer-stamp span {
+  width: 68px !important;
+  max-width: 68px !important;
+  font-size: 8px !important;
+}
+
+@media (max-height: 760px), (max-width: 980px) {
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/home-suggestions button {
+    min-height: 92px !important;
+    padding: 11px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-composer-stamp {
+    display: none !important;
+  }
+}
+
+/* Keep the empty-task headline and suggestion grid on the same responsive
+   content rail. Viewport-relative offsets can push the first card under the
+   sidebar, especially when Codex changes the width of its main pane. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell :is(
+  .dream-skin-happy-home-title,
+  .group\/home-suggestions
+) {
+  width: min(720px, calc(100% - 48px)) !important;
+  max-width: min(720px, calc(100% - 48px)) !important;
+  margin-inline: auto !important;
+  transform: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-fallback-suggestions {
+  position: absolute !important;
+  left: 50% !important;
+  right: auto !important;
+  display: block !important;
+  transform: translateX(-50%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .dream-skin-happy-fallback-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+/* New-task dog illustration. This pseudo-element exists only while the native
+   empty-task surface is active, so populated conversations never inherit it. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  top: 90px !important;
+  right: clamp(34px, 7vw, 150px) !important;
+  width: clamp(290px, 30vw, 470px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border: 0 !important;
+  background: var(--dream-skin-art) center / contain no-repeat !important;
+  opacity: .24 !important;
+  filter: saturate(118%) contrast(105%) !important;
+  transform: rotate(3deg) !important;
+  pointer-events: none !important;
+  -webkit-mask-image: radial-gradient(ellipse 64% 62% at 50% 48%, #000 48%, transparent 82%) !important;
+  mask-image: radial-gradient(ellipse 64% 62% at 50% 48%, #000 48%, transparent 82%) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Project context strip immediately above the empty-task composer. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell div:has(> .horizontal-scroll-fade-mask .group\/project-selector) {
+  max-width: min(760px, calc(100vw - 42px)) !important;
+  margin: 10px auto 0 !important;
+  padding: 7px 10px !important;
+  border: 3px solid var(--dog-ink) !important;
+  border-bottom: 0 !important;
+  border-radius: 15px 10px 0 0 !important;
+  background:
+    repeating-linear-gradient(2deg, rgba(255,255,255,.14) 0 2px, transparent 2px 8px),
+    #8eddea !important;
+  box-shadow: 6px 3px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .group\/project-selector > button {
+  min-height: 30px !important;
+  padding: 4px 10px !important;
+  border: 2px solid var(--dog-ink) !important;
+  border-radius: 9px 6px 10px 7px !important;
+  background: var(--dog-yellow) !important;
+  color: var(--dog-ink) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+  font-weight: 850 !important;
+}
+
+/* Keep the actual empty-task prompt prominent and colorful. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .composer-surface-chrome {
+  min-height: 104px !important;
+  border-radius: 5px 11px 19px 13px !important;
+  background:
+    linear-gradient(90deg, #ffd84a 0 9px, transparent 9px),
+    repeating-linear-gradient(3deg, rgba(42,177,197,.09) 0 2px, transparent 2px 9px),
+    var(--dog-cream) !important;
+  box-shadow: 7px 7px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .composer-surface-chrome:focus-within {
+  border-color: var(--dog-ink) !important;
+  box-shadow: 7px 7px 0 var(--dog-coral) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .composer-surface-chrome :where(textarea, .ProseMirror, [contenteditable="true"]) {
+  min-height: 48px !important;
+  padding-inline: 13px !important;
+  background: transparent !important;
+  color: var(--dog-ink) !important;
+  font-weight: 650 !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .composer-surface-chrome :where(button, [role="button"]) {
+  min-width: 31px !important;
+  min-height: 31px !important;
+  margin-inline: 3px !important;
+  border: 2px solid var(--dog-ink) !important;
+  background: var(--dog-yellow) !important;
+  box-shadow: 2px 2px 0 var(--dog-ink) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell .composer-surface-chrome :where(button, [role="button"]):nth-last-child(-n+2) {
+  background: var(--dog-green) !important;
+}
+
+/* Move the decorative stamp away from the prompt's center. */
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-composer-stamp {
+  left: auto !important;
+  right: max(24px, calc(50% - 465px)) !important;
+  bottom: 142px !important;
+  width: 70px !important;
+  transform: rotate(4deg) !important;
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-composer-stamp:hover {
+  transform: translateY(-4px) rotate(1deg) !important;
+  box-shadow: 7px 7px 0 var(--dog-ink) !important;
+}
+
+@media (max-width: 1180px) {
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] main.dream-skin-home-shell::before {
+    right: 20px !important;
+    width: 300px !important;
+    opacity: .16 !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] #codex-dream-skin-chrome.dream-skin-home-shell .dream-skin-composer-stamp {
+    display: none !important;
+  }
+}
+
+html.codex-dream-skin[data-dream-theme="happy-coding-dog"] :where(
+  [class*="FileHeader"],
+  [class*="file-header"],
+  [data-testid*="file-header"]
+) {
+  padding: 7px 10px !important;
+  border-block: 2px solid var(--dog-marker-shadow) !important;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--dog-marker-green) 32%, #fffaf0), #fffaf0 62%) !important;
+  color: var(--dog-marker-shadow) !important;
+  font-weight: 850 !important;
+}
+
+@media (max-width: 900px) {
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] aside.app-shell-left-panel {
+    max-width: 210px !important;
+  }
+
+  html.codex-dream-skin[data-dream-theme="happy-coding-dog"] [data-markdown-text-style="assistant-message"] {
+    padding-inline: 18px 12px !important;
   }
 }

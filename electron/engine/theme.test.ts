@@ -6,6 +6,8 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { normalizeTheme, contrastRatio, validateContrast, deriveDarkPalette } from "./normalize";
 import { compileTheme } from "./compiler";
 import { buildPayload, loadTheme } from "./payload";
@@ -272,6 +274,18 @@ describe("isActiveHomeSurface", () => {
     );
   });
 
+  it("accepts the current new-conversation surface when only its welcome prompt is visible", () => {
+    assert.equal(
+      isActiveHomeSurface({
+        ...activeHome,
+        visibleGameSource: false,
+        visibleSuggestions: false,
+        visibleWelcome: true,
+      }),
+      true,
+    );
+  });
+
   it("keeps a visible theme-owned home active while native home content is hidden", () => {
     assert.equal(
       isActiveHomeSurface({
@@ -415,21 +429,431 @@ describe("loadTheme", () => {
     }
   });
 
-  it("embeds the Nightbound Companion video and fallback poster", async () => {
+  it("embeds cinematic-live video backgrounds and fallback posters", async () => {
+    for (const id of ["nightbound-companion", "yan-companion"]) {
+      const built = await buildPayload(
+        "./assets/inject",
+        `./assets/presets/${id}`,
+      );
+      assert.equal(built.theme.id, id);
+      assert.equal(built.theme.layout, "cinematic-live");
+      assert.equal(built.theme.resources.motionBackground, "motion.mp4");
+      assert.equal(built.theme.resources.motionPoster, "motion-poster.webp");
+      assert.ok(built.payload.includes("data:video/mp4;base64,"));
+      assert.ok(built.payload.includes("dream-skin-cinematic-video"));
+      assert.ok(built.payload.includes("visibleCinematicHome"));
+      assert.ok(built.payload.includes(".thread-scroll-container"));
+      assert.ok(built.payload.includes("prefers-reduced-motion: reduce"));
+      assert.ok(!built.payload.includes("__DREAM_SKIN_MOTION_JSON__"));
+      assert.ok(!built.payload.includes("__DREAM_SKIN_MOTION_POSTER_JSON__"));
+      assert.doesNotThrow(() => new Function(built.payload));
+    }
+  });
+});
+
+describe("Happy Coding Dog injected skin", () => {
+  it("pauses the mutation observer while refreshing the injected theme", async () => {
     const built = await buildPayload(
       "./assets/inject",
-      "./assets/presets/nightbound-companion",
+      "./assets/presets/happy-coding-dog",
     );
-    assert.equal(built.theme.layout, "cinematic-live");
-    assert.equal(built.theme.resources.motionBackground, "motion.mp4");
-    assert.equal(built.theme.resources.motionPoster, "motion-poster.webp");
-    assert.ok(built.payload.includes("data:video/mp4;base64,"));
-    assert.ok(built.payload.includes("dream-skin-cinematic-video"));
-    assert.ok(built.payload.includes("visibleCinematicHome"));
-    assert.ok(built.payload.includes(".thread-scroll-container"));
-    assert.ok(built.payload.includes("prefers-reduced-motion: reduce"));
-    assert.ok(!built.payload.includes("__DREAM_SKIN_MOTION_JSON__"));
-    assert.ok(!built.payload.includes("__DREAM_SKIN_MOTION_POSTER_JSON__"));
-    assert.doesNotThrow(() => new Function(built.payload));
+
+    assert.match(
+      built.payload,
+      /const runEnsure = \(\) => \{[\s\S]*observer\.disconnect\(\)[\s\S]*ensure\(\)[\s\S]*observer\.observe\(document\.documentElement, observerOptions\)/,
+      "theme-owned class and style mutations must not schedule another refresh",
+    );
+    assert.match(built.payload, /setInterval\(runEnsure, 4000\)/);
+    assert.match(built.payload, /\n  runEnsure\(\);\n  return \{ installed:/);
+  });
+
+  it("ignores cosmetic attribute churn when deciding whether to refresh the theme", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+
+    assert.match(
+      built.payload,
+      /const shouldScheduleEnsure = \(mutations\) => mutations\.some\([\s\S]*mutation\.target === document\.documentElement[\s\S]*mutation\.target === document\.body/,
+    );
+    assert.match(
+      built.payload,
+      /new MutationObserver\(\(mutations\) => \{[\s\S]*shouldScheduleEnsure\(mutations\)[\s\S]*scheduleEnsure\(\)/,
+    );
+    assert.doesNotMatch(
+      built.payload,
+      /attributeFilter: \[[^\]]*(?:"aria-label"|"style")/,
+      "tooltip animation and accessibility-label churn must not refresh the whole skin",
+    );
+  });
+
+  it("ignores timer text and transient portal nodes outside the themed shell", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+
+    assert.match(
+      built.payload,
+      /if \(mutation\.type === "characterData"\) return false;/,
+    );
+    assert.match(
+      built.payload,
+      /if \(mutation\.type === "childList"\) return mutationTouchesThemeStructure\(mutation\);/,
+    );
+    assert.match(
+      built.payload,
+      /const THEME_STRUCTURE_SELECTOR = "main, aside\.app-shell-left-panel,[^"]+_ComposerLayout/,
+    );
+  });
+
+  it("turns native sidebar navigation glyphs into color-coded hand-drawn stickers", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    for (const kind of ["new-chat", "pull-requests", "sites", "scheduled", "plugins", "security"]) {
+      assert.ok(
+        built.payload.includes(`["${kind}",`),
+        `the injected sidebar annotator must classify ${kind}`,
+      );
+      assert.ok(
+        css.includes(`[data-dream-dog-icon="${kind}"]`),
+        `missing Happy Coding Dog sticker treatment for ${kind}`,
+      );
+    }
+    assert.match(
+      css,
+      /data-dream-dog-icon[^{}]*svg[^{}]*\{[^}]*stroke-width:\s*2\.35[^}]*filter:\s*drop-shadow/s,
+      "sidebar glyphs should use a heavier hand-drawn line and offset ink shadow",
+    );
+    assert.match(
+      css,
+      /data-dream-dog-project[^{}]*svg[^{}]*\{[^}]*background:\s*var\(--dog-yellow\)/s,
+      "project folders should share the cream-yellow sticker language",
+    );
+  });
+
+  it("styles the sidebar utility actions and keeps icon labels comfortably spaced", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    for (const kind of ["search", "activity", "quick-chat", "profile", "voice", "help"]) {
+      assert.ok(built.payload.includes(`["${kind}",`), `missing utility action mapping for ${kind}`);
+      assert.ok(css.includes(`[data-dream-dog-action="${kind}"]`), `missing utility sticker for ${kind}`);
+    }
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*aside\.app-shell-left-panel[^{}]*data-dream-dog-icon[^{}]*data-dream-dog-project[^{}]*\{[^}]*column-gap:\s*8px\s*!important/s,
+      "navigation and project rows should keep an 8px gap between icon and label",
+    );
+    assert.match(
+      css,
+      /data-dream-dog-action="voice"[^{}]*\{[^}]*column-gap:\s*8px\s*!important/s,
+      "the bottom voice action should keep its icon away from the label",
+    );
+  });
+
+  it("turns the output and sources popover into a compact hand-drawn resource note", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    for (const hook of [
+      "data-dream-dog-resource-panel",
+      "data-dream-dog-resource-header",
+      "data-dream-dog-resource-add",
+      "data-dream-dog-resource-row",
+      "data-dream-dog-resource-view-all",
+    ]) {
+      assert.ok(built.payload.includes(hook), `missing resource popover DOM hook ${hook}`);
+      assert.ok(css.includes(`[${hook}]`), `missing resource popover styling for ${hook}`);
+    }
+    assert.match(
+      css,
+      /data-dream-dog-resource-panel[^{}]*\{[^}]*border:\s*(?:2|3)px solid var\(--dog-ink\)[^}]*box-shadow:/s,
+      "the resource popover should read as a bordered paper note",
+    );
+    assert.match(
+      css,
+      /data-dream-dog-resource-row[^{}]*\{[^}]*column-gap:\s*8px\s*!important/s,
+      "resource icons need an 8px gap from their labels",
+    );
+    assert.ok(css.includes('[data-dream-dog-resource-header="output"]'));
+    assert.ok(css.includes('[data-dream-dog-resource-header="sources"]'));
+  });
+
+  it("keeps resource popover colors above the generic elevated-panel treatment", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+    const genericPanelRule = css.lastIndexOf('body div[class~="rounded-3xl"][class~="bg-surface-elevated-secondary"]');
+    const outputHeaderRule = css.lastIndexOf('[data-dream-dog-resource-header="output"]');
+    const sourcesHeaderRule = css.lastIndexOf('[data-dream-dog-resource-header="sources"]');
+    const addButtonRule = css.lastIndexOf("[data-dream-dog-resource-add]");
+
+    assert.ok(outputHeaderRule > genericPanelRule, "the yellow output label must win the cascade");
+    assert.ok(sourcesHeaderRule > genericPanelRule, "the coral sources label must win the cascade");
+    assert.ok(addButtonRule > genericPanelRule, "the round add stickers must win the cascade");
+    assert.match(
+      css,
+      /data-dream-dog-resource-panel\]\[class~="rounded-3xl"\][^{}]*data-dream-dog-resource-header[^{}]*class~="sticky"/s,
+      "resource headers need enough specificity to beat the generic sticky panel header",
+    );
+  });
+
+  it("recognizes the resource add controls even when they expose an expanded state", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+
+    assert.match(
+      built.payload,
+      /filter\(\(button\) => !button\.classList\.contains\("group\/section-toggle"\)\)/,
+      "only the section toggle should be excluded from add-button styling",
+    );
+  });
+
+  it("maps the hand-painted treatment to every major Codex shell region", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+    const scope = 'html.codex-dream-skin[data-dream-theme="happy-coding-dog"]';
+    const requiredSelectors = [
+      `${scope} body`,
+      `${scope} aside.app-shell-left-panel`,
+      `${scope} main.dream-skin-main-surface`,
+      `${scope} header.app-header-tint`,
+      `${scope} [data-message-author-role]`,
+      `${scope} article`,
+      `${scope} .dream-skin-composer`,
+      `${scope} pre`,
+      `${scope} [class*="_ArtifactPanel_"]`,
+    ];
+
+    for (const selector of requiredSelectors) {
+      assert.ok(css.includes(selector), `missing scoped Happy Coding Dog treatment for ${selector}`);
+    }
+  });
+
+  it("keeps the painted title bar and composer decoration anchored against generic rules", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+    const scope = 'html.codex-dream-skin[data-dream-theme="happy-coding-dog"]';
+    assert.ok(
+      css.includes(`${scope} main.dream-skin-main-surface > header.app-header-tint`),
+      "title bar override must outrank the generic main/header selector",
+    );
+    assert.match(
+      css,
+      /data-dream-theme="happy-coding-dog"\][^{}]*\.dream-skin-composer[^{}]*\{[^}]*position:\s*relative\s*!important;/s,
+      "composer must anchor its painted star decoration",
+    );
+  });
+
+  it("keeps scrolled conversation content behind the cream thread header and ribbon", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*main\.dream-skin-main-surface:not\(\.dream-skin-home-shell\)\s*>\s*header\[class~="fixed"\]\[class~="z-30"\][^{}]*\{[^}]*background:[^}]*100% 6px no-repeat[^}]*var\(--dog-cream\)\s*!important[^}]*border-bottom:\s*3px solid var\(--dog-ink\)/s,
+      "the fixed thread header must use opaque cream paper with a narrow painted ribbon",
+    );
+  });
+
+  it("does not place a paper fade over the top of populated conversations", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.doesNotMatch(
+      css,
+      /main\.dream-skin-main-surface:not\(\.dream-skin-home-shell\)::after\s*\{[^}]*content:\s*""[^}]*top:\s*46px[^}]*height:\s*44px/s,
+      "the conversation background must remain visible immediately below the fixed toolbar",
+    );
+  });
+
+  it("keeps only the upper titlebar rule on populated task conversations", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.match(
+      css,
+      /#codex-dream-skin-chrome:not\(\.dream-skin-home-shell\)::before[^{}]*\{[^}]*background:\s*var\(--dog-dopamine-header\)\s*!important[^}]*border-bottom:\s*0\s*!important[^}]*box-shadow:\s*none\s*!important/s,
+    );
+    assert.match(
+      css,
+      /main:not\(\.dream-skin-home-shell\)\s*\[class\*="_MainContentViewport_"\]::after[^{}]*\{[^}]*background:\s*var\(--dog-dopamine-header\)\s*!important/s,
+    );
+  });
+
+  it("keeps only the upper titlebar rule on the new-conversation home", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.match(
+      css,
+      /#codex-dream-skin-chrome\.dream-skin-home-shell::before[^{}]*\{[^}]*background:\s*transparent\s*!important[^}]*border-bottom:\s*0\s*!important[^}]*box-shadow:\s*none\s*!important/s,
+    );
+    assert.match(
+      css,
+      /main\.dream-skin-home-shell\s*\[class\*="_MainContentViewport_"\]::after[^{}]*\{[^}]*background:\s*transparent\s*!important[^}]*border-bottom:\s*0\s*!important/s,
+    );
+  });
+
+  it("covers the complete live Codex workspace instead of only the home preview", () => {
+    const css = fs.readFileSync(path.join(process.cwd(), "assets/inject/dream-skin.css"), "utf8");
+    const requiredWorkspaceHooks = [
+      "[class*=_Thread]",
+      "[class*=_Conversation]",
+      "[class*=_Output]",
+      "[class*=_Sources]",
+      "[class*=_ComposerLayoutRoot_]",
+      "[data-radix-scroll-area-viewport]",
+      "--dog-stroke-texture",
+    ];
+
+    for (const hook of requiredWorkspaceHooks) {
+      assert.match(css, new RegExp(hook.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    }
+  });
+
+  it("does not clip the painted composer outline, stamp, or hard shadow", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+    assert.match(
+      css,
+      /happy-coding-dog[^}]*\}[\s\S]*\[class\*=_ComposerLayoutRoot_\]\.dream-skin-composer-dock\s*\{[^}]*overflow:\s*visible\s*!important/,
+    );
+    assert.match(
+      css,
+      /happy-coding-dog[^}]*\}[\s\S]*\.dream-skin-composer-stamp\s*\{[^}]*border:\s*3px solid var\(--dog-ink\)/,
+    );
+  });
+
+  it("keeps native suggestion glyphs intact while painting their icon container", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.match(
+      css,
+      /happy-coding-dog[^}]*home-suggestions[^}]*span:has\(> svg\)[^{]*\{[^}]*border:\s*2px solid var\(--dog-ink\)/s,
+      "the painted circle belongs on the icon container",
+    );
+    assert.match(
+      css,
+      /happy-coding-dog[^}]*home-suggestions[^}]*button svg[^}]*\{[^}]*width:\s*20px[^}]*height:\s*20px[^}]*padding:\s*0/s,
+      "the SVG viewport must remain unpadded so native glyphs are not clipped",
+    );
+  });
+
+  it("aligns the home title and suggestion cards to one centered content rail", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.match(
+      css,
+      /happy-coding-dog[^}]*dream-skin-happy-home-title[^}]*group\\\/home-suggestions[^}]*\{[^}]*width:\s*min\(720px, calc\(100% - 48px\)\)[^}]*margin-inline:\s*auto[^}]*transform:\s*none\s*!important/s,
+      "the title and cards must share a centered rail without a viewport-relative offset",
+    );
+  });
+
+  it("renders aligned fallback suggestions when Codex leaves the native host empty", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+
+    assert.ok(
+      built.payload.includes("dream-skin-happy-fallback-suggestions"),
+      "the live skin must provide cards when the native suggestion host is empty",
+    );
+    assert.ok(
+      built.payload.includes('data-happy-suggestion="understand"'),
+      "the fallback must expose actionable suggestion buttons",
+    );
+    assert.ok(
+      built.payload.includes('querySelector(\':scope > [class*="top-full"]\')'),
+      "the fallback must reuse Codex's title-owned suggestion host",
+    );
+    assert.match(
+      built.payload,
+      /dream-skin-happy-fallback-suggestions[^{}]*\{[^}]*position:\s*absolute\s*!important/s,
+      "the fallback must preserve the native absolute-positioned host",
+    );
+  });
+
+  it("does not decorate the full home wrapper as the voice card", async () => {
+    const built = await buildPayload(
+      "./assets/inject",
+      "./assets/presets/happy-coding-dog",
+    );
+
+    assert.match(
+      built.payload,
+      /if \(voiceCard && isHappyVoiceCardCandidate\(voiceCard\)\)\s*\{\s*voiceCard\.classList\.add\("dream-skin-happy-home-voice"\)/,
+      "the initial voice-label candidate must satisfy the compact-card bounds before decoration",
+    );
+  });
+
+  it("removes the native white top fade from the animal home canvas", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*dream-skin-home-shell[^{}]*\[class\*="_MainContentTopFade_"\][^{}]*\{[^}]*display:\s*none\s*!important/s,
+      "the native white-to-transparent top fade must not sit above the painted background",
+    );
+  });
+
+  it("paints the home titlebar while leaving the removed cover layers transparent", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*main\.dream-skin-home-shell\s*>\s*header\[class~="fixed"\]\[class~="z-30"\][^{}]*\{[^}]*linear-gradient\(100deg[^}]*#ffd84a[^}]*#ff5b49[^}]*#23b7c9[^}]*#78c64b[^}]*#a86be8[^}]*border-bottom:\s*3px solid var\(--dog-ink\)/s,
+      "the fixed home titlebar must keep the hand-painted multicolor treatment",
+    );
+    assert.match(
+      css,
+      /--dog-dopamine-header:\s*linear-gradient\([^;]*#ffd84a[^;]*#ff8a3d[^;]*#ff5b49[^;]*#a86be8[^;]*\);/s,
+      "the header palette must progress from yellow through orange and coral to purple",
+    );
+    assert.doesNotMatch(
+      css,
+      /--dog-dopamine-header:[^;]*(?:#2ab1c5|#67d1df|#8eddea|var\(--dog-blue\)|var\(--dog-cyan\))/s,
+      "the dopamine header must not contain cyan paint",
+    );
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*dream-skin-home-shell[^{}]*\.dream-skin-brand[^{}]*\{[^}]*background:\s*var\(--dog-cream\)[^}]*border:\s*3px solid var\(--dog-coral\)/s,
+      "the home brand must read as a warm cream-and-coral sticker",
+    );
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*dream-skin-home-shell[^{}]*\.dream-skin-status[^{}]*\{[^}]*background:\s*var\(--dog-yellow\)[^}]*box-shadow:\s*3px 3px 0 var\(--dog-purple\)/s,
+      "the online status must use yellow paint with a purple sticker shadow",
+    );
+    assert.match(
+      css,
+      /#codex-dream-skin-chrome\.dream-skin-home-shell::before[^{}]*\{[^}]*background:\s*transparent\s*!important/s,
+      "the removed home cover must stay transparent",
+    );
+  });
+
+  it("uses the edge-blended animal team artwork without canvas gutters", () => {
+    const css = fs.readFileSync(path.resolve("assets/inject/dream-skin.css"), "utf8");
+    const theme = JSON.parse(
+      fs.readFileSync(path.resolve("assets/presets/happy-coding-dog/theme.json"), "utf8"),
+    );
+
+    assert.equal(theme.hero, "hero-workspace-blended.png");
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*dream-skin-native-home-dog[^{}]*\{[^}]*object-fit:\s*cover\s*!important[^}]*object-position:\s*center\s*!important/s,
+      "the workspace-specific artwork must fill the canvas without a side color block",
+    );
+    assert.match(
+      css,
+      /happy-coding-dog[^{}]*dream-skin-happy-home-canvas[^{}]*\{[^}]*scrollbar-gutter:\s*auto\s*!important/s,
+      "the home canvas must not reserve side gutters around the artwork",
+    );
   });
 });

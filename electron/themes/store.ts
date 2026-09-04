@@ -59,6 +59,8 @@ export interface StorePaths {
 export interface ResolveThemeDirOptions {
   /** Prefer a downloaded marketplace package over a bundled catalog placeholder. */
   preferPurchased?: boolean;
+  /** Prefer the library source selected in the renderer when duplicate ids exist. */
+  preferredSource?: ThemeSource;
   /** Catalog-only packages are previews and must never be applied to Codex. */
   allowCatalogOnly?: boolean;
 }
@@ -202,9 +204,19 @@ export class ThemeStore {
 
   /** Resolve a theme id to its directory. Library operations keep preset-first compatibility. */
   async resolveThemeDir(id: string, options: ResolveThemeDirOptions = {}): Promise<string | null> {
-    const roots = options.preferPurchased && this.paths.purchasedThemesRoot
+    const sourceRoots: Record<ThemeSource, string | undefined> = {
+      preset: this.paths.presetsRoot,
+      custom: this.paths.userThemesRoot,
+      imported: this.paths.userThemesRoot,
+      purchased: this.paths.purchasedThemesRoot,
+    };
+    const preferredRoot = options.preferredSource ? sourceRoots[options.preferredSource] : undefined;
+    const fallbackRoots = options.preferPurchased && this.paths.purchasedThemesRoot
       ? [this.paths.purchasedThemesRoot, this.paths.userThemesRoot, this.paths.presetsRoot]
       : [this.paths.presetsRoot, this.paths.userThemesRoot, ...(this.paths.purchasedThemesRoot ? [this.paths.purchasedThemesRoot] : [])];
+    const roots = preferredRoot
+      ? [preferredRoot, ...fallbackRoots.filter((root) => root !== preferredRoot)]
+      : fallbackRoots;
     for (const root of roots) {
       let entries: string[] = [];
       try {

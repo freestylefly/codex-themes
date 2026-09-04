@@ -120,7 +120,7 @@ export function ThemeCard({
       <button
         className="btn btn-primary"
         disabled={Boolean(applyingId) || !state?.codexDesktop.installed}
-        onClick={() => void apply(theme.id)}
+        onClick={() => void apply(theme.id, theme.source)}
         title={state?.codexDesktop.installed ? "应用到 Codex" : "未检测到 Codex"}
       >
         {isApplying ? (

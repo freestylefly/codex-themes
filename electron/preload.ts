@@ -8,6 +8,7 @@ import type {
   AiThemeJob,
   AppState,
   AppUpdateState,
+  ApplyThemeOptions,
   AuthState,
   CodexApprovalRequest,
   CodexThemesApi,
@@ -42,7 +43,7 @@ const api: CodexThemesApi = {
   openAppUpdateRelease: () => ipcRenderer.invoke("updater:openRelease"),
   openAppUpdateDownload: () => ipcRenderer.invoke("updater:openDownload"),
   listThemes: () => ipcRenderer.invoke("themes:list"),
-  applyTheme: (id: string, opts?: { confirmRestart?: boolean }) =>
+  applyTheme: (id: string, opts?: ApplyThemeOptions) =>
     ipcRenderer.invoke("themes:apply", id, opts),
   restoreOfficial: () => ipcRenderer.invoke("themes:restoreOfficial"),
   openCodex: () => ipcRenderer.invoke("codex:open"),

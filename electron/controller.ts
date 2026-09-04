@@ -15,7 +15,7 @@
 
 import { EventEmitter } from "node:events";
 import fs from "node:fs/promises";
-import type { AppState, ApplyResult, ApplyStatus, CodexCliStatus, LayoutKind, LogLine } from "./shared/types";
+import type { AppState, ApplyResult, ApplyStatus, ApplyThemeOptions, CodexCliStatus, LayoutKind, LogLine, ThemeSource } from "./shared/types";
 import type { AppPaths } from "./paths";
 import { PREFERRED_CDP_PORT, SKIN_VERSION } from "./engine/constants";
 import { buildPayload } from "./engine/payload";
@@ -48,6 +48,7 @@ import type {
 interface PersistedState {
   activeThemeId: string | null;
   activeThemeName: string | null;
+  activeThemeSource: ThemeSource | null;
   activeLayout: LayoutKind | null;
   cdpPort: number | null;
   appliedAt: string | null;
@@ -61,10 +62,24 @@ const AUTO_APPLY_SETTLE_MS = 4_000;
 const EMPTY_PERSISTED: PersistedState = {
   activeThemeId: null,
   activeThemeName: null,
+  activeThemeSource: null,
   activeLayout: null,
   cdpPort: null,
   appliedAt: null,
 };
+
+function isThemeSource(value: unknown): value is ThemeSource {
+  return value === "preset" || value === "custom" || value === "imported" || value === "purchased";
+}
+
+export function shouldStopStaleWatcher(watcherActive: boolean, cdpHealthy: boolean): boolean {
+  return watcherActive && !cdpHealthy;
+}
+
+/** Allow at most one automatic restart during one observed Codex run. */
+export function canAttemptAutoApply(restartBlocked: boolean): boolean {
+  return !restartBlocked;
+}
 
 /**
  * Keep local filesystem paths and Codex thread/turn identifiers in the main
@@ -108,6 +123,7 @@ export class ThemeController extends EventEmitter {
   private codexRunning = false;
   private cdpHealthy = false;
   private autoApplyRunningSince: number | null = null;
+  private autoApplyRestartBlocked = false;
   private lastAutoApplyAt = 0;
   private cliService: CodexCliStatusService;
   private jobService: AiThemeJobService;
@@ -149,6 +165,7 @@ export class ThemeController extends EventEmitter {
     try {
       const dir = await this.store.resolveThemeDir(activeThemeId, {
         preferPurchased: true,
+        preferredSource: this.persisted.activeThemeSource ?? undefined,
         allowCatalogOnly: false,
       });
       if (!dir) throw new Error("theme directory is gone");
@@ -275,12 +292,25 @@ export class ThemeController extends EventEmitter {
    */
   async tick(): Promise<void> {
     await this.refreshStatus();
+    if (!this.applying && !this.codexRunning) {
+      // A real user-driven quit ends the current run. The next launch may make
+      // one fresh recovery attempt, but a failed recovery cannot loop forever.
+      this.autoApplyRestartBlocked = false;
+    }
+    if (shouldStopStaleWatcher(this.watcher?.active ?? false, this.cdpHealthy)) {
+      this.log("warn", "Codex 调试端口已失效,正在停止旧注入守护并准备恢复主题。");
+      await this.watcher?.stop();
+      this.watcher = null;
+      this.emitState();
+    }
     if (!this.settings?.current.autoApply) {
       this.autoApplyRunningSince = null;
+      this.autoApplyRestartBlocked = false;
       return;
     }
     const { activeThemeId } = this.persisted;
     if (!activeThemeId || this.applying || this.watcher?.active) return;
+    if (!canAttemptAutoApply(this.autoApplyRestartBlocked)) return;
     if (!this.install || !this.codexRunning || this.cdpHealthy) {
       this.autoApplyRunningSince = null;
       return;
@@ -297,9 +327,15 @@ export class ThemeController extends EventEmitter {
     this.lastAutoApplyAt = Date.now();
     this.autoApplyRunningSince = null;
     this.log("info", "检测到 Codex 未带调试端口启动,按偏好设置自动恢复主题…");
-    const result = await this.applyTheme(activeThemeId, { confirmRestart: true });
+    const result = await this.applyTheme(activeThemeId, {
+      confirmRestart: true,
+      source: this.persisted.activeThemeSource ?? undefined,
+    });
+    // Whether the launch failed outright or CDP disappeared again shortly
+    // afterwards, do not restart this same observed Codex run a second time.
+    this.autoApplyRestartBlocked = true;
     if (!result.ok) {
-      this.log("warn", `自动应用失败(将在冷却期后重试):${result.error ?? "未知错误"}`);
+      this.log("warn", `自动应用失败(本次 Codex 运行不再自动重试):${result.error ?? "未知错误"}`);
     }
   }
 
@@ -337,7 +373,7 @@ export class ThemeController extends EventEmitter {
 
   // ----------------------------------------------------------------- apply
 
-  async applyTheme(themeId: string, opts: { confirmRestart?: boolean } = {}): Promise<ApplyResult> {
+  async applyTheme(themeId: string, opts: ApplyThemeOptions = {}): Promise<ApplyResult> {
     if (this.applying) {
       return this.result("failed", false, false, [], "另一个主题正在应用中,请稍候。");
     }
@@ -360,6 +396,7 @@ export class ThemeController extends EventEmitter {
       }
       const dir = await this.store.resolveThemeDir(themeId, {
         preferPurchased: true,
+        preferredSource: opts.source,
         allowCatalogOnly: false,
       });
       if (!dir) {
@@ -433,6 +470,7 @@ export class ThemeController extends EventEmitter {
       // 4) Persist, then soft-verify against a live session.
       this.persisted.activeThemeId = themeId;
       this.persisted.activeThemeName = themeName;
+      this.persisted.activeThemeSource = opts.source ?? null;
       this.persisted.activeLayout = themeLayout;
       this.persisted.appliedAt = new Date().toISOString();
       await this.writePersisted();
@@ -489,6 +527,7 @@ export class ThemeController extends EventEmitter {
       await restoreAppearanceKeys(this.paths.codexConfigPath, this.paths.configBackupFile);
       this.persisted.activeThemeId = null;
       this.persisted.activeThemeName = null;
+      this.persisted.activeThemeSource = null;
       this.persisted.activeLayout = null;
       this.persisted.appliedAt = null;
       await this.writePersisted();
@@ -556,6 +595,7 @@ export class ThemeController extends EventEmitter {
       return {
         activeThemeId: typeof raw?.activeThemeId === "string" ? raw.activeThemeId : null,
         activeThemeName: typeof raw?.activeThemeName === "string" ? raw.activeThemeName : null,
+        activeThemeSource: isThemeSource(raw?.activeThemeSource) ? raw.activeThemeSource : null,
         activeLayout: typeof raw?.activeLayout === "string" ? raw.activeLayout : null,
         cdpPort: Number.isInteger(raw?.cdpPort) ? raw.cdpPort : null,
         appliedAt: typeof raw?.appliedAt === "string" ? raw.appliedAt : null,

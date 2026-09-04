@@ -38,7 +38,7 @@ export function ThemePreviewModal({ theme, onClose, onPurchase, onAlipay, onDown
 
   const applyTheme = () => {
     onClose();
-    void apply(theme.id);
+    void apply(theme.id, theme.source);
   };
 
   return (

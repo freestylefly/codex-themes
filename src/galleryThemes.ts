@@ -12,6 +12,7 @@ import type {
  */
 const FEATURED_PRESET_IDS = [
   "nightbound-companion",
+  "yan-companion",
   "moonlit-immortal",
   "blue-window-messenger",
   "mirror-lake-ribbon",

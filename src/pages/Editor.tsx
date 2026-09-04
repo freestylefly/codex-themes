@@ -287,7 +287,7 @@ export function Editor() {
       toast("ok", editingId ? `主题「${saved.name}」已更新。` : `主题「${saved.name}」已保存。`);
       if (andApply) {
         setPage("gallery");
-        void apply(saved.id);
+        void apply(saved.id, saved.source);
       }
     } catch (error) {
       toast("err", `保存失败:${(error as Error).message}`);

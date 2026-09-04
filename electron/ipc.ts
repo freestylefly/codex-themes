@@ -10,6 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import type {
   AiThemeMessageInput,
+  ApplyThemeOptions,
   CustomThemeInput,
   InspectedThemePackage,
   OpenThemeAction,
@@ -128,7 +129,7 @@ export function registerIpc(ctx: IpcContext): void {
 
   ipcMain.handle("themes:list", () => store.listThemes());
 
-  ipcMain.handle("themes:apply", (_event, id: string, opts?: { confirmRestart?: boolean }) =>
+  ipcMain.handle("themes:apply", (_event, id: string, opts?: ApplyThemeOptions) =>
     controller.applyTheme(id, opts),
   );
 
